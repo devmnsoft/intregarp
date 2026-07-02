@@ -1,0 +1,10 @@
+* text=auto
+*.cs text eol=crlf
+*.cshtml text eol=crlf
+*.css text eol=crlf
+*.js text eol=crlf
+*.json text eol=crlf
+*.sql text eol=crlf
+*.ps1 text eol=crlf
+*.cmd text eol=crlf
+*.sh text eol=lf

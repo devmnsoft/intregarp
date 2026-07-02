@@ -1,1 +1,17 @@
-<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net8.0</TargetFramework><IsPackable>false</IsPackable></PropertyGroup><ItemGroup><ProjectReference Include="..\..\src\IntegraRP.Domain\IntegraRP.Domain.csproj"/></ItemGroup><ItemGroup><PackageReference Include="xunit" Version="2.9.2"/><PackageReference Include="xunit.runner.visualstudio" Version="2.8.2"/><PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1"/></ItemGroup></Project>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\IntegraRP.Domain\IntegraRP.Domain.csproj" />
+    <ProjectReference Include="..\..\src\IntegraRP.Application\IntegraRP.Application.csproj" />
+    <ProjectReference Include="..\..\src\IntegraRP.Contracts\IntegraRP.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\IntegraRP.Infrastructure\IntegraRP.Infrastructure.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+  </ItemGroup>
+</Project>

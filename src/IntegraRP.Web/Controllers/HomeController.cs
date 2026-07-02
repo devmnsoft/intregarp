@@ -1,1 +1,40 @@
-using Microsoft.AspNetCore.Mvc;namespace IntegraRP.Web.Controllers;public sealed class HomeController(ILogger<HomeController> logger):Controller{public IActionResult Login()=>View();public IActionResult Dashboard()=>View("Page",Page("Dashboard","Visão operacional em tempo real","dashboard"));public IActionResult Tarefas()=>View("Page",Page("Central de Tarefas","Prioridades, SLA e responsáveis","tarefas"));public IActionResult Project()=>View("Page",Page("Kanban / Project Central","Boards, sprints e entregas","project"));public IActionResult Processos()=>View("Page",Page("Processos","Templates BPMN e instâncias","processos"));public IActionResult Studio()=>View("Page",Page("Studio / Módulos Dinâmicos","Configuração low-code","modulos"));public IActionResult Setores()=>View("Page",Page("Setores e Organograma","Estrutura organizacional","setores"));public IActionResult Usuarios()=>View("Page",Page("Usuários","Identidades, perfis e RBAC futuro","usuarios"));public IActionResult Clientes()=>View("Page",Page("Clientes","CRM e relacionamento","clientes"));public IActionResult Produtos()=>View("Page",Page("Produtos e Estoque","Catálogo, lotes e estoque crítico","produtos"));public IActionResult Pedidos()=>View("Page",Page("Pedidos","Do pedido ao faturamento","pedidos"));public IActionResult Financeiro()=>View("Page",Page("Financeiro","Títulos, boletos e notas","financeiro"));public IActionResult Marketing()=>View("Page",Page("Marketing","Campanhas e assets","marketing"));public IActionResult Vendas()=>View("Page",Page("Vendas","Pipeline e negociações","vendas"));public IActionResult TradeMarketing()=>View("Page",Page("Trade Marketing","PDV, validade e precificação","trade"));public IActionResult Logistica()=>View("Page",Page("Logística","Separação, expedição e qualidade","logistica"));public IActionResult Entregas()=>View("Page",Page("Entregas / Romaneio","Rotas e prova de entrega","entregas"));public IActionResult Kpis()=>View("Page",Page("KPIs e Relatórios","Indicadores e IA operacional","kpis"));public IActionResult Configuracoes()=>View("Page",Page("Configurações","Tenant, segurança e integrações futuras","config"));static PageVm Page(string t,string s,string e)=>new(t,s,e);}public sealed record PageVm(string Title,string Subtitle,string EndpointKey);
+using Microsoft.AspNetCore.Mvc;
+
+namespace IntegraRP.Web.Controllers;
+
+public sealed class HomeController(ILogger<HomeController> logger) : Controller
+{
+    public IActionResult Login() => View();
+
+    public IActionResult Page(string? id)
+    {
+        ViewData["Page"] = string.IsNullOrWhiteSpace(id) ? "Dashboard" : id;
+        logger.LogInformation("Abrindo tela Web {Page}", ViewData["Page"]);
+        return View();
+    }
+
+    public IActionResult Dashboard() => NamedPage("Dashboard");
+    public IActionResult Tarefas() => NamedPage("Tarefas");
+    public IActionResult Project() => NamedPage("Project Central");
+    public IActionResult Processos() => NamedPage("Flow / BPMN");
+    public IActionResult Studio() => NamedPage("Studio");
+    public IActionResult Setores() => NamedPage("Setores e Organograma");
+    public IActionResult Usuarios() => NamedPage("Usuários");
+    public IActionResult Clientes() => NamedPage("Clientes");
+    public IActionResult Produtos() => NamedPage("Produtos e Estoque");
+    public IActionResult Pedidos() => NamedPage("Pedidos");
+    public IActionResult Financeiro() => NamedPage("Financeiro");
+    public IActionResult Marketing() => NamedPage("Marketing");
+    public IActionResult Vendas() => NamedPage("Vendas");
+    public IActionResult TradeMarketing() => NamedPage("Trade Marketing");
+    public IActionResult Logistica() => NamedPage("Logística");
+    public IActionResult Entregas() => NamedPage("Entregas/Romaneio");
+    public IActionResult Kpis() => NamedPage("KPIs e Relatórios");
+    public IActionResult Configuracoes() => NamedPage("Configurações");
+
+    private IActionResult NamedPage(string page)
+    {
+        ViewData["Page"] = page;
+        return View("Page");
+    }
+}

@@ -2,15 +2,70 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: integrarp
-      POSTGRES_USER: integrarp
-      POSTGRES_PASSWORD: integrarp_dev
-    ports: ["5432:5432"]
-    volumes: ["integrarp_pg:/var/lib/postgresql/data"]
+      POSTGRES_DB: ${POSTGRES_DB:-integrarp}
+      POSTGRES_USER: ${POSTGRES_USER:-integrarp}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-integrarp_dev}
+    ports:
+      - "5432:5432"
+    volumes:
+      - integrarp_pg:/var/lib/postgresql/data
+
   pgadmin:
     image: dpage/pgadmin4:8
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@integrarp.local
-      PGADMIN_DEFAULT_PASSWORD: integrarp_dev
-    ports: ["8081:80"]
-volumes: { integrarp_pg: {} }
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@integrarp.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-integrarp_dev}
+    ports:
+      - "8081:80"
+    depends_on:
+      - postgres
+
+  integrarp-api:
+    build:
+      context: .
+      dockerfile: src/IntegraRP.Api/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      ConnectionStrings__IntegraRP: Host=postgres;Port=5432;Database=integrarp;Username=integrarp;Password=${POSTGRES_PASSWORD:-integrarp_dev}
+      IntegraRP__RunMigrations: "true"
+    ports:
+      - "7001:8080"
+    depends_on:
+      - postgres
+
+  integrarp-web:
+    build:
+      context: .
+      dockerfile: src/IntegraRP.Web/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      IntegraRP__ApiBaseUrl: http://integrarp-api:8080
+    ports:
+      - "5001:8080"
+    depends_on:
+      - integrarp-api
+
+  integrarp-worker:
+    build:
+      context: .
+      dockerfile: src/IntegraRP.Worker/Dockerfile
+    environment:
+      DOTNET_ENVIRONMENT: Docker
+      ConnectionStrings__IntegraRP: Host=postgres;Port=5432;Database=integrarp;Username=integrarp;Password=${POSTGRES_PASSWORD:-integrarp_dev}
+    depends_on:
+      - postgres
+
+  redis:
+    image: redis:7-alpine
+    profiles: ["optional"]
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    profiles: ["optional"]
+    volumes:
+      - integrarp_minio:/data
+
+volumes:
+  integrarp_pg:
+  integrarp_minio:

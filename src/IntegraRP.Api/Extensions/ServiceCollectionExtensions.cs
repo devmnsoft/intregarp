@@ -1,1 +1,18 @@
-using Microsoft.AspNetCore.Mvc;namespace IntegraRP.Api.Extensions;public static class ServiceCollectionExtensions{public static IServiceCollection AddApiServices(this IServiceCollection services,IConfiguration configuration){services.AddControllers();services.AddEndpointsApiExplorer();services.AddSwaggerGen();services.AddHealthChecks();services.AddCors();services.AddProblemDetails();services.Configure<ApiBehaviorOptions>(o=>o.SuppressModelStateInvalidFilter=false);return services;}}
+using Microsoft.AspNetCore.Mvc;
+
+namespace IntegraRP.Api.Extensions;
+
+public static class ServiceCollectionExtensions
+{
+    public static IServiceCollection AddApiServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddControllers();
+        services.AddEndpointsApiExplorer();
+        services.AddSwaggerGen();
+        services.AddHealthChecks();
+        services.AddCors();
+        services.AddProblemDetails();
+        services.Configure<ApiBehaviorOptions>(options => options.SuppressModelStateInvalidFilter = false);
+        return services;
+    }
+}
