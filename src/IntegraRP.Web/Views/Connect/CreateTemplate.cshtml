@@ -1,0 +1,24 @@
+@{
+    ViewData["Title"] = "Criar template";
+}
+
+<section class="integrarp-page">
+    <h2>Criar template</h2>
+    <form id="template-form" class="card p-3">
+        <input class="form-control mb-2" name="codigo" placeholder="Código" required />
+        <input class="form-control mb-2" name="nome" placeholder="Nome" required />
+        <select class="form-select mb-2" name="canal">
+            <option>email</option>
+            <option>whatsapp</option>
+            <option>telegram</option>
+            <option>sistema</option>
+        </select>
+        <input class="form-control mb-2" name="categoria" placeholder="Categoria" required />
+        <textarea class="form-control" name="corpoTemplate" placeholder="Corpo com {{variaveis}}" required></textarea>
+        <button class="btn btn-primary mt-3">Salvar</button>
+    </form>
+</section>
+
+@section Scripts {
+    <script src="~/js/connect-templates.js"></script>
+}

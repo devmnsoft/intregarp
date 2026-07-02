@@ -1,16 +1,35 @@
+using IntegraRP.Application.Abstractions.Billing;
+using IntegraRP.Application.Abstractions.Connect;
+
 namespace IntegraRP.Worker;
 
-public sealed class Worker(ILogger<Worker> logger) : BackgroundService
+public sealed class Worker(
+    ILogger<Worker> logger,
+    IServiceScopeFactory scopeFactory,
+    IConfiguration configuration) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        logger.LogInformation("IntegraRP Worker iniciado com jobs Flow de SLA e outbox fake/log.");
+        var intervalSeconds = configuration.GetValue("IntegraRP:Worker:IntervalSeconds", 30);
+        logger.LogInformation("IntegraRP Worker iniciado para outbox, cobranças, vencimentos e providers fake/log.");
+
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
-                logger.LogInformation("Flow job: verificando tarefas vencidas, publicando eventos de atraso e processando outbox fake/log.");
-                await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
+                using var scope = scopeFactory.CreateScope();
+                var connectService = scope.ServiceProvider.GetRequiredService<IConnectService>();
+                var billingService = scope.ServiceProvider.GetRequiredService<IBillingService>();
+
+                var overdueCount = await billingService.MarkOverdueTitlesAsync(stoppingToken);
+                var outboxCount = await connectService.ProcessPendingOutboxAsync(stoppingToken);
+
+                logger.LogInformation(
+                    "Worker concluiu ciclo: {OverdueCount} títulos vencidos marcados e {OutboxCount} eventos outbox processados.",
+                    overdueCount,
+                    outboxCount);
+
+                await Task.Delay(TimeSpan.FromSeconds(intervalSeconds), stoppingToken);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -18,7 +37,7 @@ public sealed class Worker(ILogger<Worker> logger) : BackgroundService
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Falha temporária nos jobs Flow. O worker tentará novamente.");
+                logger.LogError(ex, "Falha temporária no worker. O ciclo será reexecutado sem derrubar o processo.");
                 await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
             }
         }

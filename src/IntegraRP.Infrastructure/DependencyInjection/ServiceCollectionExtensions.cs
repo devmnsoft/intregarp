@@ -9,6 +9,9 @@ using IntegraRP.Infrastructure.Services.FlowDesigner;
 using IntegraRP.Application.Abstractions.FlowDesigner;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using IntegraRP.Application.Abstractions.Billing;
+using IntegraRP.Application.Abstractions.Connect;
+using IntegraRP.Infrastructure.Services.BillingConnect;
 
 namespace IntegraRP.Infrastructure.DependencyInjection;
 
@@ -83,6 +86,19 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IAiTool, SearchDynamicModuleTool>();
         services.AddSingleton<IAiTool, GetAuthorizedKpiTool>();
         services.AddSingleton<IAiTool, OpenHumanTaskTool>();
+
+        services.AddSingleton<IBoletoProvider, FakeBoletoProvider>();
+        services.AddSingleton<IBillingService, InMemoryBillingService>();
+        services.AddSingleton<IMessageTemplateRenderer, MessageTemplateRenderer>();
+        services.AddSingleton<InMemoryConnectService>();
+        services.AddSingleton<IConnectService>(sp => sp.GetRequiredService<InMemoryConnectService>());
+        services.AddSingleton<IMessageDispatcher>(sp => sp.GetRequiredService<InMemoryConnectService>());
+        services.AddSingleton<IOutboxProcessor>(sp => sp.GetRequiredService<InMemoryConnectService>());
+        services.AddSingleton<IFiscalDocumentProvider, FakeFiscalDocumentProvider>();
+        services.AddSingleton<IEmailSender, FakeEmailSender>();
+        services.AddSingleton<IWhatsAppSender, FakeWhatsAppSender>();
+        services.AddSingleton<ITelegramSender, FakeTelegramSender>();
+        services.AddSingleton<IWebhookSender, FakeWebhookSender>();
 
         return services;
     }

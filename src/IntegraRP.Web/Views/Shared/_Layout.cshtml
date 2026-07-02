@@ -18,9 +18,9 @@
           <small>Valora Group &amp; MNSoft</small>
         </div>
         <nav class="d-grid gap-2">
-          @foreach (var item in new[] { "Dashboard", "Flow", "Designer", "Tarefas", "Execução", "Studio", "Criador", "Dinâmicos", "Integra AI", "Auditoria IA", "Project Central", "Setores", "Clientes", "Produtos", "Pedidos", "Financeiro", "Logística", "Entregas", "KPIs", "Configurações" })
+          @foreach (var item in new[] { "Dashboard", "Flow", "Designer", "Tarefas", "Execução", "Studio", "Criador", "Dinâmicos", "Integra AI", "Auditoria IA", "Project Central", "Setores", "Clientes", "Produtos", "Pedidos", "Faturamento", "Connect", "Financeiro", "Logística", "Entregas", "KPIs", "Configurações" })
           {
-            <a href='@(item == "Flow" ? "/flow" : Url.Action("Page", "Home", new { id = item }))'>@item</a>
+            <a href='@(item == "Flow" ? "/flow" : item == "Faturamento" ? "/billing" : item == "Connect" ? "/connect" : Url.Action("Page", "Home", new { id = item }))'>@item</a>
           }
         </nav>
       </aside>

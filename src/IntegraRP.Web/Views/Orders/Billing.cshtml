@@ -1,0 +1,32 @@
+@model Guid
+@{
+    ViewData["Title"] = "Pedido/Faturamento";
+}
+
+<section class="integrarp-page" data-order-id="@Model">
+    <h2>Pedido @Model - Faturamento</h2>
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="card p-3">
+                <h3>Pedido e cliente</h3>
+                <p>Resumo demonstrativo do pedido, cliente, reserva de estoque e etapa Flow.</p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card p-3">
+                <h3>Vínculos</h3>
+                <div id="order-billing-status">Nenhuma fatura gerada ainda.</div>
+            </div>
+        </div>
+    </div>
+    <div class="mt-3 d-flex flex-wrap gap-2">
+        <button class="btn btn-primary" data-action="generate-invoice">Gerar fatura</button>
+        <button class="btn btn-success" data-action="generate-title">Gerar título</button>
+        <button class="btn btn-warning" data-action="generate-boleto">Gerar boleto fake</button>
+        <button class="btn btn-outline-primary" data-action="send-message">Enviar mensagem fake/log</button>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="~/js/order-billing.js"></script>
+}

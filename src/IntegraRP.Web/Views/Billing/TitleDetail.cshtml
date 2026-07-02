@@ -1,0 +1,4 @@
+@model Guid
+@{ ViewData["Title"] = "Detalhe do título"; }
+<section class="integrarp-page" data-id="@Model"><h2>Título @Model</h2><div id="title-detail" class="card p-3"></div><button class="btn btn-warning mt-3" data-action="boleto">Gerar boleto fake</button></section>
+@section Scripts { <script src="~/js/billing-titles.js"></script> }

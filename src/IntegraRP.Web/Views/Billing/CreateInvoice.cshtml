@@ -1,0 +1,18 @@
+@{
+    ViewData["Title"] = "Criar fatura";
+}
+
+<section class="integrarp-page">
+    <h2>Criar fatura</h2>
+    <form id="invoice-form" class="card p-3">
+        <label class="form-label">Cliente</label>
+        <input class="form-control" name="clienteId" placeholder="UUID do cliente" required />
+        <label class="form-label mt-2">Código</label>
+        <input class="form-control" name="codigo" />
+        <button class="btn btn-primary mt-3">Criar</button>
+    </form>
+</section>
+
+@section Scripts {
+    <script src="~/js/billing-invoices.js"></script>
+}

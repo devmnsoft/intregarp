@@ -130,3 +130,72 @@ Execute `scripts\run-all-windows.ps1` ou rode API e Web separadamente com `scrip
 ### Rodando com Docker
 
 Execute `docker compose up --build` e acesse a Web na porta configurada no `docker-compose.yml`.
+
+## Sprint 6 - Faturamento, Connect, Outbox e MVP demonstrável
+
+A Sprint 6 adiciona o fluxo demonstrável pedido → faturamento → título → boleto fake/log → notificação fake/log → outbox processado. Todo o armazenamento operacional novo usa o schema `integrarp` e os providers externos são simulados, sem secrets e sem chamadas reais de banco, WhatsApp, e-mail ou NF-e.
+
+### Como usar Faturamento
+
+1. Acesse `/billing` para ver o dashboard financeiro.
+2. Acesse `/billing/invoices` para listar faturas.
+3. Use `/billing/invoices/create` para criar uma fatura simplificada.
+4. Abra uma fatura e use **Emitir** para concluir a emissão simplificada.
+5. Use `/billing/titles` para acompanhar títulos em aberto, enviados e vencidos.
+6. Abra um título e use **Gerar boleto fake** para registrar boleto/log com prefixo `FAKE-BOLETO`.
+7. Use `/billing/fiscal-documents` para acompanhar referências fiscais fake/log com prefixo `FAKE-NFE`.
+
+### Como gerar fatura a partir de pedido
+
+Abra `/orders/{id}/billing`, clique em **Gerar fatura** e o Web consumirá `POST /api/billing/invoices/from-order/{orderId}`. A resposta mantém o vínculo com o pedido e cria um item demonstrativo para o MVP.
+
+### Como gerar título e boleto fake
+
+1. Na tela do pedido/faturamento, clique em **Gerar título** depois de gerar a fatura.
+2. Clique em **Gerar boleto fake**.
+3. O provider `FakeBoletoProvider` retorna link, linha digitável, código de barras e nosso número fake/log.
+
+### Como configurar templates e mensagens
+
+1. Acesse `/connect/templates`.
+2. Crie templates usando variáveis simples como `{{cliente_nome}}`, `{{pedido_codigo}}`, `{{fatura_codigo}}`, `{{data_vencimento}}`, `{{valor_total}}` e `{{link_boleto}}`.
+3. O renderer substitui somente variáveis informadas e marca variáveis ausentes como `[[variavel]]`.
+4. Acesse `/connect/messages` para ver histórico fake/log de envios.
+
+### Como enfileirar, processar e reprocessar outbox
+
+1. Acesse `/connect/outbox`.
+2. Use a tela de pedido/faturamento para enfileirar uma mensagem fake/log.
+3. Clique em **Processar** na linha do outbox.
+4. Eventos com erro podem ser reprocessados enquanto `tentativas < max_tentativas`.
+
+### Worker
+
+O Worker sobe em Windows e Docker como `BackgroundService`. A cada ciclo configurável por `IntegraRP:Worker:IntervalSeconds`, ele marca títulos vencidos e processa outbox pendente ou elegível para retry. Falhas são logadas e não derrubam o processo.
+
+### Windows
+
+```powershell
+./scripts/build-windows.ps1
+./scripts/run-api-windows.ps1
+./scripts/run-web-windows.ps1
+./scripts/run-worker-windows.ps1
+```
+
+### Docker
+
+```bash
+docker compose up --build
+```
+
+### Testes
+
+```bash
+dotnet restore IntegraRP.sln
+dotnet build IntegraRP.sln
+dotnet test IntegraRP.sln
+```
+
+### Demonstração MVP
+
+Use o roteiro completo em `docs/mvp-demo-script.md` para demonstrar login, dashboard, pedido, Flow, faturamento, título, boleto fake, NF fake, mensagem fake/log, outbox e dashboards.
