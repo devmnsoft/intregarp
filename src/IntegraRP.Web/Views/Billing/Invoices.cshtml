@@ -1,0 +1,7 @@
+@{ ViewData["Title"] = "Faturas"; }
+<section class="integrarp-page">
+  <h2>Faturas</h2>
+  <div class="d-flex gap-2 mb-3"><input class="form-control" id="invoice-filter" placeholder="Filtrar por status" /><button class="btn btn-outline-primary" id="invoice-refresh">Atualizar</button></div>
+  <div class="table-responsive"><table class="table" id="invoices-table"><thead><tr><th>Código</th><th>Status</th><th>Cliente</th><th>Total</th><th>Ações</th></tr></thead><tbody></tbody></table></div>
+</section>
+@section Scripts { <script src="~/js/billing-invoices.js"></script> }

@@ -1,0 +1,23 @@
+namespace IntegraRP.Contracts.Billing;
+
+public sealed record InvoiceItemResponse(Guid Id, string Descricao, decimal Quantidade, decimal ValorUnitario, decimal ValorDesconto, decimal ValorTotal);
+public sealed record InvoiceResponse(Guid Id, Guid TenantId, Guid? PedidoId, Guid ClienteId, string Codigo, string Status, DateTimeOffset? DataEmissao, DateOnly? DataVencimento, decimal ValorTotal);
+public sealed record InvoiceDetailResponse(InvoiceResponse Invoice, IReadOnlyList<InvoiceItemResponse> Items);
+public sealed record CreateInvoiceRequest(Guid ClienteId, Guid? PedidoId, string? Codigo, DateOnly? DataVencimento, string? Observacao);
+public sealed record CreateInvoiceFromOrderRequest(Guid ClienteId, string? Codigo, DateOnly? DataVencimento);
+public sealed record AddInvoiceItemRequest(string Descricao, decimal Quantidade, decimal ValorUnitario, decimal ValorDesconto, Guid? ProdutoId, Guid? PedidoItemId);
+public sealed record IssueInvoiceRequest(DateOnly? DataVencimento, bool CriarTitulo);
+public sealed record CancelInvoiceRequest(string Motivo);
+public sealed record FinancialTitleResponse(Guid Id, Guid TenantId, Guid? FaturaId, Guid? PedidoId, Guid ClienteId, string Codigo, string Status, string Descricao, DateOnly DataVencimento, decimal ValorOriginal, decimal ValorAberto, string? LinkBoleto);
+public sealed record FinancialTitleDetailResponse(FinancialTitleResponse Title, IReadOnlyList<string> Historico);
+public sealed record CreateFinancialTitleRequest(Guid ClienteId, Guid? FaturaId, Guid? PedidoId, string? Codigo, string Descricao, DateOnly DataVencimento, decimal ValorOriginal);
+public sealed record CreateTitleFromInvoiceRequest(DateOnly? DataVencimento, string? FormaPagamento);
+public sealed record GenerateFakeBoletoRequest(string? Observacao);
+public sealed record GenerateFakeBoletoResponse(Guid BoletoLogId, string LinkBoleto, string LinhaDigitavel, string CodigoBarras, string NossoNumero);
+public sealed record SendFinancialTitleRequest(string Canal, string Destinatario, string? TemplateCodigo);
+public sealed record RegisterTitlePaymentRequest(decimal ValorPago, DateOnly DataPagamento, string? Observacao);
+public sealed record CancelFinancialTitleRequest(string Motivo);
+public sealed record FiscalDocumentReferenceResponse(Guid Id, Guid TenantId, Guid? FaturaId, Guid? PedidoId, Guid ClienteId, string Tipo, string Status, string? Numero, string? Serie, string? ChaveAcesso, decimal? ValorTotal);
+public sealed record CreateFiscalDocumentReferenceRequest(Guid ClienteId, Guid? FaturaId, Guid? PedidoId, string Tipo, string? Numero, string? Serie, decimal? ValorTotal);
+public sealed record UpdateFiscalDocumentReferenceRequest(string Status, string? Numero, string? Serie, string? ChaveAcesso, string? Erro);
+public sealed record BillingDashboardResponse(decimal TotalFaturadoMes, int FaturasEmitidas, int TitulosEmAberto, int TitulosVencidos, decimal ValorEmAberto, decimal ValorVencido, double TempoMedioEmissaoHoras, double TaxaTitulosEnviados, double TaxaTitulosVencidos);

@@ -1,0 +1,14 @@
+@{ ViewData["Title"] = "Faturamento"; }
+<section class="integrarp-page" data-module="billing-dashboard">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Dashboard financeiro</h2>
+    <a class="btn btn-primary" href="/billing/invoices/create">Nova fatura</a>
+  </div>
+  <div class="row g-3" id="billing-dashboard-cards">
+    <div class="col-md-3"><div class="card p-3"><small>Total faturado mês</small><strong data-kpi="totalFaturadoMes">--</strong></div></div>
+    <div class="col-md-3"><div class="card p-3"><small>Títulos em aberto</small><strong data-kpi="titulosEmAberto">--</strong></div></div>
+    <div class="col-md-3"><div class="card p-3"><small>Títulos vencidos</small><strong data-kpi="titulosVencidos">--</strong></div></div>
+    <div class="col-md-3"><div class="card p-3"><small>Valor vencido</small><strong data-kpi="valorVencido">--</strong></div></div>
+  </div>
+</section>
+@section Scripts { <script src="~/js/billing-dashboard.js"></script> }
