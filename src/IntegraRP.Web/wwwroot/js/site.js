@@ -1,0 +1,4 @@
+document.getElementById('sidebarToggle')?.addEventListener('click',()=>document.querySelector('.sidebar')?.classList.toggle('open'));
+const apiState=document.getElementById('api-state');
+const map={dashboard:'/api/dashboard/resumo',tarefas:'/api/tarefas',project:'/api/project/boards',processos:'/api/processos/templates',setores:'/api/setores',usuarios:'/api/usuarios',modulos:'/api/catalogo/modulos'};
+if(apiState){const key=apiState.dataset.endpoint;const path=map[key]||'/api/dashboard/resumo';fetch(path).then(r=>r.ok?r.json():Promise.reject(r.status)).then(d=>{document.getElementById('metric-a').textContent=Array.isArray(d)?d.length:(d.tarefasAbertas??'OK');apiState.innerHTML='<pre class="mb-0">'+JSON.stringify(d,null,2)+'</pre>';}).catch(()=>{apiState.innerHTML='API não disponível agora. A tela permanece navegável e pronta para consumir '+path+'.';});}

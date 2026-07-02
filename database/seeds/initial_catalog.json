@@ -1,0 +1,13 @@
+{
+  "setores": ["Diretoria Executiva", "Administrativo / Financeiro", "Marketing", "Vendas", "Trade Marketing / Promotor de Vendas", "Logística", "Entregas e Transporte", "Serviços Gerais", "Motorista"],
+  "processos": {
+    "Diretoria Executiva": ["Liderança e Supervisão de Operações", "Estratégia de Crescimento", "Planejamento Financeiro", "Tomada de Decisões Estratégicas", "Relacionamento com Clientes e Fornecedores", "Metas e Monitoramento de Progresso"],
+    "Administrativo / Financeiro": ["Emissão de Boletos", "Lançamento de Pedidos no Sistema", "Comparação de Preços com Fornecedores", "Emissão e Faturamento de Notas Fiscais", "Gestão de Tabelas de Preços e Estoque", "Entrada de Notas Fiscais no Sistema", "Contas a Pagar e Receber", "Fluxo de Caixa"],
+    "Marketing": ["Atualização de Produtos no Site/Catálogo/Redes Sociais", "Edições para Promoções e Descontos Sazonais", "Criação de Imagens para Site/Catálogo/Redes Sociais", "Campanhas", "Branding", "Relatórios de Marketing"],
+    "Vendas": ["Planejamento Semanal de Vendas", "Visita a Clientes", "Negociação", "Exposição de Produtos no Ponto de Venda", "Benchmarking de Concorrentes", "Pós-vendas", "Ação de Vendas", "Melhoria Contínua e Feedback", "Prospecção de Novos Clientes", "Melhoria do Estoque", "Divulgação da Empresa"],
+    "Trade Marketing": ["Arrumação do Ponto de Venda", "Checagem de Estoque", "Precificação", "Limpeza do Ponto de Venda", "Comunicação com Estoquista", "Controle de Validade", "Merchandising"],
+    "Logística": ["Limpeza do Local de Trabalho", "Recebimento de Notas Fiscais", "Separação de Pedidos", "Saída de Notas Fiscais / Expedição", "Controle de Estoque", "Devoluções", "Controle de Qualidade", "Gestão de Transportadoras"],
+    "Entregas e Transporte": ["Roteirização", "Entrega", "Prova de Entrega", "Ocorrência de Entrega", "Devolução", "Feedback do Cliente"]
+  },
+  "kpis": ["Crescimento de Receita", "Margem de Lucro Operacional", "Satisfação de Clientes e Fornecedores", "Índice de Conformidade Documental", "Tempo Médio de Resposta", "Eficiência no Processamento de Pedidos", "Tempo Médio de Emissão de Boletos e Notas Fiscais", "Taxa de Cobrança Recebida", "Índice de Correção de Lançamentos Financeiros", "Taxa de Visibilidade de Promoções", "Tempo de Criação e Aprovação de Conteúdo", "Índice de Eficácia de Campanhas", "Taxa de Fechamento de Vendas", "Nível de Satisfação dos Clientes", "Ticket Médio", "Nível de Conformidade com Layout Padrão", "Precisão de Checagem de Estoque", "Taxa de Precificação Correta", "Precisão de Recebimento de Nota Fiscal", "Tempo de Processamento de Pedidos", "Precisão na Expedição", "Entregas no Prazo", "Provas de Entrega Registradas"]
+}

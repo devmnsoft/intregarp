@@ -1,0 +1,1 @@
+using IntegraRP.Domain.Common;namespace IntegraRP.Domain.Org;public sealed class Setor:Entity{public Setor(Guid tenantId,string nome){TenantId=tenantId;Nome=string.IsNullOrWhiteSpace(nome)?throw new ArgumentException("Nome obrigatório",nameof(nome)):nome;}public Guid TenantId{get;}public string Nome{get;}public string Status{get;private set;}="Ativo";}

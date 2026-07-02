@@ -1,0 +1,11 @@
+namespace IntegraRP.Contracts.Responses;
+public sealed record TenantResponse(Guid Id,string Nome,string Slug,string Status);
+public sealed record SetorResponse(Guid Id,string Nome,string Descricao,string Status);
+public sealed record UsuarioResponse(Guid Id,string Nome,string Email,string Status);
+public sealed record TarefaResponse(Guid Id,string Titulo,string Status,string Prioridade,string Responsavel);
+public sealed record DashboardResumoResponse(int TarefasAbertas,int ProcessosAtrasados,int EstoqueCritico,int EntregasNoPrazo,string Posicionamento);
+public sealed record ProcessoResponse(Guid Id,string Nome,string Setor,string Status);
+public sealed record ProjectBoardResponse(Guid Id,string Nome,IReadOnlyList<ProjectColunaResponse> Colunas);
+public sealed record ProjectColunaResponse(Guid Id,string Nome,IReadOnlyList<ProjectItemResponse> Itens);
+public sealed record ProjectItemResponse(Guid Id,string Titulo,string Status,string Prioridade);
+public sealed record CatalogoModuloResponse(string Codigo,string Nome,string Icone,string Status);
