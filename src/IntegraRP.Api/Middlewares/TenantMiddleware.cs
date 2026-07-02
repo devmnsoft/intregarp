@@ -1,0 +1,1 @@
+namespace IntegraRP.Api.Middlewares;public sealed class TenantMiddleware(RequestDelegate next,ILogger<TenantMiddleware> logger){public async Task InvokeAsync(HttpContext ctx){ctx.Items["tenant_id"]=ctx.Request.Headers.TryGetValue("X-Tenant-Id",out var tenant)?tenant.ToString():"demo";logger.LogDebug("Tenant resolvido: {TenantId}",ctx.Items["tenant_id"]);await next(ctx);}}

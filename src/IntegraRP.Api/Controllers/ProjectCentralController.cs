@@ -1,0 +1,12 @@
+using IntegraRP.Application.Abstractions.Services;using IntegraRP.Application.Common;using IntegraRP.Contracts.Requests;
+using Microsoft.AspNetCore.Mvc;
+namespace IntegraRP.Api.Controllers;
+[ApiController][Route("api/project")]public sealed class ProjectCentralController(ILogger<ProjectCentralController> logger, IIntegraRpQueries queries):ControllerBase{
+IActionResult FromResult<T>(Result<T> r)=>r.IsSuccess?Ok(r.Value):Problem(r.Error,statusCode:400);
+[HttpGet("boards")]public async Task<IActionResult> Boards(CancellationToken ct){try{logger.LogInformation("Executando ProjectCentralController");return FromResult(await queries.BoardsAsync(ct));}catch(Exception ex){logger.LogError(ex,"Erro em ProjectCentralController");throw;}}
+[HttpGet("boards/{boardId:guid}")]public async Task<IActionResult> Board(Guid boardId,CancellationToken ct){try{logger.LogInformation("Executando ProjectCentralController");return FromResult(await queries.BoardAsync(boardId,ct));}catch(Exception ex){logger.LogError(ex,"Erro em ProjectCentralController");throw;}}
+[HttpPost("boards")]public async Task<IActionResult> CriarBoard([FromBody] CriarProjectBoardRequest request,CancellationToken ct){try{logger.LogInformation("Executando ProjectCentralController");return FromResult(await queries.CriarBoardAsync(request,ct));}catch(Exception ex){logger.LogError(ex,"Erro em ProjectCentralController");throw;}}
+[HttpPost("items")]public async Task<IActionResult> CriarItem([FromBody] CriarProjectItemRequest request,CancellationToken ct){try{logger.LogInformation("Executando ProjectCentralController");return FromResult(await queries.CriarItemAsync(request,ct));}catch(Exception ex){logger.LogError(ex,"Erro em ProjectCentralController");throw;}}
+[HttpPatch("items/{itemId:guid}/mover")]public async Task<IActionResult> Mover(Guid itemId,[FromBody] MoverProjectItemRequest request,CancellationToken ct){try{logger.LogInformation("Executando ProjectCentralController");return FromResult(await queries.MoverItemAsync(itemId,request,ct));}catch(Exception ex){logger.LogError(ex,"Erro em ProjectCentralController");throw;}}
+[HttpPost("items/{itemId:guid}/comentarios")]public async Task<IActionResult> Comentar(Guid itemId,[FromBody] CriarComentarioRequest request,CancellationToken ct){try{logger.LogInformation("Executando ProjectCentralController");return FromResult(await queries.ComentarItemAsync(itemId,request,ct));}catch(Exception ex){logger.LogError(ex,"Erro em ProjectCentralController");throw;}}
+}
