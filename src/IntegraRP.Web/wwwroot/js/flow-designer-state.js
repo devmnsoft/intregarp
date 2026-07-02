@@ -1,0 +1,1 @@
+(function () { "use strict"; window.FlowDesigner = window.FlowDesigner || {}; window.FlowDesigner.state = { version: null, selectedElement: null, setVersion: function (version) { this.version = version; }, selectElement: function (element) { this.selectedElement = element; } }; }());

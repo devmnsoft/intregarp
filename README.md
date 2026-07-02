@@ -108,3 +108,25 @@ A Sprint 3 adiciona o núcleo operacional do Integra Flow: definições, versõe
 7. Consulte KPIs em `GET /api/flow/dashboard`.
 
 Todas as consultas operacionais carregam `tenant_id`; auditoria registra ações críticas e o outbox registra notificações fake/log para nova tarefa, atraso, conclusão e erro de gateway.
+
+## Sprint 4 - Integra Flow Designer Web
+
+O Integra Flow Designer Web permite desenhar processos BPMN operacionais sem editar JSON manualmente.
+
+- Acesse `/flow/designer` para ver atalhos, templates e opções de criação.
+- Acesse `/flow/designer/templates` para clonar modelos como Pedido ao Pós-venda, Emissão de Boletos, Recebimento de Notas Fiscais e Separação de Pedidos.
+- Após clonar, abra `/flow/designer/versions/{versionId}` para adicionar etapas, gateways, transições, formulários e checklists.
+- Use **Validar** para visualizar erros, warnings e infos antes de publicar.
+- Use **Publicar** para registrar o processo validado no motor BPMN.
+- Para criar um gateway, adicione o elemento Gateway, conecte duas saídas e marque uma transição como `always` ou fallback.
+- Para formulário, configure campos `text`, `textarea`, `number`, `money`, `date`, `datetime`, `boolean`, `select`, `multiselect`, `user`, `sector`, `client`, `product`, `file`, `photo`, `signature`, `gps`, `json` ou `relation`.
+- Para checklist, configure itens com código, título, obrigatoriedade e ordem.
+- Depois de publicado, use **Iniciar teste** para validar uma instância operacional em ambiente seguro.
+
+### Rodando no Windows
+
+Execute `scripts\run-all-windows.ps1` ou rode API e Web separadamente com `scripts\run-api-windows.ps1` e `scripts\run-web-windows.ps1`.
+
+### Rodando com Docker
+
+Execute `docker compose up --build` e acesse a Web na porta configurada no `docker-compose.yml`.

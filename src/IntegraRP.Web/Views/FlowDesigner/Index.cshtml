@@ -1,0 +1,22 @@
+@{
+    ViewData["Title"] = "Integra Flow Designer";
+}
+<link rel="stylesheet" href="~/css/flow-designer.css" />
+<section class="flow-page" data-flow-designer-home>
+    <div class="flow-hero">
+        <div>
+            <p class="flow-kicker">Integra Flow Designer</p>
+            <h1>Desenhe processos operacionais sem editar JSON.</h1>
+            <p>Escolha um template, crie um fluxo do zero, valide as etapas e publique no motor BPMN do IntegraRP.</p>
+        </div>
+        <a class="btn btn-primary" href="/flow/designer/templates">Escolher template</a>
+    </div>
+    <div class="flow-toolbar">
+        <input class="form-control" id="flow-template-filter" placeholder="Filtrar por categoria ou setor" aria-label="Filtrar templates" />
+        <button class="btn btn-outline-primary" id="flow-create-empty" type="button">Criar processo do zero</button>
+    </div>
+    <div id="flow-template-cards" class="flow-template-grid" aria-live="polite"></div>
+    <div class="flow-empty" id="flow-empty-state">Carregando catálogo de templates...</div>
+</section>
+<script src="~/js/flow-designer-api.js"></script>
+<script src="~/js/flow-designer-templates.js"></script>

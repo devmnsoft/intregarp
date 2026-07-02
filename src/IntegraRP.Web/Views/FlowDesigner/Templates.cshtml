@@ -1,0 +1,17 @@
+@{
+    ViewData["Title"] = "Catálogo de Templates";
+}
+<link rel="stylesheet" href="~/css/flow-designer.css" />
+<section class="flow-page" data-flow-template-catalog>
+    <div class="flow-hero compact">
+        <div>
+            <p class="flow-kicker">Catálogo operacional</p>
+            <h1>Templates prontos para clonar</h1>
+            <p>Modelos com início, etapas, gateway, fim, formulário, checklist, SLA e posições sugeridas.</p>
+        </div>
+        <a class="btn btn-outline-secondary" href="/flow/designer">Voltar</a>
+    </div>
+    <div id="flow-template-cards" class="flow-template-grid"></div>
+</section>
+<script src="~/js/flow-designer-api.js"></script>
+<script src="~/js/flow-designer-templates.js"></script>
