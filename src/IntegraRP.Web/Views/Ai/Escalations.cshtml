@@ -1,0 +1,18 @@
+@{
+    ViewData["Title"] = "Integra AI";
+}
+<link rel="stylesheet" href="~/css/ai-console.css" />
+<section class="ai-console container py-4">
+    <div class="alert alert-primary">IA governada. Sem acesso direto ao banco.</div>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h1 class="h3">Console Integra AI</h1>
+            <p>Chat, conversas, ferramentas, auditoria e escalonamentos humanos do MVP.</p>
+            <div id="ai-console-root" data-page="@ViewData["Title"]"></div>
+        </div>
+    </div>
+</section>
+<script src="~/js/ai-chat.js"></script>
+<script src="~/js/ai-audit.js"></script>
+<script src="~/js/ai-tools.js"></script>
+<script src="~/js/ai-escalations.js"></script>

@@ -13,6 +13,8 @@ using IntegraRP.Application.Abstractions.Billing;
 using IntegraRP.Application.Abstractions.Connect;
 using IntegraRP.Infrastructure.Services.BillingConnect;
 using IntegraRP.Application.Abstractions.Bi;
+using IntegraRP.Application.Abstractions.Mobile;
+using IntegraRP.Application.Abstractions.Ai;
 using IntegraRP.Infrastructure.Services.Sprint7;
 
 namespace IntegraRP.Infrastructure.DependencyInjection;
@@ -93,6 +95,35 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IAiTool, SearchDynamicModuleTool>();
         services.AddSingleton<IAiTool, GetAuthorizedKpiTool>();
         services.AddSingleton<IAiTool, OpenHumanTaskTool>();
+
+
+        services.AddSingleton<InMemoryMobileFieldService>();
+        services.AddSingleton<IMobileDeviceRepository>(sp => sp.GetRequiredService<InMemoryMobileFieldService>());
+        services.AddSingleton<IMobileTaskRepository>(sp => sp.GetRequiredService<InMemoryMobileFieldService>());
+        services.AddSingleton<IMobileEvidenceRepository>(sp => sp.GetRequiredService<InMemoryMobileFieldService>());
+        services.AddSingleton<IMobileNotificationRepository>(sp => sp.GetRequiredService<InMemoryMobileFieldService>());
+        services.AddSingleton<IMobileSyncRepository>(sp => sp.GetRequiredService<InMemoryMobileFieldService>());
+        services.AddSingleton<IMobileDashboardService>(sp => sp.GetRequiredService<InMemoryMobileFieldService>());
+        services.AddSingleton<IMobileTaskExecutionService>(sp => sp.GetRequiredService<InMemoryMobileFieldService>());
+        services.AddSingleton<IMobileApprovalService>(sp => sp.GetRequiredService<InMemoryMobileFieldService>());
+        services.AddSingleton<IMobileStorageService>(sp => sp.GetRequiredService<InMemoryMobileFieldService>());
+        services.AddSingleton<IAiIntentClassifierV2, RuleBasedIntentClassifierV2>();
+        services.AddSingleton<IAiPermissionValidatorV2, AiPermissionValidatorV2>();
+        services.AddSingleton<IAiToolRegistryV2, AiToolRegistryV2>();
+        services.AddSingleton<IAiOrchestratorV2, AiOrchestratorV2>();
+        services.AddSingleton<AiMemoryStore>();
+        services.AddSingleton<IAiConversationRepositoryV2>(sp => sp.GetRequiredService<AiMemoryStore>());
+        services.AddSingleton<IAiHumanEscalationServiceV2>(sp => sp.GetRequiredService<AiMemoryStore>());
+        services.AddSingleton<IAiAuditServiceV2>(sp => sp.GetRequiredService<AiMemoryStore>());
+        services.AddSingleton<IAiFeedbackService>(sp => sp.GetRequiredService<AiMemoryStore>());
+        services.AddSingleton<IAiDataMaskingServiceV2, AiDataMaskingServiceV2>();
+        services.AddSingleton<global::IntegraRP.Application.Abstractions.Ai.IAiProvider, FakeAiProviderV2>();
+        services.AddSingleton<IAiToolV2>(new GovernedTool("get_order_status", "Status de pedido", "ai.tool.order_status", "Pedido em separação, etapa conferência, responsável logística."));
+        services.AddSingleton<IAiToolV2>(new GovernedTool("get_delivery_proof", "Prova de entrega", "ai.tool.delivery_proof", "POD disponível com foto, assinatura e GPS mascarado."));
+        services.AddSingleton<IAiToolV2>(new GovernedTool("get_financial_title", "Título financeiro", "ai.tool.financial_title", "Título em aberto, vencimento futuro, valor R$ ***."));
+        services.AddSingleton<IAiToolV2>(new GovernedTool("search_dynamic_module", "Busca módulo dinâmico", "ai.tool.dynamic_module_search", "Consulta dinâmica autorizada retornou registros paginados."));
+        services.AddSingleton<IAiToolV2>(new GovernedTool("get_authorized_kpi", "KPI autorizado", "ai.tool.kpi", "KPI operacional permitido: SLA 92%."));
+        services.AddSingleton<IAiToolV2>(new GovernedTool("open_human_task", "Abrir tarefa humana", "ai.tool.open_human_task", "Tarefa humana criada para atendimento."));
 
         services.AddSingleton<IBoletoProvider, FakeBoletoProvider>();
         services.AddSingleton<IBillingService, InMemoryBillingService>();

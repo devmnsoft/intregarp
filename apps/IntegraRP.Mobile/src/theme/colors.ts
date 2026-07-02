@@ -1,0 +1,1 @@
+export const colors = { institutionalBlue: '#071F3A', techBlue: '#2563EB', operationGreen: '#16A34A', decisionAmber: '#F59E0B', lightBackground: '#F8FAFC', graphiteText: '#111827', borderGray: '#E5E7EB' };

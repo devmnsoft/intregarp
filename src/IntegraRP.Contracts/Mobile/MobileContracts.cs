@@ -1,0 +1,26 @@
+namespace IntegraRP.Contracts.Mobile;
+
+public sealed record MobileLoginRequest(string Email, string Senha, string TenantSlug, string? DeviceId);
+public sealed record MobileLoginResponse(string AccessToken, string RefreshToken, Guid TenantId, Guid UsuarioId, string Nome, IReadOnlyCollection<string> Permissoes);
+public sealed record RegisterMobileDeviceRequest(string DeviceId, string Plataforma, string? Modelo, string? AppVersao, string? PushToken);
+public sealed record MobileCurrentUserResponse(Guid TenantId, Guid UsuarioId, string Nome, string Email, IReadOnlyCollection<string> Permissoes);
+public sealed record MobileDashboardResponse(int TarefasAbertas, int TarefasAtrasadas, int TarefasHoje, int AprovacoesPendentes, int EntregasVinculadas, IReadOnlyList<MobileKpiCardResponse> KpisCriticos);
+public sealed record MobileKpiCardResponse(string Titulo, string Valor, string Severidade);
+public sealed record MobileTaskResponse(Guid Id, string Titulo, string Processo, DateTimeOffset? Prazo, string Prioridade, string Status, string ProximaAcao);
+public sealed record MobileTaskDetailResponse(Guid Id, string Titulo, string Descricao, string Processo, string? Cliente, string? Pedido, string Prioridade, string Status, IReadOnlyList<MobileTaskFormFieldResponse> Formulario, IReadOnlyList<MobileTaskChecklistItemResponse> Checklist, IReadOnlyList<string> Comentarios);
+public sealed record MobileTaskFormFieldResponse(string Codigo, string Rotulo, string Tipo, bool Obrigatorio, string? Valor);
+public sealed record MobileTaskChecklistItemResponse(string Codigo, string Texto, bool Marcado);
+public sealed record AssumeMobileTaskRequest(decimal? Latitude, decimal? Longitude);
+public sealed record StartMobileTaskExecutionRequest(decimal? Latitude, decimal? Longitude);
+public sealed record SaveMobileTaskFormRequest(Dictionary<string, object?> Respostas);
+public sealed record SaveMobileTaskChecklistRequest(IReadOnlyList<MobileTaskChecklistItemResponse> Itens);
+public sealed record AddMobileTaskCommentRequest(string Comentario);
+public sealed record UploadMobileEvidenceRequest(string Tipo, string? Titulo, string? Descricao, decimal? Latitude, decimal? Longitude, decimal? AccuracyMeters, string? ContentType, long? TamanhoBytes, string? Base64Content);
+public sealed record UploadMobileEvidenceResponse(Guid EvidenciaId, string StorageKey);
+public sealed record CaptureMobileSignatureRequest(string NomeAssinante, string? DocumentoAssinante, string? AssinaturaSvg, decimal? Latitude, decimal? Longitude);
+public sealed record CompleteMobileTaskRequest(Dictionary<string, object?>? Formulario, IReadOnlyList<MobileTaskChecklistItemResponse>? Checklist, decimal? Latitude, decimal? Longitude, string? Comentario);
+public sealed record ApproveMobileTaskRequest(string Comentario);
+public sealed record RejectMobileTaskRequest(string Comentario);
+public sealed record MobileNotificationResponse(Guid Id, string Titulo, string Mensagem, string Status, DateTimeOffset CriadoEm);
+public sealed record MobileSyncQueueRequest(string Tipo, string PayloadJson, string? CorrelationId);
+public sealed record MobileSyncStatusResponse(int Pendentes, int Erros, DateTimeOffset? UltimoProcessamentoEm);

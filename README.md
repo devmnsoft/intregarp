@@ -225,3 +225,21 @@ A Sprint 7 adiciona a base de inteligência operacional do IntegraRP com dashboa
 - Windows: `dotnet restore`, `dotnet build` e `dotnet test`.
 - Docker: `docker compose up --build`.
 - Banco: execute as migrations em `/database/migrations`; a `0007_bi_kpis_project_central.sql` é idempotente e usa apenas o schema `integrarp`.
+
+## Sprint 8 — Mobile Field App e Integra AI MVP
+
+A Sprint 8 adiciona o aplicativo base Expo em `apps/IntegraRP.Mobile`, APIs REST mobile, Console IA Web, migration `0008_mobile_ai_mvp.sql` e worker para notificações/fallback fake.
+
+### Rodar no Windows
+1. Instale .NET SDK, Node.js LTS e Docker Desktop.
+2. Execute `dotnet restore`, `dotnet build` e `dotnet test` na raiz.
+3. Suba banco/API/Web/Worker com o fluxo Docker já existente do projeto.
+
+### Rodar o Mobile
+1. Entre em `apps/IntegraRP.Mobile`.
+2. Configure `EXPO_PUBLIC_API_BASE_URL` apontando para a API.
+3. Execute `npm install` e `npm run typecheck`.
+4. Execute `npm start` e abra no Expo Go ou emulador.
+
+### Uso mobile e IA
+O app permite login com e-mail, senha e slug do tenant, dashboard resumido, minha fila, detalhe/execução de tarefa, evidências, GPS, assinatura, notificações e chat IA governado. Tokens usam `expo-secure-store`; não há segredo no app. A IA usa classificador rule-based, registry de tools seguras, auditoria e fallback humano sem integração externa real.
