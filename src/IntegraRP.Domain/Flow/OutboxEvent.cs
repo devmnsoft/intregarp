@@ -1,6 +1,6 @@
 namespace IntegraRP.Domain.Flow;
 
-public sealed class ProcessInstance
+public sealed class OutboxEvent
 {
     public Guid Id { get; init; } = Guid.NewGuid();
     public Guid TenantId { get; init; }

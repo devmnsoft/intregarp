@@ -27,6 +27,25 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IWorkflowEventDispatcher>(sp => sp.GetRequiredService<InMemoryFlowServices>());
         services.AddSingleton<IWorkflowGatewayEvaluator>(sp => sp.GetRequiredService<InMemoryFlowServices>());
 
+
+        services.AddSingleton<InMemoryFlowCoreServices>();
+        services.AddSingleton<IntegraRP.Application.Abstractions.Flow.IProcessDefinitionRepository>(sp => sp.GetRequiredService<InMemoryFlowCoreServices>());
+        services.AddSingleton<IntegraRP.Application.Abstractions.Flow.IProcessVersionRepository>(sp => sp.GetRequiredService<InMemoryFlowCoreServices>());
+        services.AddSingleton<IntegraRP.Application.Abstractions.Flow.IProcessElementRepository>(sp => sp.GetRequiredService<InMemoryFlowCoreServices>());
+        services.AddSingleton<IntegraRP.Application.Abstractions.Flow.IProcessTransitionRepository>(sp => sp.GetRequiredService<InMemoryFlowCoreServices>());
+        services.AddSingleton<IntegraRP.Application.Abstractions.Flow.IProcessInstanceRepository>(sp => sp.GetRequiredService<InMemoryFlowCoreServices>());
+        services.AddSingleton<IntegraRP.Application.Abstractions.Flow.IWorkflowTaskRepository>(sp => sp.GetRequiredService<InMemoryFlowCoreServices>());
+        services.AddSingleton<IntegraRP.Application.Abstractions.Flow.IWorkflowAuditRepository>(sp => sp.GetRequiredService<InMemoryFlowCoreServices>());
+        services.AddSingleton<IntegraRP.Application.Abstractions.Flow.IBusinessEventRepository>(sp => sp.GetRequiredService<InMemoryFlowCoreServices>());
+        services.AddSingleton<IntegraRP.Application.Abstractions.Flow.IOutboxEventRepository>(sp => sp.GetRequiredService<InMemoryFlowCoreServices>());
+        services.AddSingleton<IntegraRP.Application.Abstractions.Flow.IWorkflowEngine>(sp => sp.GetRequiredService<InMemoryFlowCoreServices>());
+        services.AddSingleton<IntegraRP.Application.Abstractions.Flow.IWorkflowGatewayEvaluator>(sp => sp.GetRequiredService<InMemoryFlowCoreServices>());
+        services.AddSingleton<IntegraRP.Application.Abstractions.Flow.IWorkflowTaskFactory>(sp => sp.GetRequiredService<InMemoryFlowCoreServices>());
+        services.AddSingleton<IntegraRP.Application.Abstractions.Flow.IWorkflowEventPublisher>(sp => sp.GetRequiredService<InMemoryFlowCoreServices>());
+        services.AddSingleton<IntegraRP.Application.Abstractions.Flow.IWorkflowSlaCalculator>(sp => sp.GetRequiredService<InMemoryFlowCoreServices>());
+        services.AddSingleton<IntegraRP.Application.Abstractions.Flow.IWorkflowCodeGenerator>(sp => sp.GetRequiredService<InMemoryFlowCoreServices>());
+        services.AddSingleton<IntegraRP.Application.Abstractions.Flow.IUnitOfWork>(sp => sp.GetRequiredService<InMemoryFlowCoreServices>());
+
         services.AddSingleton<InMemoryStudioServices>();
         services.AddSingleton<IDynamicModuleRepository>(sp => sp.GetRequiredService<InMemoryStudioServices>());
         services.AddSingleton<IDynamicRecordRepository>(sp => sp.GetRequiredService<InMemoryStudioServices>());

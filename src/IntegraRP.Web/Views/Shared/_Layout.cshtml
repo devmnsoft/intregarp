@@ -20,7 +20,7 @@
         <nav class="d-grid gap-2">
           @foreach (var item in new[] { "Dashboard", "Flow", "Designer", "Tarefas", "Execução", "Studio", "Criador", "Dinâmicos", "Integra AI", "Auditoria IA", "Project Central", "Setores", "Clientes", "Produtos", "Pedidos", "Financeiro", "Logística", "Entregas", "KPIs", "Configurações" })
           {
-            <a asp-action="Page" asp-controller="Home" asp-route-id="@item">@item</a>
+            <a href='@(item == "Flow" ? "/flow" : Url.Action("Page", "Home", new { id = item }))'>@item</a>
           }
         </nav>
       </aside>

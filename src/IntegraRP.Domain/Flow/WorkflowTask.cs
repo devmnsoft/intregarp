@@ -4,11 +4,8 @@ public sealed class WorkflowTask
 {
     public Guid Id { get; init; } = Guid.NewGuid();
     public Guid TenantId { get; init; }
-    public string Name { get; set; } = string.Empty;
-    public string Code { get; set; } = string.Empty;
-    public string Status { get; set; } = "ativo";
-    public string MetadataJson { get; set; } = "{}";
-    public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
-    public DateTimeOffset? UpdatedAt { get; set; }
-    public DateTimeOffset? DeletedAt { get; set; }
+    public WorkflowTaskStatus Status { get; private set; } = WorkflowTaskStatus.Aberta;
+    public DateTimeOffset? DueAt { get; init; }
+    public void Complete(Guid userId) { if (Status == WorkflowTaskStatus.Concluida) throw new InvalidOperationException("Tarefa concluída não pode ser concluída novamente."); Status = WorkflowTaskStatus.Concluida; }
+    public bool IsOverdue(DateTimeOffset now) => (Status == WorkflowTaskStatus.Aberta || Status == WorkflowTaskStatus.Atribuida || Status == WorkflowTaskStatus.EmAndamento) && DueAt < now;
 }

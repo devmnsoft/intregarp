@@ -1,0 +1,32 @@
+namespace IntegraRP.Application.Flow.UseCases;
+
+public sealed class CreateProcessDefinitionUseCase { }
+public sealed class UpdateProcessDefinitionUseCase { }
+public sealed class ListProcessDefinitionsUseCase { }
+public sealed class GetProcessDefinitionByIdUseCase { }
+public sealed class ArchiveProcessDefinitionUseCase { }
+public sealed class CreateDraftProcessVersionUseCase { }
+public sealed class AddProcessElementUseCase { }
+public sealed class UpdateProcessElementUseCase { }
+public sealed class RemoveProcessElementUseCase { }
+public sealed class AddProcessTransitionUseCase { }
+public sealed class UpdateProcessTransitionUseCase { }
+public sealed class RemoveProcessTransitionUseCase { }
+public sealed class PublishProcessVersionUseCase { }
+public sealed class GetProcessVersionDiagramUseCase { }
+public sealed class StartProcessInstanceUseCase { }
+public sealed class GetProcessInstanceByIdUseCase { }
+public sealed class ListProcessInstancesUseCase { }
+public sealed class CancelProcessInstanceUseCase { }
+public sealed class AdvanceProcessInstanceUseCase { }
+public sealed class ListWorkflowTasksUseCase { }
+public sealed class GetWorkflowTaskByIdUseCase { }
+public sealed class AssignWorkflowTaskUseCase { }
+public sealed class AssumeWorkflowTaskUseCase { }
+public sealed class CompleteWorkflowTaskUseCase { }
+public sealed class CancelWorkflowTaskUseCase { }
+public sealed class AddWorkflowTaskCommentUseCase { }
+public sealed class AddWorkflowTaskAttachmentUseCase { }
+public sealed class GetFlowDashboardSummaryUseCase { }
+public sealed class ListOverdueTasksUseCase { }
+public sealed class ListOverdueProcessesUseCase { }
