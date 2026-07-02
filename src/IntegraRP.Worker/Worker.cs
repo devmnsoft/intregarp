@@ -1,5 +1,6 @@
 using IntegraRP.Application.Abstractions.Billing;
 using IntegraRP.Application.Abstractions.Connect;
+using IntegraRP.Application.Abstractions.Bi;
 
 namespace IntegraRP.Worker;
 
@@ -20,9 +21,13 @@ public sealed class Worker(
                 using var scope = scopeFactory.CreateScope();
                 var connectService = scope.ServiceProvider.GetRequiredService<IConnectService>();
                 var billingService = scope.ServiceProvider.GetRequiredService<IBillingService>();
+                var kpiAggregation = scope.ServiceProvider.GetRequiredService<IKpiAggregationService>();
+                var scoreService = scope.ServiceProvider.GetRequiredService<IOperationalScoreService>();
 
                 var overdueCount = await billingService.MarkOverdueTitlesAsync(stoppingToken);
                 var outboxCount = await connectService.ProcessPendingOutboxAsync(stoppingToken);
+                await kpiAggregation.AggregateAsync(stoppingToken);
+                await scoreService.RecalculateAsync(Guid.Parse("11111111-1111-1111-1111-111111111111"), stoppingToken);
 
                 logger.LogInformation(
                     "Worker concluiu ciclo: {OverdueCount} títulos vencidos marcados e {OutboxCount} eventos outbox processados.",

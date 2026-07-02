@@ -1,0 +1,10 @@
+.bi-page { background: #F8FAFC; color: #111827; padding: 1.5rem; }
+.bi-hero, .bi-panel, .score-card, .bi-card, .bi-chart { background: #fff; border: 1px solid #E5E7EB; border-radius: 1rem; padding: 1rem; margin-bottom: 1rem; }
+.bi-hero h1 { color: #071F3A; }
+.bi-card-grid, .bi-chart-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.bi-card strong, .score-card strong { color: #2563EB; display: block; font-size: 2rem; }
+.status-positivo { border-left: 5px solid #16A34A; }
+.status-neutro { border-left: 5px solid #2563EB; }
+.status-negativo { border-left: 5px solid #F59E0B; }
+.status-critico { border-left: 5px solid #dc2626; }
+.loading { opacity: .7; }

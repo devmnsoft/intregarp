@@ -1,0 +1,6 @@
+@model string
+@{ ViewData["Title"] = "BI " + Model; }
+<link rel="stylesheet" href="/css/bi-dashboard.css" />
+<link rel="stylesheet" href="/css/simple-charts.css" />
+<section class="bi-page" data-dashboard="@Model"><div class="bi-hero"><h1>BI @Model</h1><p>Indicadores por módulo com gráficos simples e responsivos.</p></div><div id="bi-cards" class="bi-card-grid"></div><div id="bi-charts" class="bi-chart-grid"></div></section>
+<script src="/js/simple-charts.js"></script><script src="/js/bi-dashboard.js"></script>

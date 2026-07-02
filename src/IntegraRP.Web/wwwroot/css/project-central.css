@@ -1,0 +1,8 @@
+.project-page { background: #F8FAFC; min-height: 80vh; padding: 1.5rem; color: #111827; }
+.project-hero, .project-panel, .project-board-card, .kanban-column, .project-feed { background: #fff; border: 1px solid #E5E7EB; border-radius: 1rem; padding: 1rem; margin-bottom: 1rem; }
+.project-hero h1 { color: #071F3A; }
+.project-board-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }
+.kanban-board { display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 1rem; }
+.kanban-column { min-width: 280px; background: #F8FAFC; }
+.kanban-card { background: #fff; border: 1px solid #E5E7EB; border-left: 5px solid #2563EB; border-radius: .75rem; padding: .75rem; margin-bottom: .75rem; cursor: grab; }
+.project-filters { margin: 1rem 0; }

@@ -199,3 +199,29 @@ dotnet test IntegraRP.sln
 ### Demonstração MVP
 
 Use o roteiro completo em `docs/mvp-demo-script.md` para demonstrar login, dashboard, pedido, Flow, faturamento, título, boleto fake, NF fake, mensagem fake/log, outbox e dashboards.
+
+## Sprint 7 — BI, KPIs, Score Operacional e Project Central
+
+A Sprint 7 adiciona a base de inteligência operacional do IntegraRP com dashboards de BI, KPIs vivos, score operacional e Project Central com Kanban, sprints, feed, métricas e importação/exportação JSON.
+
+### Como usar BI
+
+- Acesse `/bi` ou `/bi/executive` para o dashboard executivo.
+- Use `/bi/flow`, `/bi/commercial`, `/bi/inventory`, `/bi/billing` e `/bi/connect` para dashboards por módulo.
+- Use `/bi/kpis` para acompanhar definições e valores atuais de KPIs.
+- Use `/bi/score` para interpretar o score operacional: positivo `>= 85`, neutro `>= 70`, negativo `>= 50` e crítico `< 50`.
+- Recalcule KPIs e score pela API: `POST /api/bi/kpis/calculate-all` e `POST /api/bi/score/recalculate`.
+
+### Como usar Project Central
+
+- Acesse `/project` ou `/project/boards` para listar boards.
+- Crie um board em `/project/boards/create` e habilite colunas padrão quando necessário.
+- Abra `/project/boards/{id}/kanban` para criar, editar, mover e excluir cards com soft delete.
+- Acompanhe sprints em `/project/boards/{id}/sprints`, métricas em `/project/boards/{id}/metrics` e feed em `/project/boards/{id}/feed`.
+- Exporte e importe JSON em `/project/boards/{id}/import-export` ou pelos endpoints `POST /api/project/boards/{boardId}/export` e `POST /api/project/boards/{boardId}/import`.
+
+### Windows, Docker e testes
+
+- Windows: `dotnet restore`, `dotnet build` e `dotnet test`.
+- Docker: `docker compose up --build`.
+- Banco: execute as migrations em `/database/migrations`; a `0007_bi_kpis_project_central.sql` é idempotente e usa apenas o schema `integrarp`.

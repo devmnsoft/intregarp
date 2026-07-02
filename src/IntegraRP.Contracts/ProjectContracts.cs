@@ -1,0 +1,27 @@
+namespace IntegraRP.Contracts.Project;
+
+public sealed record ProjectBoardResponse(Guid Id, string Nome, string Descricao, string Status, IReadOnlyList<ProjectColumnResponse> Colunas);
+public sealed record ProjectBoardDetailResponse(Guid Id, string Nome, string Descricao, string Status, IReadOnlyList<ProjectSprintResponse> Sprints, IReadOnlyList<ProjectColumnResponse> Colunas, ProjectMetricsResponse Metrics);
+public sealed record CreateProjectBoardRequest(string Nome, string? Descricao, bool CriarColunasPadrao);
+public sealed record UpdateProjectBoardRequest(string Nome, string? Descricao, string Status);
+public sealed record ProjectSprintResponse(Guid Id, Guid BoardId, string Codigo, string Nome, DateOnly DataInicio, DateOnly DataFim, string Status, int MetaPontos);
+public sealed record CreateProjectSprintRequest(string Codigo, string Nome, DateOnly DataInicio, DateOnly DataFim, int MetaPontos);
+public sealed record UpdateProjectSprintRequest(string Nome, DateOnly DataInicio, DateOnly DataFim, string Status, int MetaPontos);
+public sealed record ProjectColumnResponse(Guid Id, Guid BoardId, string Nome, decimal Ordem, bool EhConclusiva, IReadOnlyList<ProjectItemResponse> Itens);
+public sealed record CreateProjectColumnRequest(string Nome, string? Descricao, decimal Ordem, int? LimiteWip, bool EhConclusiva);
+public sealed record UpdateProjectColumnRequest(string Nome, string? Descricao, decimal Ordem, int? LimiteWip, bool EhConclusiva);
+public sealed record MoveProjectColumnRequest(decimal Ordem);
+public sealed record ProjectItemResponse(Guid Id, Guid BoardId, Guid ColunaId, Guid? SprintId, string Codigo, string Titulo, string Prioridade, int StoryPoints, string? ResponsavelNome, DateOnly? DataLimite, DateTimeOffset? ConcluidoEm);
+public sealed record ProjectItemDetailResponse(ProjectItemResponse Item, IReadOnlyList<ProjectItemCommentResponse> Comentarios);
+public sealed record CreateProjectItemRequest(Guid? ColunaId, Guid? SprintId, string Titulo, string? Descricao, string Tipo, string Prioridade, int StoryPoints, string? ResponsavelNome, DateOnly? DataLimite);
+public sealed record UpdateProjectItemRequest(string Titulo, string? Descricao, string Tipo, string Prioridade, int StoryPoints, string? ResponsavelNome, DateOnly? DataLimite);
+public sealed record MoveProjectItemRequest(Guid ColunaId, decimal Ordem);
+public sealed record ProjectItemCommentResponse(Guid Id, Guid ItemId, string Mensagem, string AutorNome, DateTimeOffset CriadoEm);
+public sealed record AddProjectItemCommentRequest(string Mensagem);
+public sealed record ProjectFeedEventResponse(Guid Id, string Tipo, string Descricao, DateTimeOffset CriadoEm);
+public sealed record ProjectMetricsResponse(int TotalItens, int ItensConcluidos, int ItensAtrasados, int StoryPointsTotais, int StoryPointsConcluidos, decimal ProgressoPercentual);
+public sealed record ProjectVelocityResponse(string Sprint, int PontosConcluidos);
+public sealed record ProjectBurndownResponse(DateOnly Dia, int PontosRestantes);
+public sealed record ProjectExportResponse(Guid BoardId, string Nome, string Json, DateTimeOffset ExportadoEm);
+public sealed record ProjectImportRequest(string Json);
+public sealed record ProjectImportResponse(Guid BoardId, int ItensImportados, string Status);
