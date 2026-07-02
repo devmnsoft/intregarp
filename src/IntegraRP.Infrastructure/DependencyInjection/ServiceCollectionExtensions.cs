@@ -12,6 +12,8 @@ using Microsoft.Extensions.DependencyInjection;
 using IntegraRP.Application.Abstractions.Billing;
 using IntegraRP.Application.Abstractions.Connect;
 using IntegraRP.Infrastructure.Services.BillingConnect;
+using IntegraRP.Application.Abstractions.Bi;
+using IntegraRP.Infrastructure.Services.Sprint7;
 
 namespace IntegraRP.Infrastructure.DependencyInjection;
 
@@ -22,6 +24,11 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IDbConnectionFactory, NpgsqlConnectionFactory>();
         services.AddScoped<IIntegraRpQueries, SeededIntegraRpQueries>();
         services.AddScoped<IMigrationRunner, PostgresMigrationRunner>();
+        services.AddSingleton<ISprint7BiProjectService, InMemoryBiProjectService>();
+        services.AddSingleton<IKpiCalculator>(sp => sp.GetRequiredService<ISprint7BiProjectService>());
+        services.AddSingleton<IKpiAggregationService>(sp => sp.GetRequiredService<ISprint7BiProjectService>());
+        services.AddSingleton<IOperationalScoreService>(sp => sp.GetRequiredService<ISprint7BiProjectService>());
+        services.AddSingleton<IDashboardQueryService>(sp => sp.GetRequiredService<ISprint7BiProjectService>());
 
         services.AddSingleton<InMemoryFlowServices>();
         services.AddSingleton<IProcessDefinitionRepository>(sp => sp.GetRequiredService<InMemoryFlowServices>());

@@ -1,0 +1,11 @@
+@{ ViewData["Title"] = "BI Executivo"; }
+<link rel="stylesheet" href="/css/bi-dashboard.css" />
+<link rel="stylesheet" href="/css/simple-charts.css" />
+<section class="bi-page" data-dashboard="executive">
+    <div class="bi-hero"><h1>Dashboard Executivo</h1><p>Score operacional, gargalos, KPIs críticos e módulos em tempo quase real.</p></div>
+    <div id="bi-score" class="score-card loading">Carregando score...</div>
+    <div id="bi-cards" class="bi-card-grid"></div>
+    <div id="bi-charts" class="bi-chart-grid"></div>
+    <div class="bi-panel"><h2>Gargalos e alertas críticos</h2><ul id="bi-alerts"></ul></div>
+</section>
+<script src="/js/simple-charts.js"></script><script src="/js/bi-dashboard.js"></script>

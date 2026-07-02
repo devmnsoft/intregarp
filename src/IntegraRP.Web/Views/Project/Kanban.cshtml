@@ -1,0 +1,4 @@
+@{ ViewData["Title"] = "Kanban Project"; }
+<link rel="stylesheet" href="/css/project-central.css" />
+<section class="project-page" data-board-id="@ViewBag.BoardId"><div class="project-hero"><h1>Kanban Project</h1><p>Arraste cards, filtre atrasos, comente e acompanhe o feed.</p></div><div class="project-filters"><input id="kanban-filter" class="form-control" placeholder="Filtrar por texto, responsável, sprint ou módulo" /></div><div id="kanban-board" class="kanban-board loading">Carregando...</div><aside id="project-feed" class="project-feed"></aside></section>
+<script src="/js/project-kanban.js"></script><script src="/js/project-feed.js"></script>

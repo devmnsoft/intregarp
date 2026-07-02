@@ -1,7 +1,7 @@
 using IntegraRP.Application.Abstractions.Services;using IntegraRP.Application.Common;using IntegraRP.Contracts.Requests;
 using Microsoft.AspNetCore.Mvc;
 namespace IntegraRP.Api.Controllers;
-[ApiController][Route("api/project")]public sealed class ProjectCentralController(ILogger<ProjectCentralController> logger, IIntegraRpQueries queries):ControllerBase{
+[ApiController][Route("api/project/legacy")]public sealed class ProjectCentralController(ILogger<ProjectCentralController> logger, IIntegraRpQueries queries):ControllerBase{
 IActionResult FromResult<T>(Result<T> r)=>r.IsSuccess?Ok(r.Value):Problem(r.Error,statusCode:400);
 [HttpGet("boards")]public async Task<IActionResult> Boards(CancellationToken ct){try{logger.LogInformation("Executando ProjectCentralController");return FromResult(await queries.BoardsAsync(ct));}catch(Exception ex){logger.LogError(ex,"Erro em ProjectCentralController");throw;}}
 [HttpGet("boards/{boardId:guid}")]public async Task<IActionResult> Board(Guid boardId,CancellationToken ct){try{logger.LogInformation("Executando ProjectCentralController");return FromResult(await queries.BoardAsync(boardId,ct));}catch(Exception ex){logger.LogError(ex,"Erro em ProjectCentralController");throw;}}

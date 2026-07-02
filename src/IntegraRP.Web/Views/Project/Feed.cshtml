@@ -1,0 +1,4 @@
+@{ ViewData["Title"] = "Project Central"; }
+<link rel="stylesheet" href="/css/project-central.css" /><link rel="stylesheet" href="/css/simple-charts.css" />
+<section class="project-page" data-board-id="@ViewBag.BoardId"><div class="project-hero"><h1>@ViewData["Title"]</h1><p>Métricas, velocity, burndown, sprints, feed e importação/exportação JSON.</p></div><div id="project-content" class="project-panel loading">Carregando...</div></section>
+<script src="/js/simple-charts.js"></script><script src="/js/project-metrics.js"></script><script src="/js/project-import-export.js"></script>
