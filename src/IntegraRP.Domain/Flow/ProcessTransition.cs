@@ -4,11 +4,10 @@ public sealed class ProcessTransition
 {
     public Guid Id { get; init; } = Guid.NewGuid();
     public Guid TenantId { get; init; }
-    public string Name { get; set; } = string.Empty;
-    public string Code { get; set; } = string.Empty;
-    public string Status { get; set; } = "ativo";
-    public string MetadataJson { get; set; } = "{}";
-    public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
-    public DateTimeOffset? UpdatedAt { get; set; }
-    public DateTimeOffset? DeletedAt { get; set; }
+    public Guid ProcessVersionId { get; init; }
+    public Guid SourceElementId { get; init; }
+    public Guid TargetElementId { get; init; }
+    public string Code { get; init; } = string.Empty;
+    public TransitionConditionType ConditionType { get; init; } = TransitionConditionType.Always;
+    public string ConditionJson { get; init; } = "{}";
 }

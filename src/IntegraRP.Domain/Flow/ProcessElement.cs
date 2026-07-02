@@ -4,11 +4,13 @@ public sealed class ProcessElement
 {
     public Guid Id { get; init; } = Guid.NewGuid();
     public Guid TenantId { get; init; }
-    public string Name { get; set; } = string.Empty;
-    public string Code { get; set; } = string.Empty;
-    public string Status { get; set; } = "ativo";
-    public string MetadataJson { get; set; } = "{}";
-    public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
-    public DateTimeOffset? UpdatedAt { get; set; }
-    public DateTimeOffset? DeletedAt { get; set; }
+    public Guid ProcessVersionId { get; init; }
+    public string Code { get; init; } = string.Empty;
+    public string Name { get; init; } = string.Empty;
+    public ProcessElementType Type { get; init; }
+    public Guid? DepartmentId { get; init; }
+    public Guid? UserId { get; init; }
+    public Guid? RoleId { get; init; }
+    public int? SlaMinutes { get; init; }
+    public void Validate() { if (Type == ProcessElementType.HumanTask && DepartmentId is null && UserId is null && RoleId is null) throw new InvalidOperationException("HumanTask precisa ter usuário, setor ou perfil responsável."); }
 }

@@ -86,3 +86,25 @@ Toda operação usa `tenant_id` e os objetos de banco ficam no schema `integrarp
 
 - Windows: confirme `dotnet --info`, `psql --version` e a connection string `Host=localhost`.
 - Docker: confirme `docker compose ps`, logs do serviço `integrarp-api` e credenciais de `.env`.
+
+## Integra Flow — BPMN Core Engine
+
+A Sprint 3 adiciona o núcleo operacional do Integra Flow: definições, versões, elementos, transições, instâncias, tarefas humanas, SLA, auditoria, eventos de negócio e outbox fake/log. O seed idempotente “Pedido ao Pós-venda” usa o código `pedido_ao_pos_venda` e demonstra o fluxo do pedido recebido até pós-venda.
+
+### Como executar
+
+- Windows: execute `scripts\migrate-windows.ps1`, `scripts\build-windows.ps1` e `scripts\test-windows.ps1`.
+- Docker: execute `docker compose up -d`; o migration runner aplica `database/migrations/0003_flow_bpmn_core.sql` quando habilitado.
+- Swagger: acesse a API em `/swagger` e use as tags Flow Definitions, Flow Versions, Flow Instances, Flow Tasks e Flow Dashboard.
+
+### Fluxo pela API
+
+1. Crie uma definição em `POST /api/flow/definitions`.
+2. Crie rascunho em `POST /api/flow/definitions/{definitionId}/versions`.
+3. Adicione elementos e transições em `/api/flow/versions/{versionId}`.
+4. Publique em `POST /api/flow/versions/{versionId}/publish`.
+5. Inicie instância em `POST /api/flow/definitions/{definitionId}/start`.
+6. Consulte tarefas em `GET /api/flow/tasks` e conclua em `POST /api/flow/tasks/{id}/complete`.
+7. Consulte KPIs em `GET /api/flow/dashboard`.
+
+Todas as consultas operacionais carregam `tenant_id`; auditoria registra ações críticas e o outbox registra notificações fake/log para nova tarefa, atraso, conclusão e erro de gateway.

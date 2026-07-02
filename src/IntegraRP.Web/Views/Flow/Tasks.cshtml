@@ -1,0 +1,27 @@
+@{
+    ViewData["Title"] = "Integra Flow - Tasks";
+}
+<section class="integrarp-card">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+        <div>
+            <span class="badge text-bg-primary">Integra Flow</span>
+            <h2 class="h4 mt-2 mb-1">Tasks</h2>
+            <p class="text-muted mb-0">Operação BPMN núcleo real com tarefas, SLA, auditoria e eventos.</p>
+        </div>
+        <a class="btn btn-outline-primary" href="/flow/tasks">Minhas tarefas</a>
+    </div>
+    <div id="flow-root" class="row g-3">
+        <div class="col-12 col-md-4"><div class="p-3 border rounded bg-light"><strong>Processos publicados</strong><div class="display-6" data-flow-card="published">1</div></div></div>
+        <div class="col-12 col-md-4"><div class="p-3 border rounded bg-light"><strong>Tarefas abertas</strong><div class="display-6" data-flow-card="tasks">0</div></div></div>
+        <div class="col-12 col-md-4"><div class="p-3 border rounded bg-light"><strong>SLA vencido</strong><div class="display-6" data-flow-card="overdue">0</div></div></div>
+        <div class="col-12"><pre class="bg-dark text-white p-3 rounded" id="flow-json">Seed: Pedido ao Pós-venda</pre></div>
+    </div>
+</section>
+@section Scripts {
+    <script src="~/js/flow-api.js"></script>
+    <script src="~/js/flow-dashboard.js"></script>
+    <script src="~/js/flow-definitions.js"></script>
+    <script src="~/js/flow-version-editor.js"></script>
+    <script src="~/js/flow-instances.js"></script>
+    <script src="~/js/flow-tasks.js"></script>
+}
