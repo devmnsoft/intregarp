@@ -20,6 +20,15 @@ public sealed class FlowController : Controller
     [HttpGet("versions/{id:guid}")]
     public IActionResult VersionEditor(Guid id) { ViewData["VersionId"] = id; return View("VersionEditor"); }
 
+    [HttpGet("designer")]
+    public IActionResult Designer() => View("~/Views/FlowDesigner/Index.cshtml");
+
+    [HttpGet("designer/templates")]
+    public IActionResult DesignerTemplates() => View("~/Views/FlowDesigner/Templates.cshtml");
+
+    [HttpGet("designer/versions/{id:guid}")]
+    public IActionResult DesignerVersion(Guid id) { ViewData["VersionId"] = id; return View("~/Views/FlowDesigner/Editor.cshtml"); }
+
     [HttpGet("instances")]
     public IActionResult Instances() => View("Instances");
 

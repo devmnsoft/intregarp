@@ -1,0 +1,25 @@
+@{
+    ViewData["Title"] = "Editor visual do processo";
+    var versionId = ViewData["VersionId"];
+}
+<link rel="stylesheet" href="~/css/flow-designer.css" />
+<section class="flow-editor" data-version-id="@versionId">
+    <header class="flow-editor-topbar">
+        <div><p class="flow-kicker">Designer visual</p><h1 id="flow-process-name">Processo</h1><span class="badge bg-secondary" id="flow-version-status">rascunho</span></div>
+        <div class="flow-actions"><button class="btn btn-outline-primary" id="flow-save-layout">Salvar layout</button><button class="btn btn-warning" id="flow-validate">Validar</button><button class="btn btn-success" id="flow-publish">Publicar</button><button class="btn btn-outline-secondary" id="flow-start-test">Iniciar teste</button><span class="flow-validation-badge" id="flow-validation-badge">0 erros / 0 warnings</span></div>
+    </header>
+    <div class="flow-editor-grid">
+        <aside class="flow-palette" aria-label="Elementos para adicionar"><h2>Adicionar</h2><button data-add-element="start_event">Início</button><button data-add-element="human_task">Tarefa humana</button><button data-add-element="automatic_activity">Atividade automática</button><button data-add-element="gateway">Gateway</button><button data-add-element="subprocess">Subprocesso</button><button data-add-element="end_event">Fim</button></aside>
+        <main class="flow-canvas-wrap"><svg id="flow-lines" class="flow-lines" aria-hidden="true"></svg><div id="flow-canvas" class="flow-canvas" tabindex="0" aria-label="Canvas do fluxo"></div></main>
+        <aside class="flow-config"><h2>Configuração</h2><form id="flow-element-form"><label>Código<input class="form-control" name="codigo" /></label><label>Nome<input class="form-control" name="nome" /></label><label>Tipo<select class="form-select" name="tipo"><option>start_event</option><option>human_task</option><option>automatic_activity</option><option>gateway</option><option>subprocess</option><option>end_event</option></select></label><label>Descrição<textarea class="form-control" name="descricao"></textarea></label><label>SLA minutos<input class="form-control" type="number" name="sla" min="0" /></label><button class="btn btn-primary w-100" type="submit">Salvar etapa</button></form><hr /><div id="flow-form-builder"></div><div id="flow-checklist-builder"></div></aside>
+    </div>
+    <footer class="flow-bottom-panel"><div><h2>Validação</h2><ul id="flow-validation-list"></ul></div><div><h2>JSON técnico</h2><pre id="flow-technical-json">{}</pre></div><div><h2>Histórico recente</h2><ul id="flow-history"></ul></div></footer>
+</section>
+<script src="~/js/flow-designer-api.js"></script>
+<script src="~/js/flow-designer-state.js"></script>
+<script src="~/js/flow-designer-canvas.js"></script>
+<script src="~/js/flow-designer-elements.js"></script>
+<script src="~/js/flow-designer-transitions.js"></script>
+<script src="~/js/flow-designer-form-builder.js"></script>
+<script src="~/js/flow-designer-checklist-builder.js"></script>
+<script src="~/js/flow-designer-validation.js"></script>

@@ -27,14 +27,23 @@ public sealed class ApiProxyController(IHttpClientFactory httpClientFactory, ILo
     [HttpGet("catalogo/modulos")]
     public Task<IActionResult> Modulos(CancellationToken cancellationToken) => Proxy("/api/catalogo/modulos", cancellationToken);
 
+    [Route("flow/designer/{**path}")]
+    public Task<IActionResult> FlowDesignerProxy(string path, CancellationToken cancellationToken) => Proxy($"/api/flow/designer/{path}", cancellationToken);
+
     private async Task<IActionResult> Proxy(string path, CancellationToken cancellationToken)
     {
         try
         {
             var client = httpClientFactory.CreateClient("IntegraRP.Api");
-            var response = await client.GetAsync(path, cancellationToken);
+            using var request = new HttpRequestMessage(new HttpMethod(Request.Method), path + Request.QueryString);
+            if (Request.ContentLength > 0)
+            {
+                request.Content = new StreamContent(Request.Body);
+                request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(Request.ContentType ?? "application/json");
+            }
+            var response = await client.SendAsync(request, cancellationToken);
             var json = await response.Content.ReadAsStringAsync(cancellationToken);
-            return Content(json, "application/json");
+            return StatusCode((int)response.StatusCode, json);
         }
         catch (Exception ex)
         {

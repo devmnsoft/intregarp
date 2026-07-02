@@ -1,0 +1,39 @@
+:root {
+  --flow-blue-dark: #071F3A;
+  --flow-blue: #2563EB;
+  --flow-green: #16A34A;
+  --flow-amber: #F59E0B;
+  --flow-bg: #F8FAFC;
+  --flow-text: #111827;
+  --flow-border: #E5E7EB;
+  --flow-red: #DC2626;
+}
+.flow-page, .flow-editor { background: var(--flow-bg); color: var(--flow-text); min-height: 100vh; padding: 1.5rem; }
+.flow-hero, .flow-editor-topbar { align-items: center; background: linear-gradient(135deg, var(--flow-blue-dark), var(--flow-blue)); border-radius: 1.25rem; color: white; display: flex; justify-content: space-between; gap: 1rem; padding: 1.5rem; }
+.flow-hero.compact { padding: 1rem 1.5rem; }
+.flow-kicker { font-size: .8rem; font-weight: 700; letter-spacing: .08em; margin: 0 0 .25rem; text-transform: uppercase; }
+.flow-toolbar { display: flex; gap: 1rem; margin: 1rem 0; }
+.flow-template-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin-top: 1rem; }
+.flow-template-card { background: white; border: 1px solid var(--flow-border); border-radius: 1rem; box-shadow: 0 14px 35px rgba(7, 31, 58, .08); padding: 1rem; }
+.flow-template-card h2 { color: var(--flow-blue-dark); font-size: 1.05rem; }
+.flow-empty { background: white; border: 1px dashed var(--flow-border); border-radius: 1rem; margin-top: 1rem; padding: 2rem; text-align: center; }
+.flow-editor-grid { display: grid; gap: 1rem; grid-template-columns: 220px minmax(320px, 1fr) 320px; margin-top: 1rem; }
+.flow-palette, .flow-config, .flow-bottom-panel > div { background: white; border: 1px solid var(--flow-border); border-radius: 1rem; padding: 1rem; }
+.flow-palette button { background: white; border: 1px solid var(--flow-border); border-radius: .75rem; display: block; margin-bottom: .5rem; padding: .65rem .75rem; text-align: left; width: 100%; }
+.flow-canvas-wrap { background: white; border: 1px solid var(--flow-border); border-radius: 1rem; min-height: 560px; overflow: auto; position: relative; }
+.flow-canvas { min-height: 720px; min-width: 980px; position: relative; }
+.flow-lines { height: 100%; left: 0; pointer-events: none; position: absolute; top: 0; width: 100%; z-index: 1; }
+.flow-node { background: white; border: 2px solid var(--flow-blue); border-radius: 1rem; box-shadow: 0 10px 24px rgba(17, 24, 39, .12); cursor: grab; padding: .75rem; position: absolute; width: 190px; z-index: 2; }
+.flow-node.start_event { border-color: var(--flow-green); }
+.flow-node.end_event { border-color: var(--flow-blue-dark); }
+.flow-node.gateway { border-color: var(--flow-amber); transform: rotate(2deg); }
+.flow-node.automatic_activity { border-color: var(--flow-amber); }
+.flow-node.selected { outline: 3px solid rgba(37, 99, 235, .2); }
+.flow-actions { align-items: center; display: flex; flex-wrap: wrap; gap: .5rem; justify-content: flex-end; }
+.flow-validation-badge { background: rgba(255, 255, 255, .14); border-radius: 999px; padding: .5rem .75rem; }
+.flow-config label { display: block; font-weight: 600; margin-bottom: .75rem; }
+.flow-bottom-panel { display: grid; gap: 1rem; grid-template-columns: 1fr 1fr 1fr; margin-top: 1rem; }
+.flow-bottom-panel pre { background: #0F172A; border-radius: .75rem; color: #E5E7EB; max-height: 280px; overflow: auto; padding: 1rem; }
+.flow-issue-error { color: var(--flow-red); }
+.flow-issue-warning { color: var(--flow-amber); }
+@media (max-width: 992px) { .flow-editor-grid, .flow-bottom-panel { grid-template-columns: 1fr; } .flow-hero, .flow-editor-topbar, .flow-toolbar { align-items: stretch; flex-direction: column; } }

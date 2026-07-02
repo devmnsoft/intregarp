@@ -5,6 +5,8 @@ using IntegraRP.Application.Studio;
 using IntegraRP.Infrastructure.Data;
 using IntegraRP.Infrastructure.Data.Migrations;
 using IntegraRP.Infrastructure.Services;
+using IntegraRP.Infrastructure.Services.FlowDesigner;
+using IntegraRP.Application.Abstractions.FlowDesigner;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -45,6 +47,17 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IntegraRP.Application.Abstractions.Flow.IWorkflowSlaCalculator>(sp => sp.GetRequiredService<InMemoryFlowCoreServices>());
         services.AddSingleton<IntegraRP.Application.Abstractions.Flow.IWorkflowCodeGenerator>(sp => sp.GetRequiredService<InMemoryFlowCoreServices>());
         services.AddSingleton<IntegraRP.Application.Abstractions.Flow.IUnitOfWork>(sp => sp.GetRequiredService<InMemoryFlowCoreServices>());
+
+        services.AddSingleton<InMemoryFlowDesignerServices>();
+        services.AddSingleton<IFlowDesignerService>(sp => sp.GetRequiredService<InMemoryFlowDesignerServices>());
+        services.AddSingleton<IFlowTemplateRepository>(sp => sp.GetRequiredService<InMemoryFlowDesignerServices>());
+        services.AddSingleton<IFlowDesignerHistoryRepository>(sp => sp.GetRequiredService<InMemoryFlowDesignerServices>());
+        services.AddSingleton<IFlowDesignerValidator>(sp => sp.GetRequiredService<InMemoryFlowDesignerServices>());
+        services.AddSingleton<IFlowTemplateCloner>(sp => sp.GetRequiredService<InMemoryFlowDesignerServices>());
+        services.AddSingleton<IFlowDiagramSerializer>(sp => sp.GetRequiredService<InMemoryFlowDesignerServices>());
+        services.AddSingleton<IFlowDesignerLayoutService>(sp => sp.GetRequiredService<InMemoryFlowDesignerServices>());
+        services.AddSingleton<IFlowFormSchemaValidator>(sp => sp.GetRequiredService<InMemoryFlowDesignerServices>());
+        services.AddSingleton<IFlowChecklistSchemaValidator>(sp => sp.GetRequiredService<InMemoryFlowDesignerServices>());
 
         services.AddSingleton<InMemoryStudioServices>();
         services.AddSingleton<IDynamicModuleRepository>(sp => sp.GetRequiredService<InMemoryStudioServices>());
