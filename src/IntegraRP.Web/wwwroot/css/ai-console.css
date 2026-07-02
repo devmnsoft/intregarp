@@ -1,0 +1,3 @@
+.ai-console .card { border-radius: 1rem; }
+.ai-console .ai-message { border-left: 4px solid #2563EB; padding: .75rem; background: #F8FAFC; }
+.ai-console .ai-confidence { color: #16A34A; font-weight: 700; }
