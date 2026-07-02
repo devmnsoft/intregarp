@@ -1,0 +1,18 @@
+.badge-decision {
+  background: var(--integrarp-amber);
+  color: #111827;
+}
+
+.empty-state {
+  border: 1px dashed var(--integrarp-border);
+  border-radius: 1rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+.kanban-column {
+  min-height: 18rem;
+  background: #f1f5f9;
+  border-radius: 0.75rem;
+  padding: 1rem;
+}

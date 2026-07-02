@@ -1,2 +1,48 @@
-@model PageVm
-@{ViewData["Title"]=Model.Title;}<section class="page-hero"><nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item">IntegraRP</li><li class="breadcrumb-item active">@Model.Title</li></ol></nav><h1>@Model.Title</h1><p>@Model.Subtitle</p></section><section class="row g-3"><div class="col-md-4"><div class="metric-card"><span class="badge text-bg-primary">Operação</span><h3 id="metric-a">--</h3><p>Indicadores conectados à API.</p></div></div><div class="col-md-4"><div class="metric-card"><span class="badge text-bg-success">Status</span><h3>Ativo</h3><p>Fundação multi-tenant preparada.</p></div></div><div class="col-md-4"><div class="metric-card"><span class="badge text-bg-warning">Próximo passo</span><h3>Configurar dados</h3><p>Estado vazio amigável para implantação.</p></div></div></section><section class="panel mt-4"><h2>Dados da API</h2><div id="api-state" data-endpoint="@Model.EndpointKey" class="empty-state">Carregando informações...</div></section>
+@{
+  var page = (string?)ViewData["Page"] ?? "Dashboard";
+  ViewData["Title"] = page;
+}
+
+<section class="integrarp-card p-4 mb-4">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item">IntegraRP</li>
+      <li class="breadcrumb-item active" aria-current="page">@page</li>
+    </ol>
+  </nav>
+  <h2>@page</h2>
+  <p class="text-muted">Tela responsiva Bootstrap consumindo a API por cliente HTTP/proxy. Banco de dados não é acessado pelo Web.</p>
+</section>
+
+<div class="row g-4">
+  <div class="col-12 col-xl-4">
+    <article class="integrarp-card p-4 h-100">
+      <span class="badge text-bg-success">Operação</span>
+      <h3 class="h5 mt-3">KPIs vivos</h3>
+      <p>Cards executivos para pedidos, tarefas, SLAs, entregas e financeiro.</p>
+    </article>
+  </div>
+  <div class="col-12 col-xl-4">
+    <article class="integrarp-card p-4 h-100">
+      <span class="badge badge-decision">Decisão</span>
+      <h3 class="h5 mt-3">BPMN configurável</h3>
+      <p>Designer MVP com etapas, responsáveis, SLA, transições e JSON formatado.</p>
+    </article>
+  </div>
+  <div class="col-12 col-xl-4">
+    <article class="integrarp-card p-4 h-100">
+      <span class="badge text-bg-primary">IA governada</span>
+      <h3 class="h5 mt-3">Sem acesso direto ao banco</h3>
+      <p>Ferramentas internas autorizadas, validação RBAC, mascaramento, auditoria e fallback humano.</p>
+    </article>
+  </div>
+</div>
+
+@section Scripts {
+  <script src="~/js/flow-designer.js"></script>
+  <script src="~/js/studio-builder.js"></script>
+  <script src="~/js/dynamic-form-renderer.js"></script>
+  <script src="~/js/dynamic-list-renderer.js"></script>
+  <script src="~/js/ai-console.js"></script>
+  <script src="~/js/project-kanban.js"></script>
+}

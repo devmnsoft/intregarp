@@ -1,0 +1,36 @@
+:root {
+  --integrarp-blue: #071F3A;
+  --integrarp-tech: #2563EB;
+  --integrarp-green: #16A34A;
+  --integrarp-amber: #F59E0B;
+  --integrarp-background: #F8FAFC;
+  --integrarp-text: #111827;
+  --integrarp-border: #E5E7EB;
+}
+
+body {
+  background: var(--integrarp-background);
+  color: var(--integrarp-text);
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.integrarp-shell {
+  min-height: 100vh;
+}
+
+.integrarp-sidebar {
+  background: var(--integrarp-blue);
+  color: #ffffff;
+}
+
+.integrarp-sidebar a {
+  color: #dbeafe;
+  text-decoration: none;
+}
+
+.integrarp-card {
+  background: #ffffff;
+  border: 1px solid var(--integrarp-border);
+  border-radius: 1rem;
+  box-shadow: 0 10px 24px rgb(15 23 42 / 6%);
+}

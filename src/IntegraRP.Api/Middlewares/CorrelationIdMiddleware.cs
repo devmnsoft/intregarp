@@ -1,1 +1,16 @@
-namespace IntegraRP.Api.Middlewares;public sealed class CorrelationIdMiddleware(RequestDelegate next,ILogger<CorrelationIdMiddleware> logger){public async Task InvokeAsync(HttpContext ctx){var id=ctx.Request.Headers.TryGetValue("X-Correlation-Id",out var h)?h.ToString():Guid.NewGuid().ToString("N");ctx.TraceIdentifier=id;ctx.Response.Headers["X-Correlation-Id"]=id;using(logger.BeginScope(new Dictionary<string,object>{{"correlation_id",id}})){await next(ctx);}}}
+namespace IntegraRP.Api.Middlewares;
+
+public sealed class CorrelationIdMiddleware(RequestDelegate next, ILogger<CorrelationIdMiddleware> logger)
+{
+    public async Task InvokeAsync(HttpContext context)
+    {
+        var correlationId = context.Request.Headers.TryGetValue("X-Correlation-Id", out var header) ? header.ToString() : Guid.NewGuid().ToString("N");
+        context.TraceIdentifier = correlationId;
+        context.Response.Headers["X-Correlation-Id"] = correlationId;
+
+        using (logger.BeginScope(new Dictionary<string, object> { ["correlation_id"] = correlationId }))
+        {
+            await next(context);
+        }
+    }
+}

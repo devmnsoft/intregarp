@@ -1,1 +1,27 @@
-using Microsoft.AspNetCore.Mvc;namespace IntegraRP.Api.Middlewares;public sealed class GlobalExceptionMiddleware(RequestDelegate next,ILogger<GlobalExceptionMiddleware> logger){public async Task InvokeAsync(HttpContext context){try{await next(context);}catch(Exception ex){var cid=context.TraceIdentifier;logger.LogError(ex,"Erro não tratado. CorrelationId={CorrelationId}",cid);context.Response.StatusCode=StatusCodes.Status500InternalServerError;await context.Response.WriteAsJsonAsync(new ProblemDetails{Title="Erro interno no IntegraRP",Detail="Ocorreu uma falha inesperada. Informe o correlation_id ao suporte.",Status=500,Extensions={{"correlation_id",cid}}});}}}
+using Microsoft.AspNetCore.Mvc;
+
+namespace IntegraRP.Api.Middlewares;
+
+public sealed class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExceptionMiddleware> logger)
+{
+    public async Task InvokeAsync(HttpContext context)
+    {
+        try
+        {
+            await next(context);
+        }
+        catch (Exception ex)
+        {
+            var correlationId = context.TraceIdentifier;
+            logger.LogError(ex, "Erro não tratado. CorrelationId={CorrelationId}", correlationId);
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            await context.Response.WriteAsJsonAsync(new ProblemDetails
+            {
+                Title = "Erro interno no IntegraRP",
+                Detail = "Ocorreu uma falha inesperada. Informe o correlation_id ao suporte.",
+                Status = 500,
+                Extensions = { ["correlation_id"] = correlationId }
+            });
+        }
+    }
+}
