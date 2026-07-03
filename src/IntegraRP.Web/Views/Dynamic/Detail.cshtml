@@ -1,0 +1,5 @@
+@model (string moduleCode, Guid recordId)
+@{ ViewData["Title"] = "Detalhe dinâmico"; }
+<link rel="stylesheet" href="~/css/dynamic-modules.css" />
+<section class="dynamic-shell" data-module-code="@Model.moduleCode" data-record-id="@Model.recordId"><h1>Detalhe do registro</h1><div id="dynamic-detail"></div><div id="dynamic-actions"></div></section>
+<script src="~/js/studio-api.js"></script><script src="~/js/dynamic-detail-renderer.js"></script><script src="~/js/dynamic-action-runner.js"></script>

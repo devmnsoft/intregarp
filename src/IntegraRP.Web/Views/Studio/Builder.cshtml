@@ -1,0 +1,20 @@
+@model Guid
+@{
+    ViewData["Title"] = "Builder do módulo";
+}
+<link rel="stylesheet" href="~/css/studio.css" />
+<section class="studio-builder" data-module-id="@Model">
+    <header class="studio-builder-header">
+        <div><span class="studio-eyebrow">Builder</span><h1 id="studio-module-name">Módulo dinâmico</h1><p id="studio-module-status">Status: rascunho</p></div>
+        <div class="studio-actions"><button class="btn btn-success" id="studio-save">Salvar</button><button class="btn btn-primary" id="studio-publish">Publicar</button><a class="btn btn-outline-secondary" href="/studio">Voltar</a></div>
+    </header>
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#general" type="button">Geral</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#fields" type="button">Campos</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#actions" type="button">Ações</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#bpmn" type="button">BPMN</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#semantic" type="button">IA/Semântico</button></li>
+    </ul>
+    <div class="tab-content studio-card"><div id="general" class="tab-pane fade show active">Configurações gerais, menus e permissões.</div><div id="fields" class="tab-pane fade"><div id="studio-fields-builder"></div></div><div id="actions" class="tab-pane fade"><div id="studio-actions-builder"></div></div><div id="bpmn" class="tab-pane fade"><div id="studio-bpmn-bindings"></div></div><div id="semantic" class="tab-pane fade"><div id="studio-semantic"></div></div></div>
+</section>
+<script src="~/js/studio-api.js"></script><script src="~/js/studio-fields-builder.js"></script><script src="~/js/studio-actions-builder.js"></script><script src="~/js/studio-bpmn-bindings.js"></script><script src="~/js/studio-semantic.js"></script><script src="~/js/studio-builder.js"></script>

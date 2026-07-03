@@ -30,6 +30,10 @@ public sealed class ApiProxyController(IHttpClientFactory httpClientFactory, ILo
     [Route("flow/designer/{**path}")]
     public Task<IActionResult> FlowDesignerProxy(string path, CancellationToken cancellationToken) => Proxy($"/api/flow/designer/{path}", cancellationToken);
 
+
+    [Route("proxy")]
+    public Task<IActionResult> GenericProxy([FromQuery] string path, CancellationToken cancellationToken) => Proxy(path, cancellationToken);
+
     private async Task<IActionResult> Proxy(string path, CancellationToken cancellationToken)
     {
         try

@@ -1,0 +1,20 @@
+@{
+    ViewData["Title"] = "Integra Studio";
+}
+<link rel="stylesheet" href="~/css/studio.css" />
+<section class="studio-shell">
+    <div class="studio-hero">
+        <div>
+            <span class="studio-eyebrow">Integra Studio Avançado</span>
+            <h1>Módulos dinâmicos low-code</h1>
+            <p>Crie módulos operacionais, campos, ações, KPIs, BPMN e catálogo semântico sem novas migrations por módulo.</p>
+        </div>
+        <div class="studio-actions">
+            <a class="btn btn-primary" href="/studio/modules/create">Criar módulo</a>
+            <a class="btn btn-outline-primary" href="/studio/smart-builder">Criador inteligente</a>
+        </div>
+    </div>
+    <div id="studio-modules" class="studio-grid" data-empty="Nenhum módulo encontrado."></div>
+</section>
+<script src="~/js/studio-api.js"></script>
+<script src="~/js/studio-builder.js"></script>
