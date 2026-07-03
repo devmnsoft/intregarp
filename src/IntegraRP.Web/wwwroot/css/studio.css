@@ -1,0 +1,8 @@
+:root { --studio-navy: #071F3A; --studio-blue: #2563EB; --studio-green: #16A34A; --studio-amber: #F59E0B; --studio-bg: #F8FAFC; --studio-text: #111827; --studio-border: #E5E7EB; }
+.studio-shell, .studio-builder, .dynamic-shell { background: var(--studio-bg); color: var(--studio-text); padding: 1.5rem; }
+.studio-hero, .studio-builder-header, .studio-card { background: #fff; border: 1px solid var(--studio-border); border-radius: 1rem; box-shadow: 0 10px 24px rgba(7,31,58,.08); padding: 1.5rem; margin-bottom: 1rem; }
+.studio-eyebrow { color: var(--studio-blue); font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+.studio-actions { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
+.studio-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
+.studio-result { background: #0f172a; color: #e2e8f0; border-radius: .75rem; padding: 1rem; margin-top: 1rem; white-space: pre-wrap; }
+@media (max-width: 768px) { .studio-builder-header, .studio-hero { display: block; } }

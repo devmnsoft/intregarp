@@ -1,0 +1,5 @@
+@model string
+@{ ViewData["Title"] = "Módulo dinâmico"; }
+<link rel="stylesheet" href="~/css/dynamic-modules.css" />
+<section class="dynamic-shell" data-module-code="@Model"><header><h1>@Model</h1><a class="btn btn-primary" href="/dynamic/@Model/create">Novo registro</a></header><div id="dynamic-list"></div></section>
+<script src="~/js/studio-api.js"></script><script src="~/js/dynamic-list-renderer.js"></script>

@@ -1,0 +1,16 @@
+@{
+    ViewData["Title"] = "Criar módulo";
+}
+<link rel="stylesheet" href="~/css/studio.css" />
+<section class="studio-card">
+    <h1>Criar módulo dinâmico</h1>
+    <form id="studio-create-module-form" class="row g-3">
+        <div class="col-md-6"><label class="form-label">Nome</label><input class="form-control" name="nome" required /></div>
+        <div class="col-md-6"><label class="form-label">Código</label><input class="form-control" name="codigo" required /></div>
+        <div class="col-md-6"><label class="form-label">Ícone</label><input class="form-control" name="icone" value="boxes" /></div>
+        <div class="col-md-6"><label class="form-label">Cor</label><input class="form-control" name="cor" value="#2563EB" /></div>
+        <div class="col-12"><button class="btn btn-primary" type="submit">Salvar</button></div>
+    </form>
+</section>
+<script src="~/js/studio-api.js"></script>
+<script src="~/js/studio-builder.js"></script>

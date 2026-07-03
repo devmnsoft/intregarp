@@ -1,0 +1,5 @@
+@model string
+@{ ViewData["Title"] = "Criar registro dinâmico"; }
+<link rel="stylesheet" href="~/css/dynamic-modules.css" />
+<section class="dynamic-shell" data-module-code="@Model"><h1>Novo registro - @Model</h1><form id="dynamic-form"></form></section>
+<script src="~/js/studio-api.js"></script><script src="~/js/dynamic-form-renderer.js"></script>

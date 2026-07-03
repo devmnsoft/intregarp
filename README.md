@@ -243,3 +243,34 @@ A Sprint 8 adiciona o aplicativo base Expo em `apps/IntegraRP.Mobile`, APIs REST
 
 ### Uso mobile e IA
 O app permite login com e-mail, senha e slug do tenant, dashboard resumido, minha fila, detalhe/execução de tarefa, evidências, GPS, assinatura, notificações e chat IA governado. Tokens usam `expo-secure-store`; não há segredo no app. A IA usa classificador rule-based, registry de tools seguras, auditoria e fallback humano sem integração externa real.
+
+## Sprint 9 - Integra Studio Avançado
+
+O Integra Studio Avançado cria módulos dinâmicos por metadados, mantendo DDD/Clean Architecture e banco PostgreSQL no schema `integrarp`.
+
+### Como usar o Studio
+
+1. Acesse `/studio` no Web.
+2. Clique em **Criar módulo** ou use `/studio/smart-builder`.
+3. Informe nome, código, ícone e cor.
+4. Abra o builder em `/studio/modules/{id}/builder`.
+5. Configure campos, ações, relacionamentos, BPMN, KPIs e catálogo semântico.
+6. Publique o módulo e acesse `/dynamic/{moduleCode}`.
+
+### Registros dinâmicos
+
+- Listagem: `/dynamic/{moduleCode}`.
+- Criação: `/dynamic/{moduleCode}/create`.
+- Detalhe/histórico: `/dynamic/{moduleCode}/{recordId}`.
+
+### BPMN, IA e KPIs
+
+- BPMN é configurado por vínculos de evento/ação.
+- IA só deve consultar módulos com `permite_ia` e catálogo semântico autorizado.
+- KPIs dinâmicos usam tipos seguros como contagem, soma de campo e média, sem SQL arbitrário do usuário.
+
+### Windows, Docker e testes
+
+- Windows: execute `dotnet restore`, `dotnet build` e `dotnet test`.
+- Docker: execute `docker compose up --build` quando o ambiente Docker estiver disponível.
+- Banco: aplique `database/migrations/0009_studio_avancado_modulos_dinamicos.sql` após as migrations anteriores.

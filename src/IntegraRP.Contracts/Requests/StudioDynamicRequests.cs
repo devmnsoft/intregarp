@@ -1,0 +1,26 @@
+namespace IntegraRP.Contracts.Requests;
+
+public sealed record UpdateDynamicModuleRequest(string Nome, string Codigo, string Icone, string Cor, string? Descricao, bool PermiteIa);
+public sealed record PublishDynamicModuleRequest(string Observacao);
+public sealed record CloneDynamicModuleRequest(string NovoNome, string NovoCodigo);
+public sealed record ImportDynamicModuleRequest(string Json);
+public sealed record CreateDynamicEntityRequest(string Nome, string Codigo, bool EntidadePrincipal);
+public sealed record UpdateDynamicEntityRequest(string Nome, string Codigo, bool EntidadePrincipal);
+public sealed record AddDynamicFieldRequest(string Nome, string Codigo, string Tipo, bool Obrigatorio, bool SensivelLgpd, bool Mascarar);
+public sealed record UpdateDynamicFieldRequest(string Nome, string Codigo, string Tipo, bool Obrigatorio, bool VisivelFormulario, bool SensivelLgpd, bool Mascarar);
+public sealed record ReorderDynamicFieldsRequest(IReadOnlyList<Guid> FieldIds);
+public sealed record AddDynamicActionRequest(string Nome, string Codigo, string Tipo, bool ExigeConfirmacao);
+public sealed record UpdateDynamicActionRequest(string Nome, string Codigo, string Tipo, bool ExigeConfirmacao);
+public sealed record ConfigureDynamicMenuRequest(string MenuPath, bool VisivelWeb, bool VisivelMobile);
+public sealed record AddDynamicRelationshipRequest(string Codigo, string Tipo, string DestinoTipo, string DestinoCodigo);
+public sealed record UpdateDynamicRelationshipRequest(string Codigo, string Tipo, string DestinoTipo, string DestinoCodigo);
+public sealed record AddDynamicBpmnBindingRequest(string Evento, Guid? ProcessoId, string ProcessoNome, string? AcaoCodigo);
+public sealed record AddDynamicKpiRequest(string Nome, string Codigo, string Tipo, string ConfiguracaoJson);
+public sealed record UpdateDynamicKpiRequest(string Nome, string Tipo, string ConfiguracaoJson);
+public sealed record ConfigureDynamicSemanticCatalogRequest(string Descricao, IReadOnlyList<string> PerguntasPermitidas, IReadOnlyList<string> CamposProibidos, bool ExigirPermissao);
+public sealed record SuggestDynamicModuleRequest(string Descricao, string? SetorSugerido, string? Objetivo, bool ConectarBpmn, bool HabilitarMobile, bool HabilitarIa);
+public sealed record CreateDynamicRecordRequest(Dictionary<string, object?> Valores);
+public sealed record UpdateDynamicRecordRequest(Dictionary<string, object?> Valores);
+public sealed record AddDynamicRecordCommentRequest(string Comentario);
+public sealed record AddDynamicRecordAttachmentRequest(string NomeArquivo, string ContentType, long TamanhoBytes, string Url);
+public sealed record ExecuteDynamicActionRequest(Dictionary<string, object?> Parametros);
