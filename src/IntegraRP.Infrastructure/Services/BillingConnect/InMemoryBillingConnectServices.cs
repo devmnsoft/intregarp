@@ -254,6 +254,8 @@ public sealed class InMemoryConnectService(ILogger<InMemoryConnectService> logge
         return Task.FromResult(processed);
     }
 
+    public Task<int> ProcessPendingAsync(CancellationToken cancellationToken) => ProcessPendingOutboxAsync(cancellationToken);
+
     public async Task<int> ProcessPendingOutboxAsync(CancellationToken cancellationToken)
     {
         var pending = _outbox.Values.Where(x => x.Status == "pendente" || (x.Status == "erro" && x.Tentativas < x.MaxTentativas)).ToList();
