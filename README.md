@@ -375,3 +375,8 @@ psql "$DATABASE_URL" -f database/scriptcompleto.sql
 ```
 
 O script usa exclusivamente o schema `integrarp`, cria `pgcrypto`, mantém `schema_migrations`, valida constraints/triggers/índices de forma idempotente e inclui seeds demo v1.1.
+
+
+## V1.2 — Integrações, Fiscal Fake/Sandbox, Conciliação, Rotas e Offline
+
+A v1.2 adiciona base técnica para conectores plugáveis, fiscal fake/sandbox, conciliação financeira local, otimização de rotas por Haversine e offline robusto mobile. Use `/database/scriptcompleto.sql` ou a migration `0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql` em ambiente sandbox. Não há integração real com SEFAZ, bancos, Open Finance, Google Maps ou Waze nesta fase.
