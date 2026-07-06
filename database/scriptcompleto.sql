@@ -1525,4 +1525,14 @@ INSERT INTO integrarp.rota_otimizacao_execucao (tenant_id,nome,codigo,status,met
 
 INSERT INTO integrarp.offline_dispositivo (tenant_id,nome,codigo,tipo) VALUES ('00000000-0000-0000-0000-000000000001','Dispositivo offline demo','device-demo','mobile') ON CONFLICT DO NOTHING;
 
+
+
+-- RBAC demo v1.2: permissões de integrações, fiscal fake/sandbox, conciliação, rotas e offline robusto.
+INSERT INTO integrarp.perfil (id, tenant_id, nome, permissoes_json, metadata_json)
+VALUES ('00000000-0000-0000-0000-000000001201', '00000000-0000-0000-0000-000000000001', 'Administrador demo v1.2', '["integrations.connectors.visualizar","integrations.connectors.criar","integrations.connectors.editar","integrations.connectors.testar","integrations.executions.visualizar","integrations.queue.processar","fiscal.documents.visualizar","fiscal.documents.criar","fiscal.documents.validar","fiscal.documents.emitir_fake","fiscal.documents.cancelar","fiscal.danfe.visualizar","reconciliation.accounts.visualizar","reconciliation.accounts.criar","reconciliation.statements.importar","reconciliation.suggest.visualizar","reconciliation.confirmar","reconciliation.rejeitar","reconciliation.alerts.visualizar","routing.optimize","routing.apply","routing.visualizar","routing.reorder","offline.device.registrar","offline.package.baixar","offline.sync.enviar","offline.conflicts.visualizar","offline.conflicts.resolver"]'::jsonb, '{"demo":true,"versao":"v1.2"}'::jsonb)
+ON CONFLICT (id) DO UPDATE SET
+    permissoes_json = EXCLUDED.permissoes_json,
+    metadata_json = EXCLUDED.metadata_json,
+    atualizado_em = now();
+
 INSERT INTO integrarp.schema_migrations (version) VALUES ('0014_v12_integracoes_fiscal_conciliacao_rotas_offline') ON CONFLICT DO NOTHING;
