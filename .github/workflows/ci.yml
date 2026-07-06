@@ -1,20 +1,61 @@
-name: ci
+name: IntegraRP CI
 
 on:
   push:
+    branches: [ main, work, feature/** ]
   pull_request:
+    branches: [ main, work ]
 
 jobs:
   build-test:
+    name: Build and test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
-      - run: dotnet restore
-      - run: dotnet build --no-restore
-      - run: dotnet test --no-build --verbosity normal
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore
+
+      - name: Test
+        run: dotnet test --no-build
+
+      - name: Validate SQL schemas
+        shell: bash
+        run: |
+          if grep -RInE '(^|[^a-zA-Z0-9_])(public|integra)\.' database; then
+            echo "Scripts must not reference public. or integra. schemas"
+            exit 1
+          fi
+          grep -RIn 'integrarp\.' database/migrations
+
+      - name: Setup Node
+        if: ${{ hashFiles('apps/IntegraRP.Mobile/package.json') != '' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: apps/IntegraRP.Mobile/package-lock.json
+
+      - name: Mobile install
+        if: ${{ hashFiles('apps/IntegraRP.Mobile/package.json') != '' }}
+        working-directory: apps/IntegraRP.Mobile
+        run: npm install
+
+      - name: Mobile typecheck
+        if: ${{ hashFiles('apps/IntegraRP.Mobile/package.json') != '' }}
+        working-directory: apps/IntegraRP.Mobile
+        run: npm run typecheck

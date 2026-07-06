@@ -14,6 +14,7 @@ var app = builder.Build();
 
 app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseMiddleware<TenantMiddleware>();
+app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
 app.UseSwagger();
@@ -28,4 +29,6 @@ if (app.Configuration.GetValue<bool>("IntegraRP:RunMigrations") && !app.Environm
 app.UseCors(policy => policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
 app.MapControllers();
 app.MapHealthChecks("/health");
+app.MapHealthChecks("/api/health/live");
+app.MapHealthChecks("/api/health/ready");
 app.Run();

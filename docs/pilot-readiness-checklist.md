@@ -1,0 +1,21 @@
+# Checklist de Prontidão do Piloto
+
+- [ ] Build verde.
+- [ ] Testes verdes.
+- [ ] Docker validado.
+- [ ] Windows validado.
+- [ ] Migrations aplicadas.
+- [ ] Usuário admin dev documentado.
+- [ ] Sem secrets no repositório.
+- [ ] Health checks funcionando.
+- [ ] Logs com correlation_id.
+- [ ] Tenant isolation testado.
+- [ ] RBAC testado.
+- [ ] Auditoria testada.
+- [ ] LGPD testada.
+- [ ] IA auditada.
+- [ ] Outbox testado.
+- [ ] Worker testado.
+- [ ] Backup/restore documentado.
+- [ ] Deploy piloto documentado.
+- [ ] Riscos conhecidos documentados.
