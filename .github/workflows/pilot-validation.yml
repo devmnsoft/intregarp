@@ -1,0 +1,57 @@
+name: Pilot validation
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [ main, work ]
+
+jobs:
+  pilot-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore
+
+      - name: Test
+        run: dotnet test --no-build
+
+      - name: Validate SQL schema usage
+        run: |
+          if grep -RInE '(^|[^a-zA-Z0-9_])(public|integra)\.' database; then
+            echo "Forbidden schema reference found. Use integrarp only."
+            exit 1
+          fi
+          grep -RIn 'integrarp\.' database/migrations
+
+      - name: Validate required docs
+        run: |
+          test -f docs/homologation-plan.md
+          test -f docs/homologation-test-cases.md
+          test -f docs/training-plan.md
+          test -f docs/demo-executive-script.md
+          test -f docs/demo-operational-script.md
+          test -f docs/demo-technical-script.md
+          test -f docs/release-notes-v1.0.md
+          test -f docs/go-live-plan.md
+          test -f docs/rollback-plan.md
+          test -f docs/runbook-pilot-operations.md
+          test -f docs/pilot-acceptance-checklist.md
+
+      - name: Validate required scripts
+        run: |
+          test -f scripts/validate-pilot-windows.ps1
+          test -f scripts/validate-pilot-windows.cmd
+          test -f scripts/run-pilot-api-windows.ps1
+          test -f scripts/run-pilot-web-windows.ps1
+          test -f scripts/run-pilot-worker-windows.ps1
+          test -f scripts/validate-pilot-docker.ps1
+          test -f scripts/reset-pilot-docker.ps1
