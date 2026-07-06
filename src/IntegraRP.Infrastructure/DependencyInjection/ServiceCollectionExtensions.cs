@@ -28,6 +28,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IDbConnectionFactory, NpgsqlConnectionFactory>();
         services.AddScoped<IIntegraRpQueries, SeededIntegraRpQueries>();
         services.AddScoped<IMigrationRunner, PostgresMigrationRunner>();
+        services.AddSingleton<IDataMaskingService, DataMaskingService>();
+        services.AddSingleton<ILgpdAuditService, InMemoryLgpdAuditService>();
         services.AddSingleton<ISprint7BiProjectService, InMemoryBiProjectService>();
         services.AddSingleton<IKpiCalculator>(sp => sp.GetRequiredService<ISprint7BiProjectService>());
         services.AddSingleton<IKpiAggregationService>(sp => sp.GetRequiredService<ISprint7BiProjectService>());

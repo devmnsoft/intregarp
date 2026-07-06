@@ -295,3 +295,69 @@ O IntegraRP agora inclui o catálogo **Templates Operacionais** para instalar o 
 - Windows: use `scripts/setup-windows.ps1`, `scripts/run-api-windows.ps1`, `scripts/run-web-windows.ps1`, `scripts/run-worker-windows.ps1` e `scripts/test-windows.ps1`.
 - Docker: use `docker compose up --build`.
 - Testes: execute `dotnet clean`, `dotnet restore`, `dotnet build` e `dotnet test` na raiz do repositório.
+
+## Hardening e Governança — Sprint 11
+
+### Como validar build e testes
+
+Execute na raiz do repositório:
+
+```bash
+dotnet clean
+dotnet restore
+dotnet build
+dotnet test
+```
+
+Se o app mobile existir, execute também:
+
+```bash
+cd apps/IntegraRP.Mobile
+npm install
+npm run typecheck
+```
+
+### Docker e Windows
+
+Docker:
+
+```bash
+docker compose build
+docker compose up -d
+docker compose ps
+```
+
+Windows:
+
+```cmd
+scripts\build-windows.cmd
+scripts\test-windows.cmd
+scripts\run-api-windows.cmd
+scripts\run-web-windows.cmd
+scripts\run-worker-windows.cmd
+```
+
+### Health checks
+
+- `GET /api/health` para status consolidado.
+- `GET /api/health/live` para liveness.
+- `GET /api/health/ready` para readiness.
+
+### Logs e correlation_id
+
+A API propaga `X-Correlation-Id` ou gera um novo identificador por requisição. Logs operacionais devem incluir `correlation_id`, `tenant_id`, `usuario_id`, operação e duração sem registrar senha, token, secrets ou dados sensíveis completos.
+
+### Tenant isolation, auditoria, LGPD e IA governada
+
+- Operações devem filtrar por `tenant_id` e aplicar RBAC.
+- A auditoria registra ações críticas com usuário, tenant e correlation_id.
+- O mascaramento central cobre CPF, CNPJ, telefone, e-mail, valores financeiros e campos dinâmicos sensíveis.
+- A IA usa provider fake, executa somente tools registradas, valida permissões e cria fallback humano quando não puder responder com segurança.
+
+### Performance básica
+
+A migration `database/migrations/0011_hardening_indexes_observability.sql` adiciona índices idempotentes para auditoria, IA, Flow, Dynamic Records, pedidos, estoque, outbox e Project Kanban. Listagens grandes devem permanecer paginadas e evitar `SELECT *`.
+
+### Checklist de piloto
+
+O checklist operacional está em `docs/pilot-readiness-checklist.md` e deve ser revisado antes da Sprint 12 — Piloto v1.0.
