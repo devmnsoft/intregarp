@@ -361,3 +361,17 @@ A migration `database/migrations/0011_hardening_indexes_observability.sql` adici
 ### Checklist de piloto
 
 O checklist operacional está em `docs/pilot-readiness-checklist.md` e deve ser revisado antes da Sprint 12 — Piloto v1.0.
+
+## Pós-Piloto v1.1 — Form Builder, Automações, Anexos, Notificações e Relatórios
+
+A v1.1 inaugura a evolução pós-piloto do IntegraRP com foco em configuração operacional avançada. O pacote inclui o script completo idempotente do banco em `database/scriptcompleto.sql`, os módulos de Form Builder avançado, regras de automação seguras, anexos versionados, notificações fake multicanal e relatórios exportáveis.
+
+### Banco completo
+
+Execute o script completo em PostgreSQL com um usuário autorizado:
+
+```bash
+psql "$DATABASE_URL" -f database/scriptcompleto.sql
+```
+
+O script usa exclusivamente o schema `integrarp`, cria `pgcrypto`, mantém `schema_migrations`, valida constraints/triggers/índices de forma idempotente e inclui seeds demo v1.1.

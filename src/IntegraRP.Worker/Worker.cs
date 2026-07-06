@@ -13,7 +13,7 @@ public sealed class Worker(
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var intervalSeconds = configuration.GetValue("IntegraRP:Worker:IntervalSeconds", 30);
-        logger.LogInformation("IntegraRP Worker iniciado para outbox, cobranças, vencimentos e providers fake/log.");
+        logger.LogInformation("IntegraRP Worker iniciado para outbox, cobranças, vencimentos, automações v1.1, notificações fake e relatórios agendados.");
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -40,7 +40,7 @@ public sealed class Worker(
                 }
 
                 logger.LogInformation(
-                    "Worker concluiu ciclo: {OverdueCount} títulos vencidos, {OutboxCount} eventos outbox e KPIs operacionais recalculados.",
+                    "Worker concluiu ciclo: {OverdueCount} títulos vencidos, {OutboxCount} eventos outbox, automações pendentes/retry, notificações fake e relatórios agendados verificados.",
                     overdueCount,
                     outboxCount);
 
