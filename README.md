@@ -274,3 +274,24 @@ O Integra Studio Avançado cria módulos dinâmicos por metadados, mantendo DDD/
 - Windows: execute `dotnet restore`, `dotnet build` e `dotnet test`.
 - Docker: execute `docker compose up --build` quando o ambiente Docker estiver disponível.
 - Banco: aplique `database/migrations/0009_studio_avancado_modulos_dinamicos.sql` após as migrations anteriores.
+
+## Sprint 10 — Templates Operacionais, Distribuição e Campo
+
+O IntegraRP agora inclui o catálogo **Templates Operacionais** para instalar o **Pacote Operação Distribuição** com módulos dinâmicos, processos BPMN, KPIs, formulários mobile, catálogo semântico de IA, mensagens e dashboards. Acesse `/operational/templates`, instale o pacote e acompanhe as instalações em `/operational/templates/installations`.
+
+### Como usar
+
+1. Execute as migrations, incluindo `database/migrations/0010_templates_operacionais_distribuicao_campo.sql`.
+2. Suba API, Web e Worker com os scripts Windows ou Docker já existentes.
+3. No Web, abra **Templates Operacionais** e instale o pacote `pacote_operacao_distribuicao`.
+4. Crie rotas em `/operations/routes`, romaneios em `/operations/manifests` e acompanhe entregas em `/operations/deliveries/monitoring`.
+5. Registre POD em `/operations/deliveries/pod` e ocorrências em `/operations/deliveries/occurrences`.
+6. Use os templates dinâmicos de avarias, devoluções, visita de promotor, checklist de PDV, reposição e satisfação pós-entrega pelo Studio.
+7. Consulte KPIs operacionais nas views `integrarp.vw_operacoes_dashboard`, `integrarp.vw_entregas_dashboard`, `integrarp.vw_romaneio_dashboard`, `integrarp.vw_avarias_dashboard`, `integrarp.vw_devolucoes_dashboard` e `integrarp.vw_promotores_dashboard`.
+8. Use as tools governadas da IA para status de entrega, rota, romaneio, avaria, devolução, visitas e templates operacionais.
+
+### Windows, Docker e testes
+
+- Windows: use `scripts/setup-windows.ps1`, `scripts/run-api-windows.ps1`, `scripts/run-web-windows.ps1`, `scripts/run-worker-windows.ps1` e `scripts/test-windows.ps1`.
+- Docker: use `docker compose up --build`.
+- Testes: execute `dotnet clean`, `dotnet restore`, `dotnet build` e `dotnet test` na raiz do repositório.

@@ -1,0 +1,7 @@
+.op-page { background: #F8FAFC; color: #111827; padding: 1.5rem; }
+.op-hero, .op-panel, .op-card { background: #fff; border: 1px solid #E5E7EB; border-radius: 1rem; padding: 1.25rem; box-shadow: 0 10px 30px rgba(7, 31, 58, .08); }
+.op-hero { border-left: .4rem solid #2563EB; }
+.op-hero span { color: #16A34A; font-weight: 700; text-transform: uppercase; }
+.op-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin: 1rem 0; }
+.op-card h3 { color: #071F3A; }
+.op-badge { background: #F59E0B; border-radius: 999px; color: #111827; display: inline-block; font-size: .75rem; padding: .2rem .6rem; }

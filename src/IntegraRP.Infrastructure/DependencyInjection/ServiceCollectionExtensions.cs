@@ -16,6 +16,8 @@ using IntegraRP.Application.Abstractions.Bi;
 using IntegraRP.Application.Abstractions.Mobile;
 using IntegraRP.Application.Abstractions.Ai;
 using IntegraRP.Infrastructure.Services.Sprint7;
+using IntegraRP.Application.Abstractions.OperationalTemplates;
+using IntegraRP.Application.Abstractions.Operations;
 
 namespace IntegraRP.Infrastructure.DependencyInjection;
 
@@ -124,6 +126,30 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IAiToolV2>(new GovernedTool("search_dynamic_module", "Busca módulo dinâmico", "ai.tool.dynamic_module_search", "Consulta dinâmica autorizada retornou registros paginados."));
         services.AddSingleton<IAiToolV2>(new GovernedTool("get_authorized_kpi", "KPI autorizado", "ai.tool.kpi", "KPI operacional permitido: SLA 92%."));
         services.AddSingleton<IAiToolV2>(new GovernedTool("open_human_task", "Abrir tarefa humana", "ai.tool.open_human_task", "Tarefa humana criada para atendimento."));
+        services.AddSingleton<OperationalSprint10Services>();
+        services.AddSingleton<IOperationalTemplateRepository>(sp => sp.GetRequiredService<OperationalSprint10Services>());
+        services.AddSingleton<IOperationalTemplatePackageRepository>(sp => sp.GetRequiredService<OperationalSprint10Services>());
+        services.AddSingleton<IOperationalTemplateInstallationRepository>(sp => sp.GetRequiredService<OperationalSprint10Services>());
+        services.AddSingleton<IOperationalTemplateInstaller>(sp => sp.GetRequiredService<OperationalSprint10Services>());
+        services.AddSingleton<IOperationalTemplatePreviewService>(sp => sp.GetRequiredService<OperationalSprint10Services>());
+        services.AddSingleton<IOperationalTemplateValidationService>(sp => sp.GetRequiredService<OperationalSprint10Services>());
+        services.AddSingleton<IOperationalTemplateSeedService>(sp => sp.GetRequiredService<OperationalSprint10Services>());
+        services.AddSingleton<IDeliveryRouteRepository>(sp => sp.GetRequiredService<OperationalSprint10Services>());
+        services.AddSingleton<IDeliveryManifestRepository>(sp => sp.GetRequiredService<OperationalSprint10Services>());
+        services.AddSingleton<IProofOfDeliveryRepository>(sp => sp.GetRequiredService<OperationalSprint10Services>());
+        services.AddSingleton<IDeliveryOccurrenceRepository>(sp => sp.GetRequiredService<OperationalSprint10Services>());
+        services.AddSingleton<IDeliveryMonitoringService>(sp => sp.GetRequiredService<OperationalSprint10Services>());
+        services.AddSingleton<IDeliveryKpiService>(sp => sp.GetRequiredService<OperationalSprint10Services>());
+        services.AddSingleton<IRoutePlanningService>(sp => sp.GetRequiredService<OperationalSprint10Services>());
+        services.AddSingleton<IManifestService>(sp => sp.GetRequiredService<OperationalSprint10Services>());
+        services.AddSingleton<IProofOfDeliveryService>(sp => sp.GetRequiredService<OperationalSprint10Services>());
+        services.AddSingleton<IAiToolV2>(new GovernedTool("get_delivery_status", "Status de entrega", "operations.deliveries.visualizar", "Entrega em rota; dados sensíveis mascarados; fallback humano em baixa confiança."));
+        services.AddSingleton<IAiToolV2>(new GovernedTool("get_route_status", "Status de rota", "operations.routes.visualizar", "Rota planejada/em execução com paradas autorizadas."));
+        services.AddSingleton<IAiToolV2>(new GovernedTool("get_manifest_status", "Status de romaneio", "operations.manifests.visualizar", "Romaneio conferido e pronto para expedição."));
+        services.AddSingleton<IAiToolV2>(new GovernedTool("get_damage_status", "Status de avaria", "operational.templates.visualizar", "Avaria com dados sensíveis mascarados."));
+        services.AddSingleton<IAiToolV2>(new GovernedTool("get_return_status", "Status de devolução", "operational.templates.visualizar", "Devolução em análise logística."));
+        services.AddSingleton<IAiToolV2>(new GovernedTool("get_promoter_visit_summary", "Resumo visita promotor", "operations.deliveries.visualizar", "Resumo autorizado de visita de campo."));
+        services.AddSingleton<IAiToolV2>(new GovernedTool("get_operational_template_info", "Template operacional", "operational.templates.visualizar", "Informações do catálogo operacional instalado."));
 
         services.AddSingleton<IBoletoProvider, FakeBoletoProvider>();
         services.AddSingleton<IBillingService, InMemoryBillingService>();

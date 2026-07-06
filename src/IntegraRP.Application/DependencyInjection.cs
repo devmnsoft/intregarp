@@ -1,4 +1,6 @@
 using IntegraRP.Application.FlowDesigner.UseCases;
+using IntegraRP.Application.OperationalTemplates;
+using IntegraRP.Application.Operations;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace IntegraRP.Application;
@@ -24,6 +26,37 @@ public static class DependencyInjection
         services.AddScoped<PublishFlowFromDesignerUseCase>();
         services.AddScoped<CreateDraftFromPublishedVersionUseCase>();
         services.AddScoped<GetDesignerHistoryUseCase>();
+        services.AddScoped<ListOperationalTemplatePackagesUseCase>();
+        services.AddScoped<ListOperationalTemplatesUseCase>();
+        services.AddScoped<GetOperationalTemplateByIdUseCase>();
+        services.AddScoped<PreviewOperationalTemplateUseCase>();
+        services.AddScoped<InstallOperationalTemplateUseCase>();
+        services.AddScoped<InstallOperationalTemplatePackageUseCase>();
+        services.AddScoped<ListOperationalTemplateInstallationsUseCase>();
+        services.AddScoped<GetOperationalTemplateInstallationLogUseCase>();
+        services.AddScoped<ValidateOperationalTemplateUseCase>();
+        services.AddScoped<CreateDeliveryRouteUseCase>();
+        services.AddScoped<UpdateDeliveryRouteUseCase>();
+        services.AddScoped<ListDeliveryRoutesUseCase>();
+        services.AddScoped<GetDeliveryRouteByIdUseCase>();
+        services.AddScoped<AddDeliveryRouteStopUseCase>();
+        services.AddScoped<ReorderDeliveryRouteStopsUseCase>();
+        services.AddScoped<StartDeliveryRouteUseCase>();
+        services.AddScoped<CompleteDeliveryRouteUseCase>();
+        services.AddScoped<CancelDeliveryRouteUseCase>();
+        services.AddScoped<CreateDeliveryManifestUseCase>();
+        services.AddScoped<AddDeliveryManifestItemUseCase>();
+        services.AddScoped<ConfirmDeliveryManifestUseCase>();
+        services.AddScoped<StartManifestRouteUseCase>();
+        services.AddScoped<CompleteDeliveryManifestUseCase>();
+        services.AddScoped<ListDeliveryManifestsUseCase>();
+        services.AddScoped<GetDeliveryManifestByIdUseCase>();
+        services.AddScoped<RegisterProofOfDeliveryUseCase>();
+        services.AddScoped<RegisterDeliveryOccurrenceUseCase>();
+        services.AddScoped<ResolveDeliveryOccurrenceUseCase>();
+        services.AddScoped<GetDeliveryMonitoringDashboardUseCase>();
+        services.AddScoped<ListPendingDeliveriesUseCase>();
+        services.AddScoped<ListDeliveriesWithOccurrenceUseCase>();
         return services;
     }
 }

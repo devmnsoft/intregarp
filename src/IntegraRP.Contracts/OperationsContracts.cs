@@ -1,0 +1,20 @@
+namespace IntegraRP.Contracts.Operations;
+
+public sealed record DeliveryRouteResponse(Guid Id, Guid TenantId, string Codigo, string Nome, DateOnly DataRota, Guid? MotoristaUsuarioId, string? VeiculoDescricao, string Status, int TotalParadas, int ParadasConcluidas, decimal? DistanciaEstimativaKm);
+public sealed record DeliveryRouteDetailResponse(Guid Id, Guid TenantId, string Codigo, string Nome, DateOnly DataRota, string Status, IReadOnlyList<DeliveryRouteStopResponse> Paradas);
+public sealed record CreateDeliveryRouteRequest(Guid TenantId, string Codigo, string Nome, DateOnly DataRota, Guid? MotoristaUsuarioId, string? VeiculoDescricao);
+public sealed record UpdateDeliveryRouteRequest(string Nome, DateOnly DataRota, Guid? MotoristaUsuarioId, string? VeiculoDescricao, string Status);
+public sealed record DeliveryRouteStopResponse(Guid Id, Guid RouteId, Guid TenantId, Guid? PedidoId, Guid? ClienteId, string? EnderecoTexto, decimal? Latitude, decimal? Longitude, decimal Ordem, string Status, string? Observacao);
+public sealed record AddDeliveryRouteStopRequest(Guid TenantId, Guid? PedidoId, Guid? ClienteId, string? EnderecoTexto, decimal? Latitude, decimal? Longitude, decimal Ordem, string? Observacao);
+public sealed record ReorderDeliveryRouteStopsRequest(Guid TenantId, IReadOnlyList<Guid> StopIds);
+public sealed record DeliveryManifestResponse(Guid Id, Guid TenantId, string Codigo, DateOnly DataRomaneio, Guid? RotaId, Guid? MotoristaUsuarioId, string Status, int TotalPedidos, int TotalVolumes);
+public sealed record DeliveryManifestDetailResponse(Guid Id, Guid TenantId, string Codigo, DateOnly DataRomaneio, string Status, IReadOnlyList<DeliveryManifestItemResponse> Itens);
+public sealed record CreateDeliveryManifestRequest(Guid TenantId, string Codigo, DateOnly DataRomaneio, Guid? RotaId, Guid? MotoristaUsuarioId, int? QuantidadeVias, string? Observacao);
+public sealed record AddDeliveryManifestItemRequest(Guid TenantId, Guid? PedidoId, Guid? ClienteId, Guid? NotaFiscalReferenciaId, int QuantidadeVolumes, string? VolumetriaDescricao, decimal Ordem);
+public sealed record DeliveryManifestItemResponse(Guid Id, Guid ManifestId, Guid TenantId, Guid? PedidoId, Guid? ClienteId, int QuantidadeVolumes, string Status, decimal Ordem);
+public sealed record ProofOfDeliveryResponse(Guid Id, Guid TenantId, Guid? PedidoId, Guid? RotaId, Guid? RotaParadaId, Guid? RomaneioId, string Status, string? RecebedorNome, DateTimeOffset EntregueEm);
+public sealed record RegisterProofOfDeliveryRequest(Guid TenantId, Guid? PedidoId, Guid? RotaId, Guid? RotaParadaId, Guid? RomaneioId, Guid? ClienteId, string? RecebedorNome, string? RecebedorDocumento, Guid? AssinaturaId, string? FotoStorageKey, decimal? Latitude, decimal? Longitude, string? Observacao);
+public sealed record DeliveryOccurrenceResponse(Guid Id, Guid TenantId, Guid? PedidoId, Guid? RotaId, Guid? RotaParadaId, string Tipo, string Status, string Descricao, Guid? ResponsavelUsuarioId);
+public sealed record RegisterDeliveryOccurrenceRequest(Guid TenantId, Guid? PedidoId, Guid? RotaId, Guid? RotaParadaId, Guid? RomaneioId, string Tipo, string Descricao, Guid? ResponsavelUsuarioId);
+public sealed record ResolveDeliveryOccurrenceRequest(Guid TenantId, string Solucao, Guid? UsuarioId);
+public sealed record DeliveryMonitoringDashboardResponse(int EntregasPendentes, int EntregasEmRota, int EntregasConcluidas, int OcorrenciasAbertas, decimal SlaPercentual);

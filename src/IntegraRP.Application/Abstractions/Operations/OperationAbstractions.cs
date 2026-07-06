@@ -1,0 +1,13 @@
+using IntegraRP.Contracts.Operations;
+
+namespace IntegraRP.Application.Abstractions.Operations;
+
+public interface IDeliveryRouteRepository { Task<IReadOnlyList<DeliveryRouteResponse>> ListAsync(Guid tenantId, CancellationToken cancellationToken); Task<DeliveryRouteDetailResponse?> GetAsync(Guid tenantId, Guid id, CancellationToken cancellationToken); Task<DeliveryRouteResponse> CreateAsync(CreateDeliveryRouteRequest request, CancellationToken cancellationToken); Task<DeliveryRouteStopResponse> AddStopAsync(Guid routeId, AddDeliveryRouteStopRequest request, CancellationToken cancellationToken); Task ReorderStopsAsync(Guid routeId, ReorderDeliveryRouteStopsRequest request, CancellationToken cancellationToken); Task<DeliveryRouteResponse?> ChangeStatusAsync(Guid tenantId, Guid routeId, string status, CancellationToken cancellationToken); }
+public interface IDeliveryManifestRepository { Task<IReadOnlyList<DeliveryManifestResponse>> ListAsync(Guid tenantId, CancellationToken cancellationToken); Task<DeliveryManifestDetailResponse?> GetAsync(Guid tenantId, Guid id, CancellationToken cancellationToken); Task<DeliveryManifestResponse> CreateAsync(CreateDeliveryManifestRequest request, CancellationToken cancellationToken); Task<DeliveryManifestItemResponse> AddItemAsync(Guid manifestId, AddDeliveryManifestItemRequest request, CancellationToken cancellationToken); Task<DeliveryManifestResponse?> ChangeStatusAsync(Guid tenantId, Guid manifestId, string status, CancellationToken cancellationToken); }
+public interface IProofOfDeliveryRepository { Task<ProofOfDeliveryResponse> RegisterAsync(RegisterProofOfDeliveryRequest request, CancellationToken cancellationToken); }
+public interface IDeliveryOccurrenceRepository { Task<IReadOnlyList<DeliveryOccurrenceResponse>> ListAsync(Guid tenantId, CancellationToken cancellationToken); Task<DeliveryOccurrenceResponse> RegisterAsync(RegisterDeliveryOccurrenceRequest request, CancellationToken cancellationToken); Task<DeliveryOccurrenceResponse?> ResolveAsync(Guid tenantId, Guid id, ResolveDeliveryOccurrenceRequest request, CancellationToken cancellationToken); }
+public interface IRoutePlanningService { decimal CalculateHaversineKm(decimal lat1, decimal lon1, decimal lat2, decimal lon2); }
+public interface IManifestService { }
+public interface IDeliveryMonitoringService { Task<DeliveryMonitoringDashboardResponse> GetDashboardAsync(Guid tenantId, CancellationToken cancellationToken); Task<IReadOnlyList<DeliveryRouteStopResponse>> ListPendingDeliveriesAsync(Guid tenantId, CancellationToken cancellationToken); }
+public interface IProofOfDeliveryService { }
+public interface IDeliveryKpiService { Task RecalculateAsync(Guid tenantId, CancellationToken cancellationToken); }

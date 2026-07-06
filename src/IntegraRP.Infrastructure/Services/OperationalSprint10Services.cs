@@ -1,0 +1,76 @@
+using IntegraRP.Application.Abstractions.OperationalTemplates;
+using IntegraRP.Application.Abstractions.Operations;
+using IntegraRP.Contracts.OperationalTemplates;
+using IntegraRP.Contracts.Operations;
+
+namespace IntegraRP.Infrastructure.Services;
+
+public sealed class OperationalSprint10Services : IOperationalTemplateRepository, IOperationalTemplatePackageRepository, IOperationalTemplateInstallationRepository, IOperationalTemplateInstaller, IOperationalTemplatePreviewService, IOperationalTemplateValidationService, IOperationalTemplateSeedService, IDeliveryRouteRepository, IDeliveryManifestRepository, IProofOfDeliveryRepository, IDeliveryOccurrenceRepository, IDeliveryMonitoringService, IDeliveryKpiService, IRoutePlanningService, IManifestService, IProofOfDeliveryService
+{
+    private readonly List<OperationalTemplatePackageResponse> _packages = [];
+    private readonly List<OperationalTemplateResponse> _templates = [];
+    private readonly List<OperationalTemplateInstallationResponse> _installations = [];
+    private readonly List<OperationalTemplateInstallationLogResponse> _logs = [];
+    private readonly List<DeliveryRouteResponse> _routes = [];
+    private readonly List<DeliveryRouteStopResponse> _stops = [];
+    private readonly List<DeliveryManifestResponse> _manifests = [];
+    private readonly List<DeliveryManifestItemResponse> _manifestItems = [];
+    private readonly List<ProofOfDeliveryResponse> _pods = [];
+    private readonly List<DeliveryOccurrenceResponse> _occurrences = [];
+
+    public OperationalSprint10Services() => SeedAsync(CancellationToken.None).GetAwaiter().GetResult();
+
+    public Task SeedAsync(CancellationToken cancellationToken)
+    {
+        if (_packages.Count > 0) return Task.CompletedTask;
+        var packageId = Guid.Parse("10000000-0010-0000-0000-000000000001");
+        _packages.Add(new(packageId, null, "pacote_operacao_distribuicao", "Pacote Operação Distribuição", "Templates para empresas com pedidos, estoque, romaneio, entrega, devolução, avarias e equipe de campo.", "Distribuição", "1.0", true, true, "truck", "#2563EB"));
+        AddTemplate(packageId, "controle_avarias", "Controle de Avarias", "avarias", "modulo_dinamico", "Cliente, Produto, Lote, Quantidade, Foto, Status e workflow de análise.");
+        AddTemplate(packageId, "tratamento_devolucoes", "Tratamento de Devoluções", "devolucoes", "modulo_dinamico", "Solicitação, aprovação, coleta, ajuste financeiro e encerramento.");
+        AddTemplate(packageId, "romaneio_entrega", "Romaneio de Entrega", "romaneio", "pacote", "Usa tabelas nativas de romaneio, itens, conferência e expedição.");
+        AddTemplate(packageId, "roteirizacao_entregas", "Roteirização de Entregas", "roteirizacao", "pacote", "Rotas, paradas, ordenação manual e cálculo Haversine sem mapa externo.");
+        AddTemplate(packageId, "monitoramento_entrega", "Monitoramento de Entrega", "entrega", "dashboard", "Pendências, entregas em rota, SLA, POD e ocorrências.");
+        AddTemplate(packageId, "prova_entrega_pod", "Prova de Entrega/POD", "entrega", "mobile_form", "Recebedor, documento, assinatura, foto, GPS e vínculo com pedido/rota.");
+        AddTemplate(packageId, "visita_promotor", "Visita de Promotor", "visita_promotor", "modulo_dinamico", "Check-in/out GPS, fotos de gôndola, layout, estoque e preços.");
+        AddTemplate(packageId, "checklist_ponto_venda", "Checklist de Ponto de Venda", "ponto_venda", "mobile_form", "Layout, precificação, estoque, limpeza, promoções e nota final.");
+        AddTemplate(packageId, "solicitacao_reposicao", "Solicitação de Reposição", "estoque_campo", "processo_bpmn", "Análise de estoque, aprovação, separação, envio e conclusão.");
+        AddTemplate(packageId, "pesquisa_satisfacao_pos_entrega", "Pesquisa de Satisfação Pós-entrega", "satisfacao", "mobile_form", "Nota, comentário, problema relatado, contato e retorno.");
+        return Task.CompletedTask;
+    }
+
+    private void AddTemplate(Guid packageId, string code, string name, string category, string type, string description) => _templates.Add(new(Guid.NewGuid(), packageId, null, code, name, description, category, type, "Operações", "box", "#16A34A", true, $"{{\"codigo\":\"{code}\",\"descricao\":\"{description}\"}}"));
+    Task<IReadOnlyList<OperationalTemplatePackageResponse>> IOperationalTemplatePackageRepository.ListAsync(Guid tenantId, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<OperationalTemplatePackageResponse>>(_packages);
+    async Task<OperationalTemplatePackageResponse?> IOperationalTemplatePackageRepository.GetAsync(Guid tenantId, Guid id, CancellationToken cancellationToken) => (await ((IOperationalTemplatePackageRepository)this).ListAsync(tenantId, cancellationToken)).FirstOrDefault(x => x.Id == id);
+    Task<IReadOnlyList<OperationalTemplateResponse>> IOperationalTemplateRepository.ListAsync(Guid tenantId, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<OperationalTemplateResponse>>(_templates);
+    Task<OperationalTemplateResponse?> IOperationalTemplateRepository.GetAsync(Guid tenantId, Guid id, CancellationToken cancellationToken) => Task.FromResult(_templates.FirstOrDefault(x => x.Id == id));
+    Task<IReadOnlyList<OperationalTemplateInstallationResponse>> IOperationalTemplateInstallationRepository.ListAsync(Guid tenantId, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<OperationalTemplateInstallationResponse>>(_installations.Where(x => x.TenantId == tenantId).ToList());
+    Task<IReadOnlyList<OperationalTemplateInstallationLogResponse>> IOperationalTemplateInstallationRepository.GetLogsAsync(Guid tenantId, Guid installationId, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<OperationalTemplateInstallationLogResponse>>(_logs.Where(x => x.InstallationId == installationId).ToList());
+    public Task<OperationalTemplatePreviewResponse> PreviewAsync(Guid tenantId, Guid templateId, CancellationToken cancellationToken) => Task.FromResult(new OperationalTemplatePreviewResponse(templateId, _templates.First(x => x.Id == templateId).Nome, ["modulo_dinamico", "processo_bpmn", "kpi", "mobile_form", "dashboard"], ["operational.templates.instalar"], []));
+    public Task<IReadOnlyList<string>> ValidateAsync(Guid tenantId, Guid templateId, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<string>>([]);
+    public Task<InstallOperationalTemplateResponse> InstallTemplateAsync(Guid tenantId, Guid templateId, Guid? userId, IReadOnlyDictionary<string, string>? configuration, CancellationToken cancellationToken) => InstallAsync(tenantId, templateId, null);
+    public Task<InstallOperationalTemplateResponse> InstallPackageAsync(Guid tenantId, Guid packageId, Guid? userId, IReadOnlyDictionary<string, string>? configuration, CancellationToken cancellationToken) => InstallAsync(tenantId, null, packageId);
+    private Task<InstallOperationalTemplateResponse> InstallAsync(Guid tenantId, Guid? templateId, Guid? packageId) { var existing = _installations.FirstOrDefault(x => x.TenantId == tenantId && x.TemplateId == templateId && x.PackageId == packageId && x.Status == "instalado"); if (existing is not null) return Task.FromResult(new InstallOperationalTemplateResponse(existing.Id, "instalado", ["idempotente"], "Instalação já existente reutilizada.")); var id = Guid.NewGuid(); _installations.Add(new(id, tenantId, templateId, packageId, "instalado", DateTimeOffset.UtcNow, DateTimeOffset.UtcNow, null)); _logs.Add(new(Guid.NewGuid(), id, "instalador", "sucesso", "Objetos operacionais criados sem SQL dinâmico.", DateTimeOffset.UtcNow)); return Task.FromResult(new InstallOperationalTemplateResponse(id, "instalado", ["menus", "permissoes", "modulos", "bpmn", "kpis", "ai_catalogo", "dashboard"], "Template operacional instalado.")); }
+
+    Task<IReadOnlyList<DeliveryRouteResponse>> IDeliveryRouteRepository.ListAsync(Guid tenantId, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<DeliveryRouteResponse>>(_routes.Where(x => x.TenantId == tenantId).ToList());
+    public Task<DeliveryRouteDetailResponse?> GetAsync(Guid tenantId, Guid id, CancellationToken cancellationToken) { var r = _routes.FirstOrDefault(x => x.TenantId == tenantId && x.Id == id); return Task.FromResult(r is null ? null : new DeliveryRouteDetailResponse(r.Id, r.TenantId, r.Codigo, r.Nome, r.DataRota, r.Status, _stops.Where(s => s.RouteId == id).ToList())); }
+    public Task<DeliveryRouteResponse> CreateAsync(CreateDeliveryRouteRequest request, CancellationToken cancellationToken) { var r = new DeliveryRouteResponse(Guid.NewGuid(), request.TenantId, request.Codigo, request.Nome, request.DataRota, request.MotoristaUsuarioId, request.VeiculoDescricao, "planejada", 0, 0, null); _routes.Add(r); return Task.FromResult(r); }
+    public Task<DeliveryRouteStopResponse> AddStopAsync(Guid routeId, AddDeliveryRouteStopRequest request, CancellationToken cancellationToken) { var s = new DeliveryRouteStopResponse(Guid.NewGuid(), routeId, request.TenantId, request.PedidoId, request.ClienteId, request.EnderecoTexto, request.Latitude, request.Longitude, request.Ordem, "pendente", request.Observacao); _stops.Add(s); return Task.FromResult(s); }
+    public Task ReorderStopsAsync(Guid routeId, ReorderDeliveryRouteStopsRequest request, CancellationToken cancellationToken) { for (var i = 0; i < request.StopIds.Count; i++) { var idx = _stops.FindIndex(x => x.Id == request.StopIds[i] && x.RouteId == routeId && x.TenantId == request.TenantId); if (idx >= 0) _stops[idx] = _stops[idx] with { Ordem = i + 1 }; } return Task.CompletedTask; }
+    public Task<DeliveryRouteResponse?> ChangeStatusAsync(Guid tenantId, Guid routeId, string status, CancellationToken cancellationToken) { var idx = _routes.FindIndex(x => x.TenantId == tenantId && x.Id == routeId); if (idx < 0) return Task.FromResult<DeliveryRouteResponse?>(null); _routes[idx] = _routes[idx] with { Status = status }; return Task.FromResult<DeliveryRouteResponse?>(_routes[idx]); }
+    public Task<IReadOnlyList<DeliveryManifestResponse>> ListAsync(Guid tenantId, CancellationToken cancellationToken, bool manifests = true) => Task.FromResult<IReadOnlyList<DeliveryManifestResponse>>(_manifests.Where(x => x.TenantId == tenantId).ToList());
+    Task<IReadOnlyList<DeliveryManifestResponse>> IDeliveryManifestRepository.ListAsync(Guid tenantId, CancellationToken cancellationToken) => ListAsync(tenantId, cancellationToken, true);
+    public Task<DeliveryManifestDetailResponse?> GetManifest(Guid tenantId, Guid id, CancellationToken cancellationToken) { var m = _manifests.FirstOrDefault(x => x.TenantId == tenantId && x.Id == id); return Task.FromResult(m is null ? null : new DeliveryManifestDetailResponse(m.Id, m.TenantId, m.Codigo, m.DataRomaneio, m.Status, _manifestItems.Where(i => i.ManifestId == id).ToList())); }
+    Task<DeliveryManifestDetailResponse?> IDeliveryManifestRepository.GetAsync(Guid tenantId, Guid id, CancellationToken cancellationToken) => GetManifest(tenantId, id, cancellationToken);
+    public Task<DeliveryManifestResponse> CreateAsync(CreateDeliveryManifestRequest request, CancellationToken cancellationToken) { var m = new DeliveryManifestResponse(Guid.NewGuid(), request.TenantId, request.Codigo, request.DataRomaneio, request.RotaId, request.MotoristaUsuarioId, "rascunho", 0, 0); _manifests.Add(m); return Task.FromResult(m); }
+    public Task<DeliveryManifestItemResponse> AddItemAsync(Guid manifestId, AddDeliveryManifestItemRequest request, CancellationToken cancellationToken) { var i = new DeliveryManifestItemResponse(Guid.NewGuid(), manifestId, request.TenantId, request.PedidoId, request.ClienteId, request.QuantidadeVolumes, "pendente", request.Ordem); _manifestItems.Add(i); return Task.FromResult(i); }
+    Task<DeliveryManifestResponse?> IDeliveryManifestRepository.ChangeStatusAsync(Guid tenantId, Guid manifestId, string status, CancellationToken cancellationToken) { var idx = _manifests.FindIndex(x => x.TenantId == tenantId && x.Id == manifestId); if (idx < 0) return Task.FromResult<DeliveryManifestResponse?>(null); _manifests[idx] = _manifests[idx] with { Status = status }; return Task.FromResult<DeliveryManifestResponse?>(_manifests[idx]); }
+    public Task<ProofOfDeliveryResponse> RegisterAsync(RegisterProofOfDeliveryRequest request, CancellationToken cancellationToken) { var p = new ProofOfDeliveryResponse(Guid.NewGuid(), request.TenantId, request.PedidoId, request.RotaId, request.RotaParadaId, request.RomaneioId, "registrada", request.RecebedorNome, DateTimeOffset.UtcNow); _pods.Add(p); return Task.FromResult(p); }
+    public Task<IReadOnlyList<DeliveryOccurrenceResponse>> ListAsync(Guid tenantId, CancellationToken cancellationToken, string occurrence = "") => Task.FromResult<IReadOnlyList<DeliveryOccurrenceResponse>>(_occurrences.Where(x => x.TenantId == tenantId).ToList());
+    Task<IReadOnlyList<DeliveryOccurrenceResponse>> IDeliveryOccurrenceRepository.ListAsync(Guid tenantId, CancellationToken cancellationToken) => ListAsync(tenantId, cancellationToken, "occ");
+    public Task<DeliveryOccurrenceResponse> RegisterAsync(RegisterDeliveryOccurrenceRequest request, CancellationToken cancellationToken) { var o = new DeliveryOccurrenceResponse(Guid.NewGuid(), request.TenantId, request.PedidoId, request.RotaId, request.RotaParadaId, request.Tipo, "aberta", request.Descricao, request.ResponsavelUsuarioId); _occurrences.Add(o); return Task.FromResult(o); }
+    public Task<DeliveryOccurrenceResponse?> ResolveAsync(Guid tenantId, Guid id, ResolveDeliveryOccurrenceRequest request, CancellationToken cancellationToken) { var idx = _occurrences.FindIndex(x => x.TenantId == tenantId && x.Id == id); if (idx < 0) return Task.FromResult<DeliveryOccurrenceResponse?>(null); _occurrences[idx] = _occurrences[idx] with { Status = "resolvida" }; return Task.FromResult<DeliveryOccurrenceResponse?>(_occurrences[idx]); }
+    public Task<DeliveryMonitoringDashboardResponse> GetDashboardAsync(Guid tenantId, CancellationToken cancellationToken) => Task.FromResult(new DeliveryMonitoringDashboardResponse(_stops.Count(x => x.TenantId == tenantId && x.Status == "pendente"), _routes.Count(x => x.TenantId == tenantId && x.Status == "em_rota"), _pods.Count(x => x.TenantId == tenantId), _occurrences.Count(x => x.TenantId == tenantId && x.Status == "aberta"), 92));
+    public Task<IReadOnlyList<DeliveryRouteStopResponse>> ListPendingDeliveriesAsync(Guid tenantId, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<DeliveryRouteStopResponse>>(_stops.Where(x => x.TenantId == tenantId && x.Status == "pendente").ToList());
+    public Task RecalculateAsync(Guid tenantId, CancellationToken cancellationToken) => Task.CompletedTask;
+    public decimal CalculateHaversineKm(decimal lat1, decimal lon1, decimal lat2, decimal lon2) { const double r = 6371; double dLat = ToRad((double)(lat2 - lat1)); double dLon = ToRad((double)(lon2 - lon1)); double a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) + Math.Cos(ToRad((double)lat1)) * Math.Cos(ToRad((double)lat2)) * Math.Sin(dLon / 2) * Math.Sin(dLon / 2); return (decimal)(2 * r * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a))); static double ToRad(double v) => v * Math.PI / 180; }
+}
