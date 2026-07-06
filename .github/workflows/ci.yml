@@ -59,3 +59,11 @@ jobs:
         if: ${{ hashFiles('apps/IntegraRP.Mobile/package.json') != '' }}
         working-directory: apps/IntegraRP.Mobile
         run: npm run typecheck
+
+      - name: Build summary
+        if: always()
+        shell: bash
+        run: |
+          echo "## IntegraRP CI" >> "$GITHUB_STEP_SUMMARY"
+          echo "- OS: ${{ matrix.os }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Restore, build, test, SQL schema check and mobile typecheck configured." >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,33 @@
+# Checklist de aceite do piloto v1.0
+
+- [ ] Build verde.
+- [ ] Testes verdes.
+- [ ] API sobe.
+- [ ] Web sobe.
+- [ ] Worker sobe.
+- [ ] Mobile typecheck.
+- [ ] Docker validado.
+- [ ] Windows validado.
+- [ ] Health checks OK.
+- [ ] Login OK.
+- [ ] Tenant OK.
+- [ ] RBAC OK.
+- [ ] Auditoria OK.
+- [ ] LGPD OK.
+- [ ] Flow OK.
+- [ ] Studio OK.
+- [ ] Pedido OK.
+- [ ] Estoque OK.
+- [ ] Faturamento OK.
+- [ ] Connect OK.
+- [ ] Outbox OK.
+- [ ] BI OK.
+- [ ] Project OK.
+- [ ] Mobile OK.
+- [ ] IA OK.
+- [ ] Operações OK.
+- [ ] Docs OK.
+- [ ] Roteiro demo OK.
+- [ ] Release notes OK.
+- [ ] Go-live plan OK.
+- [ ] Rollback plan OK.
