@@ -1,5 +1,6 @@
 using IntegraRP.Domain.Bi;
 using IntegraRP.Domain.Project;
+using Xunit;
 
 namespace IntegraRP.Tests;
 
