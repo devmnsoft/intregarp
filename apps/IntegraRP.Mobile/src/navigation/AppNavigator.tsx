@@ -1,1 +1,1 @@
-export const mobileScreens = ['Login', 'TenantSelect', 'Dashboard', 'MyTasks', 'TaskDetail', 'TaskExecution', 'Evidence', 'Signature', 'AiChat', 'Settings'];
+export const mobileScreens = ['Login', 'TenantSelect', 'Dashboard', 'MyTasks', 'TaskDetail', 'TaskExecution', 'Evidence', 'Signature', 'AiChat', 'Settings', 'DeliveryRoutes', 'DeliveryRouteDetail', 'DeliveryStopDetail', 'ProofOfDelivery', 'DeliveryOccurrence', 'PromoterVisit', 'PointOfSaleChecklist', 'StockReplenishmentRequest'];

@@ -1,0 +1,18 @@
+@{
+    ViewData["Title"] = "Templates Operacionais";
+}
+<link rel="stylesheet" href="~/css/operational-templates.css" />
+<section class="op-page">
+    <div class="op-hero">
+        <span>IntegraRP Studio</span>
+        <h1>Templates Operacionais</h1>
+        <p>Instale pacotes de distribuição, avarias, devoluções, romaneio, roteirização, POD e promotores.</p>
+        <button class="btn btn-primary" data-install-package>Instalar Pacote Operação Distribuição</button>
+    </div>
+    <div class="op-grid" id="templateCards"></div>
+    <div class="op-panel">
+        <h2>Instalações</h2>
+        <div class="table-responsive"><table class="table" id="templateInstallations"></table></div>
+    </div>
+</section>
+<script src="~/js/operational-templates.js"></script>

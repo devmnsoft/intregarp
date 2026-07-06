@@ -1,0 +1,6 @@
+.ops-shell { background: #F8FAFC; color: #111827; min-height: 80vh; padding: 1.5rem; }
+.ops-card, .ops-table, .ops-form { background: #fff; border: 1px solid #E5E7EB; border-radius: 1rem; margin-bottom: 1rem; padding: 1.25rem; }
+.ops-card h1 { color: #071F3A; }
+.ops-kpis { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+.ops-kpi { border-left: .35rem solid #16A34A; }
+.ops-empty { color: #6b7280; padding: 1rem; text-align: center; }
