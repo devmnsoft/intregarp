@@ -1,0 +1,3 @@
+.journey-page, .what-to-do-now-widget { display: grid; gap: 1rem; }
+.journey-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem; }
+.what-to-do-now-widget li { margin-block: .75rem; }

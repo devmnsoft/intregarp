@@ -1,4 +1,4 @@
-# database-scriptcompleto
+# ai-help-assistant
 
 Documento v1.2 da Jornada do Cliente, Onboarding Guiado e UX Operacional.
 

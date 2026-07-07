@@ -380,3 +380,8 @@ O script usa exclusivamente o schema `integrarp`, cria `pgcrypto`, mantém `sche
 ## V1.2 — Integrações, Fiscal Fake/Sandbox, Conciliação, Rotas e Offline
 
 A v1.2 adiciona base técnica para conectores plugáveis, fiscal fake/sandbox, conciliação financeira local, otimização de rotas por Haversine e offline robusto mobile. Use `/database/scriptcompleto.sql` ou a migration `0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql` em ambiente sandbox. Não há integração real com SEFAZ, bancos, Open Finance, Google Maps ou Waze nesta fase.
+
+
+## v1.2 — Jornada do Cliente e Onboarding Guiado
+
+A versão v1.2 adiciona jornada guiada, onboarding operacional, widget “O que fazer agora”, ajuda contextual, estados vazios inteligentes, telas mobile de orientação e base de score de adoção. O script completo permanece em `database/scriptcompleto.sql` e a migration versionada está em `database/migrations/0014_v12_jornada_cliente_onboarding_ux.sql`.

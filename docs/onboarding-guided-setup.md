@@ -1,4 +1,4 @@
-# database-scriptcompleto
+# onboarding-guided-setup
 
 Documento v1.2 da Jornada do Cliente, Onboarding Guiado e UX Operacional.
 

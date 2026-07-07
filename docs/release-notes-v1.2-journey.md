@@ -1,4 +1,4 @@
-# database-scriptcompleto
+# release-notes-v1.2-journey
 
 Documento v1.2 da Jornada do Cliente, Onboarding Guiado e UX Operacional.
 
