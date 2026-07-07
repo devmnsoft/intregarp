@@ -3,6 +3,9 @@
 CREATE SCHEMA IF NOT EXISTS integrarp;
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
+CREATE TABLE IF NOT EXISTS integrarp.schema_migrations (version text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now());
+ALTER TABLE integrarp.schema_migrations ADD COLUMN IF NOT EXISTS description text;
+
 CREATE TABLE IF NOT EXISTS integrarp.v14_repository_status (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id uuid NOT NULL,
