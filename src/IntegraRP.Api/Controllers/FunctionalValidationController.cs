@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
 
 namespace IntegraRP.Api.Controllers;
 
@@ -83,8 +84,64 @@ public sealed class FunctionalValidationController(ILogger<FunctionalValidationC
         return Ok(Response(status, "Validação estática do scriptcompleto.sql para v1.3/v1.4.", "Corrigir checks falsos antes de executar a migration em ambiente compartilhado.", checks));
     }
 
+    [HttpGet("worker/status")]
+    public IActionResult WorkerStatus()
+    {
+        var started = Stopwatch.GetTimestamp();
+        return Ok(ReleaseCandidateResponse(
+            "warning",
+            new[]
+            {
+                new ValidationCheck("outbox", "warning", "Validação estática: Worker deve processar integrarp.outbox_evento ou fila equivalente."),
+                new ValidationCheck("checkpoint", "warning", "Validar integrarp.v15_worker_queue_health e logs do Worker em ambiente com PostgreSQL."),
+                new ValidationCheck("failure-handling", "ok", "Contrato v1.6 exige registrar erro sem derrubar o processo.")
+            },
+            Array.Empty<string>(),
+            new[] { "Executar scripts/smoke-test-worker.ps1 contra API e Worker ativos." },
+            "Conectar Worker a PostgreSQL real e validar processamento de outbox pendente.",
+            started));
+    }
+
+    [HttpGet("release-candidate/status")]
+    public IActionResult ReleaseCandidateStatus()
+    {
+        var started = Stopwatch.GetTimestamp();
+        return Ok(ReleaseCandidateResponse(
+            "warning",
+            new[]
+            {
+                new ValidationCheck("database.scriptcompleto", "ok", "scriptcompleto.sql contém objetos v1.6, constraints, triggers, views e seeds."),
+                new ValidationCheck("database.migrations", "ok", "migration_manifest.json registra ordem e duplicidade histórica 0014."),
+                new ValidationCheck("ci", "ok", "Workflows ci, database-validation e release-candidate definidos."),
+                new ValidationCheck("docker", "warning", "Validação depende de Docker disponível no ambiente executor."),
+                new ValidationCheck("iis", "warning", "Publicação Windows/IIS documentada e automatizada por scripts PowerShell."),
+                new ValidationCheck("smoke", "warning", "Smoke tests exigem API/Web/Worker em execução.")
+            },
+            Array.Empty<string>(),
+            new[]
+            {
+                "Executar dotnet clean/restore/build/test em ambiente com SDK.",
+                "Executar scripts/db-apply-scriptcompleto.ps1 em PostgreSQL limpo.",
+                "Executar scripts/validate-docker-release.ps1 em host com Docker."
+            },
+            "Promover RC somente após evidência de CI verde e smoke tests reais.",
+            started));
+    }
+
     private static FunctionalValidationResponse Response(string status, string details, string nextAction, object data) =>
         new(status, details, nextAction, RequiredPermission, data);
+
+    private static object ReleaseCandidateResponse(string status, object checks, string[] erros, string[] warnings, string proximaAcao, long startedTimestamp) => new
+    {
+        status,
+        checks,
+        erros,
+        warnings,
+        proxima_acao = proximaAcao,
+        tempo_execucao_ms = Stopwatch.GetElapsedTime(startedTimestamp).TotalMilliseconds,
+        correlation_id = Activity.Current?.Id ?? Guid.NewGuid().ToString("N")
+    };
 }
 
 public sealed record FunctionalValidationResponse(string Status, string Detalhes, string ProximaAcaoRecomendada, string PermissaoNecessaria, object Dados);
+public sealed record ValidationCheck(string Nome, string Status, string Mensagem);

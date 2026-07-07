@@ -1,0 +1,150 @@
+{
+  "schema": "integrarp",
+  "gerado_para": "v1.6-release-candidate",
+  "migrations": [
+    {
+      "ordem": 1,
+      "arquivo": "0001_initial_integrarp.sql",
+      "versao": "0001",
+      "descricao": "initial integrarp",
+      "modulo": "historico",
+      "esta_no_scriptcompleto": false,
+      "observacoes": "Aplicação idempotente esperada."
+    },
+    {
+      "ordem": 2,
+      "arquivo": "0003_flow_bpmn_core.sql",
+      "versao": "0003",
+      "descricao": "flow bpmn core",
+      "modulo": "historico",
+      "esta_no_scriptcompleto": false,
+      "observacoes": "Aplicação idempotente esperada."
+    },
+    {
+      "ordem": 3,
+      "arquivo": "0004_flow_designer_web.sql",
+      "versao": "0004",
+      "descricao": "flow designer web",
+      "modulo": "historico",
+      "esta_no_scriptcompleto": false,
+      "observacoes": "Aplicação idempotente esperada."
+    },
+    {
+      "ordem": 4,
+      "arquivo": "0006_faturamento_connect_outbox.sql",
+      "versao": "0006",
+      "descricao": "faturamento connect outbox",
+      "modulo": "historico",
+      "esta_no_scriptcompleto": false,
+      "observacoes": "Aplicação idempotente esperada."
+    },
+    {
+      "ordem": 5,
+      "arquivo": "0007_bi_kpis_project_central.sql",
+      "versao": "0007",
+      "descricao": "bi kpis project central",
+      "modulo": "historico",
+      "esta_no_scriptcompleto": false,
+      "observacoes": "Aplicação idempotente esperada."
+    },
+    {
+      "ordem": 6,
+      "arquivo": "0008_mobile_ai_mvp.sql",
+      "versao": "0008",
+      "descricao": "mobile ai mvp",
+      "modulo": "historico",
+      "esta_no_scriptcompleto": false,
+      "observacoes": "Aplicação idempotente esperada."
+    },
+    {
+      "ordem": 7,
+      "arquivo": "0009_studio_avancado_modulos_dinamicos.sql",
+      "versao": "0009",
+      "descricao": "studio avancado modulos dinamicos",
+      "modulo": "historico",
+      "esta_no_scriptcompleto": false,
+      "observacoes": "Aplicação idempotente esperada."
+    },
+    {
+      "ordem": 8,
+      "arquivo": "0010_templates_operacionais_distribuicao_campo.sql",
+      "versao": "0010",
+      "descricao": "templates operacionais distribuicao campo",
+      "modulo": "historico",
+      "esta_no_scriptcompleto": false,
+      "observacoes": "Aplicação idempotente esperada."
+    },
+    {
+      "ordem": 9,
+      "arquivo": "0011_hardening_indexes_observability.sql",
+      "versao": "0011",
+      "descricao": "hardening indexes observability",
+      "modulo": "historico",
+      "esta_no_scriptcompleto": false,
+      "observacoes": "Aplicação idempotente esperada."
+    },
+    {
+      "ordem": 10,
+      "arquivo": "0012_piloto_v1_final_adjustments.sql",
+      "versao": "0012",
+      "descricao": "piloto v1 final adjustments",
+      "modulo": "historico",
+      "esta_no_scriptcompleto": false,
+      "observacoes": "Aplicação idempotente esperada."
+    },
+    {
+      "ordem": 11,
+      "arquivo": "0013_v11_scriptcompleto_forms_automation.sql",
+      "versao": "0013",
+      "descricao": "v11 scriptcompleto forms automation",
+      "modulo": "historico",
+      "esta_no_scriptcompleto": true,
+      "observacoes": "Aplicação idempotente esperada."
+    },
+    {
+      "ordem": 12,
+      "arquivo": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "versao": "0014",
+      "descricao": "v12 integracoes fiscal conciliacao rotas offline",
+      "modulo": "historico",
+      "esta_no_scriptcompleto": true,
+      "observacoes": "Duplicidade de numeração 0014 mantida e ordenada pelo nome; não remover porque pode ter sido aplicada."
+    },
+    {
+      "ordem": 13,
+      "arquivo": "0014_v12_jornada_cliente_onboarding_ux.sql",
+      "versao": "0014",
+      "descricao": "v12 jornada cliente onboarding ux",
+      "modulo": "historico",
+      "esta_no_scriptcompleto": true,
+      "observacoes": "Duplicidade de numeração 0014 mantida e ordenada pelo nome; não remover porque pode ter sido aplicada."
+    },
+    {
+      "ordem": 14,
+      "arquivo": "0015_v13_funcionalidade_real_end_to_end.sql",
+      "versao": "0015",
+      "descricao": "v13 funcionalidade real end to end",
+      "modulo": "historico",
+      "esta_no_scriptcompleto": true,
+      "observacoes": "Aplicação idempotente esperada."
+    },
+    {
+      "ordem": 15,
+      "arquivo": "0016_v14_postgres_repositories_operacional.sql",
+      "versao": "0016",
+      "descricao": "v14 postgres repositories operacional",
+      "modulo": "historico",
+      "esta_no_scriptcompleto": true,
+      "observacoes": "Aplicação idempotente esperada."
+    },
+    {
+      "ordem": 16,
+      "arquivo": "0017_v15_validacao_real_cruds_qa_deploy.sql",
+      "versao": "0017",
+      "descricao": "v15 validacao real cruds qa deploy",
+      "modulo": "historico",
+      "esta_no_scriptcompleto": true,
+      "observacoes": "Aplicação idempotente esperada."
+    }
+  ]
+}

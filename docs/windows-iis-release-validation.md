@@ -1,4 +1,4 @@
-# database-scriptcompleto
+# windows-iis-release-validation
 
 Documento v1.6 de validação Release Candidate.
 

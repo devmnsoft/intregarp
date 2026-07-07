@@ -1,4 +1,4 @@
-# database-scriptcompleto
+# worker-release-validation
 
 Documento v1.6 de validação Release Candidate.
 

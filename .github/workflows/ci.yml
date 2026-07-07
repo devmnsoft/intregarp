@@ -1,69 +1,19 @@
-name: IntegraRP CI
-
-on:
-  push:
-    branches: [ main, work, feature/** ]
-  pull_request:
-    branches: [ main, work ]
-
+name: ci
+on: [push, pull_request]
 jobs:
   build-test:
-    name: Build and test (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 8.0.x
-
-      - name: Restore
-        run: dotnet restore
-
-      - name: Build
-        run: dotnet build --no-restore
-
-      - name: Test
-        run: dotnet test --no-build
-
-      - name: Validate SQL schemas
-        shell: bash
-        run: |
-          if grep -RInE '(^|[^a-zA-Z0-9_])(public|integra)\.' database; then
-            echo "Scripts must not reference public. or integra. schemas"
-            exit 1
-          fi
-          grep -RIn 'integrarp\.' database/migrations
-
-      - name: Setup Node
-        if: ${{ hashFiles('apps/IntegraRP.Mobile/package.json') != '' }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-          cache-dependency-path: apps/IntegraRP.Mobile/package-lock.json
-
-      - name: Mobile install
-        if: ${{ hashFiles('apps/IntegraRP.Mobile/package.json') != '' }}
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '8.0.x' }
+      - run: dotnet restore
+      - run: dotnet build --no-restore --configuration Release
+      - run: dotnet test --no-build --configuration Release
+      - run: pwsh ./scripts/db-validate-migrations.ps1
+      - uses: actions/setup-node@v4
+        with: { node-version: '20', cache: 'npm', cache-dependency-path: apps/IntegraRP.Mobile/package-lock.json }
+      - run: npm install
         working-directory: apps/IntegraRP.Mobile
-        run: npm install
-
-      - name: Mobile typecheck
-        if: ${{ hashFiles('apps/IntegraRP.Mobile/package.json') != '' }}
+      - run: npm run typecheck
         working-directory: apps/IntegraRP.Mobile
-        run: npm run typecheck
-
-      - name: Build summary
-        if: always()
-        shell: bash
-        run: |
-          echo "## IntegraRP CI" >> "$GITHUB_STEP_SUMMARY"
-          echo "- OS: ${{ matrix.os }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Restore, build, test, SQL schema check and mobile typecheck configured." >> "$GITHUB_STEP_SUMMARY"

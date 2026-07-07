@@ -1,0 +1,20 @@
+name: database-validation
+on: [push, pull_request]
+jobs:
+  postgres-scriptcompleto:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_PASSWORD: postgres, POSTGRES_DB: integrarp }
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 10s --health-timeout 5s --health-retries 5
+    env: { PGPASSWORD: postgres }
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - run: psql -h localhost -U postgres -d integrarp -v ON_ERROR_STOP=1 -f database/scriptcompleto.sql
+      - run: psql -h localhost -U postgres -d integrarp -v ON_ERROR_STOP=1 -f database/scriptcompleto.sql
+      - run: pwsh ./scripts/db-validate-scriptcompleto.ps1 -Database integrarp -HostName localhost -User postgres
+      - run: pwsh ./scripts/db-validate-migrations.ps1

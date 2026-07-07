@@ -1,0 +1,16 @@
+name: release-candidate
+on:
+  workflow_dispatch:
+  pull_request:
+jobs:
+  rc-build-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '8.0.x' }
+      - run: dotnet build src/IntegraRP.Api/IntegraRP.Api.csproj --configuration Release
+      - run: dotnet build src/IntegraRP.Web/IntegraRP.Web.csproj --configuration Release
+      - run: dotnet build src/IntegraRP.Worker/IntegraRP.Worker.csproj --configuration Release
+      - run: docker compose build
+      - run: echo "Smoke HTTP real é executado por scripts/validate-docker-release.ps1 em ambiente com portas liberadas."

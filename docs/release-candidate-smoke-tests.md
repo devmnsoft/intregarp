@@ -1,4 +1,4 @@
-# database-scriptcompleto
+# release-candidate-smoke-tests
 
 Documento v1.6 de validação Release Candidate.
 
