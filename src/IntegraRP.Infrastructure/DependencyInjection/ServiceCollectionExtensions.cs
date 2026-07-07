@@ -18,6 +18,7 @@ using IntegraRP.Application.Abstractions.Ai;
 using IntegraRP.Infrastructure.Services.Sprint7;
 using IntegraRP.Application.Abstractions.OperationalTemplates;
 using IntegraRP.Application.Abstractions.Operations;
+using IntegraRP.Infrastructure.Repositories.Postgres;
 
 namespace IntegraRP.Infrastructure.DependencyInjection;
 
@@ -26,6 +27,13 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddSingleton<IDbConnectionFactory, NpgsqlConnectionFactory>();
+        services.AddSingleton<PostgresConnectionFactory>();
+        services.AddSingleton<RepositoryTransactionRunner>();
+        services.AddScoped<PostgresRepositoryReadiness>();
+        services.AddSingleton(new IntegraRpRepositoryOptions
+        {
+            UseInMemoryRepositories = configuration.GetValue<bool?>("IntegraRP:UseInMemoryRepositories") ?? false
+        });
         services.AddScoped<IIntegraRpQueries, SeededIntegraRpQueries>();
         services.AddScoped<IMigrationRunner, PostgresMigrationRunner>();
         services.AddSingleton<IDataMaskingService, DataMaskingService>();

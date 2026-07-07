@@ -1,14 +1,9 @@
-# Status de repositories v1.3
+# repository-implementation-status
 
-## Implementação real obrigatória
-- Core: tenant, user, profile, permission, sector, audit.
-- Journey: customer journey, progress, recommended action, contextual help.
-- Flow: definition, version, element, transition, instance, task, audit.
-- Studio: module, field, action, record, record history.
-- Commercial/inventory/orders: customer, product, stock, reservation, order.
-- Billing/connect: invoice, title, outbox, dispatch.
-- BI/project: KPI, dashboard, board, item, feed.
-- Forms/automation/reports: forms, responses, rules, executions, reports, notifications, attachments.
+Documento atualizado para v1.4.
 
-## Regras de aceite
-Toda consulta operacional filtra `tenant_id`, não usa `SELECT *`, usa parâmetros Dapper, paginação e transação quando necessário.
+- Runtime padrão: PostgreSQL no schema `integrarp`.
+- Script único: `database/scriptcompleto.sql`.
+- Migration: `database/migrations/0016_v14_postgres_repositories_operacional.sql`.
+- Demo: `GET /api/validation/flow/order-to-billing-demo`.
+- Providers externos reais permanecem sandbox/fake até configuração segura de produção.
