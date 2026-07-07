@@ -34,6 +34,9 @@ public sealed class FunctionalValidationController(ILogger<FunctionalValidationC
     [HttpGet("tenant-isolation/status")]
     public IActionResult TenantIsolationStatus() => Ok(Response("ok", "Contrato v1.3 exige tenant_id em toda consulta operacional.", "Executar testes de Tenant A versus Tenant B antes do piloto.", new[] { "tenant_id", "RBAC", RequiredPermission }));
 
+    [HttpGet("flow/order-to-billing-demo")]
+    public IActionResult OrderToBillingDemo() => Ok(Response("ok", "Demo v1.4 pedido-faturamento-outbox mapeada com PostgreSQL real, Worker e auditoria.", "Executar database/scriptcompleto.sql e validar integrarp.vw_v14_order_to_billing_demo.", new { codigo = "order-to-billing-demo", etapas = new[] { "login", "onboarding", "cliente", "produto", "estoque", "pedido", "flow", "tarefa", "fatura", "titulo", "boleto-fake", "outbox", "worker", "dashboard", "project", "ia", "auditoria" }, idsGerados = new Dictionary<string, string>(), etapaComErro = (string?)null }));
+
     [HttpGet("scriptcompleto/status")]
     public IActionResult ScriptCompletoStatus()
     {
@@ -47,12 +50,13 @@ public sealed class FunctionalValidationController(ILogger<FunctionalValidationC
             ["sem_public"] = !sql.Contains("public.", StringComparison.OrdinalIgnoreCase),
             ["sem_integra"] = !sql.Contains("integra.", StringComparison.OrdinalIgnoreCase),
             ["views_v13"] = sql.Contains("vw_v13_demo_health", StringComparison.OrdinalIgnoreCase),
+            ["objetos_v14"] = sql.Contains("vw_v14_order_to_billing_demo", StringComparison.OrdinalIgnoreCase),
             ["constraint_checks"] = sql.Contains("SELECT 1 FROM pg_constraint", StringComparison.OrdinalIgnoreCase),
             ["triggers"] = sql.Contains("DROP TRIGGER IF EXISTS", StringComparison.OrdinalIgnoreCase)
         };
 
         var status = checks.Values.All(v => v) ? "ok" : "error";
-        return Ok(Response(status, "Validação estática do scriptcompleto.sql para v1.3.", "Corrigir checks falsos antes de executar a migration em ambiente compartilhado.", checks));
+        return Ok(Response(status, "Validação estática do scriptcompleto.sql para v1.3/v1.4.", "Corrigir checks falsos antes de executar a migration em ambiente compartilhado.", checks));
     }
 
     private static FunctionalValidationResponse Response(string status, string details, string nextAction, object data) =>
