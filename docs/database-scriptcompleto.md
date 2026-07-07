@@ -1,14 +1,6 @@
-# database-scriptcompleto
+# Database script completo
 
-Documento v1.2 da Jornada do Cliente, Onboarding Guiado e UX Operacional.
+O arquivo `/database/scriptcompleto.sql` é o script único de criação/evolução. Ele deve ser idempotente, usar somente schema `integrarp`, criar `pgcrypto`, manter `integrarp.schema_migrations`, usar `CREATE TABLE IF NOT EXISTS`, `ALTER TABLE ... ADD COLUMN IF NOT EXISTS`, `CREATE INDEX IF NOT EXISTS`, `CREATE OR REPLACE FUNCTION`, `CREATE OR REPLACE VIEW` e triggers recriadas por `DROP TRIGGER IF EXISTS` seguido de `CREATE TRIGGER`.
 
-## Como testar
-1. Acesse /onboarding para ver a barra de progresso e próximos passos.
-2. Acesse /journey/what-to-do-now para ver ações recomendadas.
-3. Use /journey/help para ajuda contextual.
-4. Use estados vazios inteligentes com título, explicação, CTA, ajuda e exemplo.
-5. Consulte a IA com “O que eu faço agora?” para acionar ferramentas seguras.
-
-## Observações
-- Banco usa somente schema integrarp.
-- Providers fake permanecem sinalizados para sandbox/demo.
+## v1.3
+A v1.3 adiciona `integrarp.v13_funcionalidade_status`, `integrarp.v13_recommended_action`, `integrarp.v13_demo_execucao` e as views de validação `integrarp.vw_v13_*`.
