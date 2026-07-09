@@ -27,6 +27,7 @@ public sealed class V19DemoFunctionalTests
         foreach (var path in new[]
         {
             "database/validation/validate_scriptcompleto_v19.sql",
+            "database/migrations/0021_v19_fix_scriptcompleto_inserts_demo_jornada.sql",
             "scripts/db-debug-scriptcompleto.ps1",
             "scripts/db-debug-scriptcompleto.cmd",
             "src/IntegraRP.Api/Controllers/ActivitiesController.cs",
@@ -55,6 +56,7 @@ public sealed class V19DemoFunctionalTests
         Assert.Contains("what-to-do-now", journey);
         Assert.DoesNotContain("new[] { new { titulo = \"Continuar onboarding\"", journey);
         Assert.Contains("e2e/customer-to-billing", validation);
+        Assert.Contains("vw_v19_demo_funcional_status", validation);
         Assert.Contains("worker/status", validation);
     }
 }
