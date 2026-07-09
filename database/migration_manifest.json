@@ -194,9 +194,9 @@
     },
     {
       "ordem": 21,
-      "arquivo": "0021_v19_demo_funcional_inserts_telas_jornada.sql",
-      "versao": "0021_v19_demo_funcional_inserts_telas_jornada",
-      "descricao": "v19 demo funcional inserts telas jornada",
+      "arquivo": "0021_v19_fix_scriptcompleto_inserts_demo_jornada.sql",
+      "versao": "0021_v19_fix_scriptcompleto_inserts_demo_jornada",
+      "descricao": "v19 fix scriptcompleto inserts demo jornada",
       "modulo": "Demo funcional",
       "presente_no_scriptcompleto": true,
       "observacoes": "Seeds idempotentes, atividades, jornada real e views v1.9.",

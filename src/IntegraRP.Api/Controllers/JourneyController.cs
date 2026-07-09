@@ -6,7 +6,7 @@ namespace IntegraRP.Api.Controllers;
 [ApiController]
 [AllowAnonymous]
 [Route("api/journey")]
-public sealed class JourneyController(ILogger<JourneyController> logger) : ControllerBase
+public sealed class JourneyController(ILogger<JourneyController> logger, IConfiguration configuration) : ControllerBase
 {
     private Guid TenantId => Guid.TryParse(Request.Headers["X-Tenant-Id"], out var tenantId) ? tenantId : Guid.Empty;
     private Guid UserId => Guid.TryParse(User.FindFirst("sub")?.Value, out var userId) ? userId : Guid.Parse("00000000-0000-0000-0000-000000000001");
@@ -27,16 +27,32 @@ public sealed class JourneyController(ILogger<JourneyController> logger) : Contr
     public IActionResult SkipStep(Guid stepId, CancellationToken cancellationToken) => WithTenant(() => Ok(new { stepId, status = "ignorada" }));
 
     [HttpGet("progress")]
-    public IActionResult Progress(CancellationToken cancellationToken) => WithTenant(() => Ok(new { tenantId = TenantId, userId = UserId, progressoPercentual = 35, proximaEtapa = "Criar setores" }));
+    public async Task<IActionResult> Progress(CancellationToken cancellationToken)
+    {
+        try
+        {
+            var rows = await V19Db.QueryAsync(configuration, @"SELECT j.percentual AS progressoPercentual, v.proxima_acao AS proximaEtapa FROM integrarp.jornada_progresso_usuario j JOIN integrarp.tenant t ON t.id=j.tenant_id AND t.slug='demo' CROSS JOIN integrarp.vw_v19_o_que_fazer_agora v WHERE j.excluido_em IS NULL ORDER BY j.atualizado_em DESC NULLS LAST, j.criado_em DESC LIMIT 1;", cancellationToken);
+            return Ok(rows.FirstOrDefault() ?? new Dictionary<string, object?> { ["progressoPercentual"] = 0, ["proximaEtapa"] = "Criar primeiro cliente" });
+        }
+        catch (Exception ex) { logger.LogError(ex, "Falha ao consultar progresso real da jornada"); return Problem(ex.Message, statusCode: 503); }
+    }
 
     [HttpPost("{code}/reset")]
     public IActionResult Reset(string code, CancellationToken cancellationToken) => WithTenant(() => Ok(new { code, status = "pendente" }));
 
     [HttpGet("what-to-do-now")]
-    public IActionResult WhatToDoNow(CancellationToken cancellationToken) => Ok(DemoData.WhatToDo);
+    public async Task<IActionResult> WhatToDoNow(CancellationToken cancellationToken)
+    {
+        try { return Ok((await V19Db.QueryAsync(configuration, "SELECT * FROM integrarp.vw_v19_o_que_fazer_agora LIMIT 1;", cancellationToken)).FirstOrDefault()); }
+        catch (Exception ex) { logger.LogError(ex, "Falha ao consultar integrarp.vw_v19_o_que_fazer_agora"); return Problem(ex.Message, statusCode: 503); }
+    }
 
     [HttpGet("recommended-actions")]
-    public IActionResult Recommended(CancellationToken cancellationToken) => WithTenant(() => Ok(new[] { new { id = Guid.NewGuid(), titulo = "Ativar notificações", status = "pendente" } }));
+    public async Task<IActionResult> Recommended(CancellationToken cancellationToken)
+    {
+        try { return Ok(await V19Db.QueryAsync(configuration, "SELECT id, codigo, titulo, descricao, prioridade, rota_web AS rotaWeb, motivo, status FROM integrarp.jornada_acao_recomendada a JOIN integrarp.tenant t ON t.id=a.tenant_id AND t.slug='demo' WHERE a.excluido_em IS NULL ORDER BY a.status, a.criado_em;", cancellationToken)); }
+        catch (Exception ex) { logger.LogError(ex, "Falha ao listar ações recomendadas reais"); return Problem(ex.Message, statusCode: 503); }
+    }
 
     [HttpPost("recommended-actions/{id:guid}/complete")]
     public IActionResult CompleteAction(Guid id, CancellationToken cancellationToken) => WithTenant(() => Ok(new { id, status = "concluida" }));
