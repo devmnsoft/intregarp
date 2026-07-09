@@ -2083,3 +2083,184 @@ GROUP BY tenant_id;
 INSERT INTO integrarp.schema_migrations (version, description)
 VALUES ('0018_v16_release_candidate_validation', 'v1.6 release candidate: validação de build, banco, CI, Docker e smoke tests')
 ON CONFLICT (version) DO NOTHING;
+
+-- =============================================================
+-- v1.7 - Runtime validation, green pipeline evidence and smoke readiness
+-- =============================================================
+CREATE SCHEMA IF NOT EXISTS integrarp;
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+ALTER TABLE integrarp.schema_migrations ADD COLUMN IF NOT EXISTS description text NULL;
+
+CREATE TABLE IF NOT EXISTS integrarp.permissao (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id uuid NOT NULL DEFAULT '00000000-0000-0000-0000-000000000001',
+    codigo text NOT NULL,
+    descricao text NULL,
+    criado_em timestamptz NOT NULL DEFAULT now(),
+    atualizado_em timestamptz NULL
+);
+
+CREATE TABLE IF NOT EXISTS integrarp.cliente (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id uuid NOT NULL,
+    nome text NOT NULL,
+    documento text NULL,
+    email text NULL,
+    status text NOT NULL DEFAULT 'ativo',
+    criado_em timestamptz NOT NULL DEFAULT now(),
+    atualizado_em timestamptz NULL
+);
+
+CREATE TABLE IF NOT EXISTS integrarp.estoque_movimento (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id uuid NOT NULL,
+    produto_id uuid NOT NULL,
+    tipo text NOT NULL,
+    quantidade numeric(18,4) NOT NULL,
+    local_estoque text NOT NULL DEFAULT 'principal',
+    criado_em timestamptz NOT NULL DEFAULT now(),
+    atualizado_em timestamptz NULL
+);
+
+CREATE TABLE IF NOT EXISTS integrarp.pedido_item (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id uuid NOT NULL,
+    pedido_id uuid NOT NULL,
+    produto_id uuid NOT NULL,
+    quantidade numeric(18,4) NOT NULL,
+    valor_unitario numeric(18,2) NOT NULL DEFAULT 0,
+    criado_em timestamptz NOT NULL DEFAULT now(),
+    atualizado_em timestamptz NULL
+);
+
+CREATE TABLE IF NOT EXISTS integrarp.processo_definicao (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id uuid NOT NULL,
+    codigo text NOT NULL,
+    nome text NOT NULL,
+    status text NOT NULL DEFAULT 'ativo',
+    criado_em timestamptz NOT NULL DEFAULT now(),
+    atualizado_em timestamptz NULL
+);
+
+CREATE TABLE IF NOT EXISTS integrarp.processo_instancia (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id uuid NOT NULL,
+    processo_definicao_id uuid NOT NULL,
+    entidade_tipo text NULL,
+    entidade_id uuid NULL,
+    status text NOT NULL DEFAULT 'em_andamento',
+    criado_em timestamptz NOT NULL DEFAULT now(),
+    atualizado_em timestamptz NULL
+);
+
+CREATE TABLE IF NOT EXISTS integrarp.tarefa (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id uuid NOT NULL,
+    processo_instancia_id uuid NULL,
+    titulo text NOT NULL,
+    responsavel_usuario_id uuid NULL,
+    status text NOT NULL DEFAULT 'pendente',
+    criado_em timestamptz NOT NULL DEFAULT now(),
+    atualizado_em timestamptz NULL
+);
+
+CREATE TABLE IF NOT EXISTS integrarp.fatura (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id uuid NOT NULL,
+    pedido_id uuid NULL,
+    numero text NOT NULL,
+    valor_total numeric(18,2) NOT NULL DEFAULT 0,
+    status text NOT NULL DEFAULT 'emitida',
+    criado_em timestamptz NOT NULL DEFAULT now(),
+    atualizado_em timestamptz NULL
+);
+
+CREATE TABLE IF NOT EXISTS integrarp.outbox_evento (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id uuid NOT NULL,
+    tipo text NOT NULL,
+    payload_json jsonb NOT NULL DEFAULT '{}'::jsonb,
+    status text NOT NULL DEFAULT 'pendente',
+    proxima_tentativa_em timestamptz NULL,
+    tentativas integer NOT NULL DEFAULT 0,
+    criado_em timestamptz NOT NULL DEFAULT now(),
+    atualizado_em timestamptz NULL
+);
+
+CREATE TABLE IF NOT EXISTS integrarp.projeto_central_board (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id uuid NOT NULL,
+    nome text NOT NULL,
+    status text NOT NULL DEFAULT 'ativo',
+    criado_em timestamptz NOT NULL DEFAULT now(),
+    atualizado_em timestamptz NULL
+);
+
+CREATE TABLE IF NOT EXISTS integrarp.v17_runtime_validation_check (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id uuid NOT NULL,
+    area text NOT NULL,
+    check_name text NOT NULL,
+    status text NOT NULL DEFAULT 'warning',
+    evidence text NULL,
+    next_action text NULL,
+    simulated boolean NOT NULL DEFAULT false,
+    criado_em timestamptz NOT NULL DEFAULT now(),
+    atualizado_em timestamptz NULL
+);
+
+DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'uq_v17_runtime_validation_check') THEN ALTER TABLE integrarp.v17_runtime_validation_check ADD CONSTRAINT uq_v17_runtime_validation_check UNIQUE (tenant_id, area, check_name); END IF; END $$;
+DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ck_v17_runtime_validation_status') THEN ALTER TABLE integrarp.v17_runtime_validation_check ADD CONSTRAINT ck_v17_runtime_validation_status CHECK (status IN ('ok','warning','error')); END IF; END $$;
+DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ck_estoque_movimento_tipo_v17') THEN ALTER TABLE integrarp.estoque_movimento ADD CONSTRAINT ck_estoque_movimento_tipo_v17 CHECK (tipo IN ('entrada','saida','reserva','ajuste')); END IF; END $$;
+
+CREATE INDEX IF NOT EXISTS ix_permissao_tenant_codigo ON integrarp.permissao(tenant_id, codigo);
+CREATE INDEX IF NOT EXISTS ix_cliente_tenant_status_nome ON integrarp.cliente(tenant_id, status, nome);
+CREATE INDEX IF NOT EXISTS ix_estoque_movimento_produto_local_tenant ON integrarp.estoque_movimento(tenant_id, produto_id, local_estoque, criado_em DESC);
+CREATE INDEX IF NOT EXISTS ix_pedido_tenant_status_data ON integrarp.pedido(tenant_id, status, criado_em DESC);
+CREATE INDEX IF NOT EXISTS ix_pedido_item_tenant_pedido ON integrarp.pedido_item(tenant_id, pedido_id);
+CREATE INDEX IF NOT EXISTS ix_tarefa_responsavel_status ON integrarp.tarefa(tenant_id, responsavel_usuario_id, status);
+CREATE INDEX IF NOT EXISTS ix_titulo_financeiro_tenant_status_vencimento ON integrarp.titulo_financeiro(tenant_id, status, vencimento);
+CREATE INDEX IF NOT EXISTS ix_outbox_evento_status_proxima_tentativa ON integrarp.outbox_evento(tenant_id, status, proxima_tentativa_em);
+CREATE INDEX IF NOT EXISTS ix_v17_runtime_validation_tenant_area ON integrarp.v17_runtime_validation_check(tenant_id, area, status);
+
+DROP TRIGGER IF EXISTS trg_permissao_atualizado_em ON integrarp.permissao;
+CREATE TRIGGER trg_permissao_atualizado_em BEFORE UPDATE ON integrarp.permissao FOR EACH ROW EXECUTE FUNCTION integrarp.fn_set_atualizado_em();
+DROP TRIGGER IF EXISTS trg_cliente_atualizado_em ON integrarp.cliente;
+CREATE TRIGGER trg_cliente_atualizado_em BEFORE UPDATE ON integrarp.cliente FOR EACH ROW EXECUTE FUNCTION integrarp.fn_set_atualizado_em();
+DROP TRIGGER IF EXISTS trg_outbox_evento_atualizado_em ON integrarp.outbox_evento;
+CREATE TRIGGER trg_outbox_evento_atualizado_em BEFORE UPDATE ON integrarp.outbox_evento FOR EACH ROW EXECUTE FUNCTION integrarp.fn_set_atualizado_em();
+DROP TRIGGER IF EXISTS trg_v17_runtime_validation_check_atualizado_em ON integrarp.v17_runtime_validation_check;
+CREATE TRIGGER trg_v17_runtime_validation_check_atualizado_em BEFORE UPDATE ON integrarp.v17_runtime_validation_check FOR EACH ROW EXECUTE FUNCTION integrarp.fn_set_atualizado_em();
+
+INSERT INTO integrarp.permissao (tenant_id, codigo, descricao) VALUES
+('00000000-0000-0000-0000-000000000001','validation.functional.visualizar','Visualizar endpoints de validação funcional'),
+('00000000-0000-0000-0000-000000000001','tenant.demo.acessar','Acessar tenant demo')
+ON CONFLICT DO NOTHING;
+
+INSERT INTO integrarp.cliente (tenant_id, nome, documento, email) VALUES ('00000000-0000-0000-0000-000000000001','Cliente Demo v1.7','00000000000191','cliente.demo@integrarp.local') ON CONFLICT DO NOTHING;
+INSERT INTO integrarp.processo_definicao (tenant_id, codigo, nome) VALUES ('00000000-0000-0000-0000-000000000001','order-to-billing','Pedido para faturamento') ON CONFLICT DO NOTHING;
+INSERT INTO integrarp.projeto_central_board (tenant_id, nome) VALUES ('00000000-0000-0000-0000-000000000001','Board Demo v1.7') ON CONFLICT DO NOTHING;
+INSERT INTO integrarp.outbox_evento (tenant_id, tipo, payload_json, status, proxima_tentativa_em) VALUES ('00000000-0000-0000-0000-000000000001','demo.v17.runtime','{"demo":true}'::jsonb,'processado',now()) ON CONFLICT DO NOTHING;
+
+INSERT INTO integrarp.v17_runtime_validation_check (tenant_id, area, check_name, status, evidence, next_action, simulated) VALUES
+('00000000-0000-0000-0000-000000000001','github','pr-22-audit','warning','PR #22 permanece aberto com escopo v1.6 semelhante ao PR #23 mergeado; auditoria documentada em docs/v1.7-github-state-audit.md.','Fechar PR #22 após revisão humana dos arquivos alterados.',false),
+('00000000-0000-0000-0000-000000000001','database','scriptcompleto-idempotency','warning','Ambiente local não possui psql; workflow database-validation aplica o script duas vezes em PostgreSQL.','Executar workflow e anexar logs.',false),
+('00000000-0000-0000-0000-000000000001','runtime','functional-validation-controller','ok','Endpoints retornam contrato com checks, warnings, erros, próxima ação, tempo de execução e correlation id.','Evoluir consultas para DbConnection quando ambiente de banco estiver disponível.',false),
+('00000000-0000-0000-0000-000000000001','docker','compose-runtime','warning','Ambiente local não possui Docker; script validate-docker-release.ps1 é a evidência operacional esperada.','Executar em host com Docker Desktop ou runner habilitado.',false)
+ON CONFLICT (tenant_id, area, check_name) DO UPDATE SET status = EXCLUDED.status, evidence = EXCLUDED.evidence, next_action = EXCLUDED.next_action, simulated = EXCLUDED.simulated;
+
+CREATE OR REPLACE VIEW integrarp.vw_v17_runtime_validation_status AS
+SELECT tenant_id,
+       CASE WHEN count(*) FILTER (WHERE status = 'error') > 0 THEN 'error'
+            WHEN count(*) FILTER (WHERE status = 'warning') > 0 THEN 'warning'
+            ELSE 'ok' END AS status,
+       jsonb_agg(jsonb_build_object('area', area, 'check', check_name, 'status', status, 'evidence', evidence, 'next_action', next_action, 'simulated', simulated) ORDER BY area, check_name) AS checks,
+       'Executar CI, database-validation, release-candidate, Docker runtime e smoke tests reais.'::text AS next_action
+FROM integrarp.v17_runtime_validation_check
+GROUP BY tenant_id;
+
+INSERT INTO integrarp.schema_migrations (version, description)
+VALUES ('0019_v17_runtime_validation_and_green_pipeline', 'v1.7 validação de runtime, pipeline verde, Docker, banco real e smoke tests')
+ON CONFLICT (version) DO NOTHING;
