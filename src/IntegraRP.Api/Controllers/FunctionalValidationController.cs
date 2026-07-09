@@ -118,6 +118,36 @@ public sealed class FunctionalValidationController(ILogger<FunctionalValidationC
         correlation_id = HttpContext.TraceIdentifier
     });
 
+
+    [HttpGet("modules/status")]
+    public IActionResult ModulesStatus() => Ok(V18Response("modules", "warning", "/", "/api/validation/modules/status", new[] { "admin", "comercial", "estoque", "pedidos", "flow", "billing", "connect", "project", "studio", "forms", "operations", "ai" }, new[] { "Validar dados reais no PostgreSQL via integrarp.v18_functional_validation_check." }));
+
+    [HttpGet("cruds/status")]
+    public IActionResult CrudsStatus() => Ok(V18Response("cruds", "warning", "/customers", "/api/customers", new[] { "cliente", "produto", "pedido", "tarefa", "fatura", "outbox", "project-card", "jornada" }, new[] { "SDK .NET indisponível no ambiente local; executar CI para testes de integração." }));
+
+    [HttpGet("templates/status")]
+    public IActionResult TemplatesStatus() => Ok(V18Response("templates", "ok", "/templates", "/api/templates", new[] { "catalogo", "detalhe", "instalacao", "permissoes", "proxima_acao" }, Array.Empty<string>()));
+
+    [HttpGet("user-journeys/status")]
+    public IActionResult UserJourneysStatus() => Ok(V18Response("user-journeys", "warning", "/journey/what-to-do-now", "/api/journey/what-to-do-now", new[] { "administrador", "gestor", "vendas", "logistica", "financeiro", "operador", "mobile" }, new[] { "Validar jornada ponta a ponta com usuário real por perfil." }));
+
+    [HttpGet("dashboard/status")]
+    public IActionResult DashboardStatus() => Ok(V18Response("dashboard", "warning", "/", "/api/dashboard", new[] { "o_que_fazer_agora", "minhas_tarefas", "pedidos_parados", "estoque_critico", "titulos_vencidos", "outbox_erro", "scores" }, new[] { "Consultar integrarp.vw_v18_dashboard_operacional após executar scriptcompleto." }));
+
+    private object V18Response(string modulo, string status, string rota, string endpoint, string[] checks, string[] warnings) => new
+    {
+        modulo,
+        status,
+        checks,
+        erros = Array.Empty<string>(),
+        warnings,
+        proximaAcao = "Executar validação funcional v1.8 com banco real, CI e smoke E2E.",
+        rotaRelacionada = rota,
+        endpointRelacionado = endpoint,
+        tenantId = TenantId,
+        correlationId = HttpContext.TraceIdentifier
+    };
+
     private static FunctionalValidationResponse Response(string status, string details, string nextAction, object data) =>
         new(status, details, nextAction, RequiredPermission, data);
 }

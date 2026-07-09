@@ -16,3 +16,7 @@ A validação aplica o script duas vezes para provar idempotência e verifica ta
 ## Execução esperada
 
 Execute contra PostgreSQL com `ON_ERROR_STOP=1`. O script completo pode ser reaplicado e o workflow `database-validation` deve provar a segunda execução sem erro.
+
+## Atualização v1.8
+
+O `database/scriptcompleto.sql` recebeu a migration `0020_v18_produto_funcional_cruds_telas_jornada`, com objetos idempotentes no schema `integrarp` para auditoria funcional de telas, catálogo de templates, validação por módulo e view de dashboard operacional.
