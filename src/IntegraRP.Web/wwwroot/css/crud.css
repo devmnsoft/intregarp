@@ -1,0 +1,23 @@
+/* IntegraRP v1.8 crud: camada funcional B2B não minificada. */
+:root {
+    --integrarp-primary: #1f5eff;
+    --integrarp-success: #148a4a;
+    --integrarp-warning: #b7791f;
+    --integrarp-danger: #c53030;
+    --integrarp-surface: #ffffff;
+    --integrarp-border: #d8dee9;
+    --integrarp-text: #1f2937;
+}
+
+.crud-partial,
+.functional-card {
+    background: var(--integrarp-surface);
+    border: 1px solid var(--integrarp-border);
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+.table-responsive-functional {
+    overflow-x: auto;
+    width: 100%;
+}

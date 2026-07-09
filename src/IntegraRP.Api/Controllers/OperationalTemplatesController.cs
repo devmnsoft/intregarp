@@ -8,6 +8,7 @@ namespace IntegraRP.Api.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/operational/templates")]
+[Route("api/templates")]
 public sealed class OperationalTemplatesController(ListOperationalTemplatePackagesUseCase packages, ListOperationalTemplatesUseCase templates, GetOperationalTemplateByIdUseCase getTemplate, PreviewOperationalTemplateUseCase preview, InstallOperationalTemplateUseCase installTemplate, InstallOperationalTemplatePackageUseCase installPackage, ListOperationalTemplateInstallationsUseCase installations, GetOperationalTemplateInstallationLogUseCase logs, ILogger<OperationalTemplatesController> logger) : IntegraControllerBase
 {
     [HttpGet("packages")] public async Task<IActionResult> GetPackages(CancellationToken ct) { try { var r = await packages.ExecuteAsync(TenantId, ct); return r.IsSuccess ? Ok(r.Value) : Problem(r.Error); } catch (Exception ex) { return ProblemFrom(ex, logger, nameof(GetPackages)); } }

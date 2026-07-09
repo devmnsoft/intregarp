@@ -181,6 +181,16 @@
       "presente_no_scriptcompleto": true,
       "observacoes": "Complementa v1.6 com checks v1.7, objetos críticos de smoke e índices de performance.",
       "status": "documentada"
+    },
+    {
+      "ordem": 19,
+      "arquivo": "0020_v18_produto_funcional_cruds_telas_jornada.sql",
+      "versao": "0020_v18_produto_funcional_cruds_telas_jornada",
+      "descricao": "v18 produto funcional cruds telas jornada",
+      "modulo": "Produto funcional",
+      "presente_no_scriptcompleto": true,
+      "observacoes": "Adiciona auditoria de telas, catálogo de templates e validação funcional por módulo.",
+      "status": "documentada"
     }
   ]
 }
