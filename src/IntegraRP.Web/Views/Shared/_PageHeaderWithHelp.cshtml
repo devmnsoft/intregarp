@@ -1,0 +1,9 @@
+@model dynamic
+<header class="ui-page-header">
+    <div>
+        <p class="ui-eyebrow">@Model?.Section</p>
+        <h1>@Model?.Title</h1>
+        <p>@Model?.Description</p>
+    </div>
+    <a class="ui-help-link" href="@Model?.HelpUrl">Ajuda</a>
+</header>

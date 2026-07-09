@@ -1,13 +1,14 @@
-# database-scriptcompleto
+# Script completo do banco
 
-Documento atualizado para v1.4.
+`database/scriptcompleto.sql` é a fonte única consolidada para criação/evolução do banco IntegraRP.
 
-- Runtime padrão: PostgreSQL no schema `integrarp`.
-- Script único: `database/scriptcompleto.sql`.
-- Migration: `database/migrations/0016_v14_postgres_repositories_operacional.sql`.
-- Demo: `GET /api/validation/flow/order-to-billing-demo`.
-- Providers externos reais permanecem sandbox/fake até configuração segura de produção.
+Regras v1.6: usar somente schema `integrarp`, criar `pgcrypto`, manter `schema_migrations`, usar `CREATE TABLE IF NOT EXISTS`, `ALTER TABLE ... ADD COLUMN IF NOT EXISTS`, `CREATE INDEX IF NOT EXISTS`, `CREATE OR REPLACE FUNCTION`, `CREATE OR REPLACE VIEW`, blocos `DO` para constraints e recriação explícita de triggers.
 
-## v1.5 — Validação real, CRUDs operacionais e jornada completa
+Validação local Windows:
 
-A v1.5 acrescenta ao script completo os objetos idempotentes `integrarp.v15_operational_object`, `integrarp.v15_customer_full_journey_check`, `integrarp.v15_worker_queue_health`, as views `integrarp.vw_v15_customer_full_journey` e `integrarp.vw_v15_operational_readiness`, e registra a migration `0017_v15_validacao_real_cruds_qa_deploy` em `integrarp.schema_migrations`. O script permanece executável múltiplas vezes, usa `CREATE TABLE IF NOT EXISTS`, `ALTER TABLE ... ADD COLUMN IF NOT EXISTS`, `CREATE INDEX IF NOT EXISTS`, `CREATE OR REPLACE FUNCTION`, `CREATE OR REPLACE VIEW`, blocos `DO` para constraints e recriação explícita de triggers.
+```powershell
+scripts/db-reset-local.ps1
+scripts/db-validate-scriptcompleto.ps1
+```
+
+A validação aplica o script duas vezes para provar idempotência e verifica tabelas críticas, views e objetos v1.6.

@@ -1,0 +1,26 @@
+name: Release Candidate
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [ main, work ]
+jobs:
+  rc-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: 8.0.x }
+      - name: Build API Web Worker
+        run: |
+          dotnet restore
+          dotnet build src/IntegraRP.Api/IntegraRP.Api.csproj --no-restore
+          dotnet build src/IntegraRP.Web/IntegraRP.Web.csproj --no-restore
+          dotnet build src/IntegraRP.Worker/IntegraRP.Worker.csproj --no-restore
+      - name: Static smoke contract checks
+        run: |
+          test -f scripts/smoke-test-api.ps1
+          test -f scripts/smoke-test-customer-journey.ps1
+          grep -RIn "customer-full-journey" src/IntegraRP.Api scripts docs
+      - name: Docker compose build when available
+        run: |
+          if command -v docker >/dev/null 2>&1; then docker compose build; else echo "Docker not available on runner"; fi

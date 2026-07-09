@@ -83,6 +83,41 @@ public sealed class FunctionalValidationController(ILogger<FunctionalValidationC
         return Ok(Response(status, "Validação estática do scriptcompleto.sql para v1.3/v1.4.", "Corrigir checks falsos antes de executar a migration em ambiente compartilhado.", checks));
     }
 
+    [HttpGet("release-candidate/status")]
+    public IActionResult ReleaseCandidateStatus() => Ok(new
+    {
+        status = "warning",
+        checks = new[]
+        {
+            new { name = "scriptcompleto_v16", status = "ok", evidence = "Objeto integrarp.v16_release_candidate_check versionado no script completo." },
+            new { name = "ci_dotnet", status = "warning", evidence = "Validado por GitHub Actions quando o runner possui SDK .NET." },
+            new { name = "database_idempotency", status = "warning", evidence = "Workflow database-validation aplica scriptcompleto duas vezes." },
+            new { name = "docker", status = "warning", evidence = "Ambiente Codex sem Docker; usar scripts/validate-docker-release.ps1." }
+        },
+        erros = Array.Empty<string>(),
+        warnings = new[] { "Executar workflows e smoke tests em ambiente com PostgreSQL e Docker antes da promoção." },
+        proximaAcao = "Executar CI, database-validation, release-candidate e smoke tests.",
+        tempoExecucaoMs = 0,
+        correlation_id = HttpContext.TraceIdentifier
+    });
+
+    [HttpGet("worker/status")]
+    public IActionResult WorkerStatus() => Ok(new
+    {
+        status = "warning",
+        checks = new[]
+        {
+            new { name = "outbox", status = "warning", evidence = "Validar pendentes/processados em integrarp.v15_worker_queue_health." },
+            new { name = "checkpoint", status = "warning", evidence = "Worker deve registrar checkpoint e reprocessamento elegível." },
+            new { name = "recommended_actions", status = "warning", evidence = "Ações recomendadas geradas para jornada do cliente." }
+        },
+        erros = Array.Empty<string>(),
+        warnings = new[] { "Endpoint expõe contrato de validação; consulta em banco real deve ser priorizada no próximo incremento." },
+        proximaAcao = "Executar Worker com PostgreSQL e consultar integrarp.v15_worker_queue_health.",
+        tempoExecucaoMs = 0,
+        correlation_id = HttpContext.TraceIdentifier
+    });
+
     private static FunctionalValidationResponse Response(string status, string details, string nextAction, object data) =>
         new(status, details, nextAction, RequiredPermission, data);
 }

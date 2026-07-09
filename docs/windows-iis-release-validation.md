@@ -1,4 +1,4 @@
-# deploy-iis-windows-server
+# windows-iis-release-validation
 
 ## Status v1.6
 Documento criado para a Release Candidate. Status atual: **Parcial**, com validação local limitada pelo ambiente Codex sem SDK .NET e sem Docker.
