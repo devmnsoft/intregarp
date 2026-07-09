@@ -1,0 +1,3 @@
+@{ ViewData["Title"] = "Demo Funcional"; }
+<section class="integrarp-page"><h1>Demo funcional</h1><p>Cliente → produto → estoque → pedido → tarefa → faturamento → outbox → dashboard → jornada.</p><div class="d-flex gap-2 mb-3"><button class="btn btn-primary" id="demo-run-all">Executar fluxo completo</button><button class="btn btn-outline-secondary" id="demo-reset">Reset demo</button></div><div id="demo-status" class="alert alert-info">Carregando status...</div><ol id="demo-timeline" class="list-group list-group-numbered"></ol></section>
+@section Scripts { <script src="~/js/demo.js"></script> }
