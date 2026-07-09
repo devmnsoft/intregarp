@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using IntegraRP.Infrastructure.DependencyInjection;
 using IntegraRP.Worker;
 
