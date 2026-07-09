@@ -1,6 +1,6 @@
 # Auditoria Web — telas com API real
 
-| Rota | Status | Endpoint esperado | Loading | 401/403 | Vazio | Próxima ação |
+| Rota | Status v1.7 | Endpoint esperado | Loading | 401/403 | Vazio | Próxima ação |
 |---|---|---|---|---|---|---|
 | /login | Parcial | /api/auth/login | Parcial | Parcial | OK | Entrar com demo |
 | /dashboard | Parcial | /api/dashboard | Pendente | Pendente | Pendente | Ver KPIs |
@@ -16,3 +16,7 @@
 | /project | Parcial | /api/project | Pendente | Pendente | Pendente | Atualizar board |
 
 Critério RC: dados fixos só podem existir como fallback/estado vazio, nunca como fonte principal quando a API estiver disponível.
+
+## Critérios v1.7 por tela
+
+Cada tela deve manter endpoint real, loading, erro, tratamento 401, tratamento 403, estado vazio inteligente, próxima ação recomendada e ajuda contextual. Quando uma tela ainda depender de dados estáticos, marcar como `warning` e substituir por chamada API no próximo incremento.

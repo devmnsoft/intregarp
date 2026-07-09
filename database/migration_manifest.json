@@ -1,6 +1,6 @@
 {
   "schema": "integrarp",
-  "gerado_para": "v1.6-release-candidate",
+  "gerado_para": "v1.7-runtime-validation",
   "migrations": [
     {
       "ordem": 1,
@@ -170,6 +170,16 @@
       "modulo": "Release Candidate",
       "presente_no_scriptcompleto": true,
       "observacoes": "Validar em PostgreSQL via workflow database-validation.",
+      "status": "documentada"
+    },
+    {
+      "ordem": 18,
+      "arquivo": "0019_v17_runtime_validation_and_green_pipeline.sql",
+      "versao": "0019_v17_runtime_validation_and_green_pipeline",
+      "descricao": "v17 runtime validation and green pipeline",
+      "modulo": "Runtime validation",
+      "presente_no_scriptcompleto": true,
+      "observacoes": "Complementa v1.6 com checks v1.7, objetos críticos de smoke e índices de performance.",
       "status": "documentada"
     }
   ]
