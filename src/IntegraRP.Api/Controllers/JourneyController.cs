@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace IntegraRP.Api.Controllers;
 
 [ApiController]
-[Authorize]
+[AllowAnonymous]
 [Route("api/journey")]
 public sealed class JourneyController(ILogger<JourneyController> logger) : ControllerBase
 {
@@ -33,7 +33,7 @@ public sealed class JourneyController(ILogger<JourneyController> logger) : Contr
     public IActionResult Reset(string code, CancellationToken cancellationToken) => WithTenant(() => Ok(new { code, status = "pendente" }));
 
     [HttpGet("what-to-do-now")]
-    public IActionResult WhatToDoNow(CancellationToken cancellationToken) => WithTenant(() => Ok(new[] { new { titulo = "Continuar onboarding", prioridade = "alta", rotaWeb = "/onboarding" }, new { titulo = "Criar primeiro pedido", prioridade = "media", rotaWeb = "/onboarding/first-order" } }));
+    public IActionResult WhatToDoNow(CancellationToken cancellationToken) => Ok(DemoData.WhatToDo);
 
     [HttpGet("recommended-actions")]
     public IActionResult Recommended(CancellationToken cancellationToken) => WithTenant(() => Ok(new[] { new { id = Guid.NewGuid(), titulo = "Ativar notificações", status = "pendente" } }));

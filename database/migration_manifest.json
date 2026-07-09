@@ -1,6 +1,6 @@
 {
   "schema": "integrarp",
-  "gerado_para": "v1.7-runtime-validation",
+  "gerado_para": "v1.9-demo-funcional",
   "migrations": [
     {
       "ordem": 1,
@@ -190,6 +190,16 @@
       "modulo": "Produto funcional",
       "presente_no_scriptcompleto": true,
       "observacoes": "Adiciona auditoria de telas, catálogo de templates e validação funcional por módulo.",
+      "status": "documentada"
+    },
+    {
+      "ordem": 21,
+      "arquivo": "0021_v19_demo_funcional_inserts_telas_jornada.sql",
+      "versao": "0021_v19_demo_funcional_inserts_telas_jornada",
+      "descricao": "v19 demo funcional inserts telas jornada",
+      "modulo": "Demo funcional",
+      "presente_no_scriptcompleto": true,
+      "observacoes": "Seeds idempotentes, atividades, jornada real e views v1.9.",
       "status": "documentada"
     }
   ]
