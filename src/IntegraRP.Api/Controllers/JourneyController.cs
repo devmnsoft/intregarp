@@ -55,10 +55,18 @@ public sealed class JourneyController(ILogger<JourneyController> logger, IConfig
     }
 
     [HttpPost("recommended-actions/{id:guid}/complete")]
-    public IActionResult CompleteAction(Guid id, CancellationToken cancellationToken) => WithTenant(() => Ok(new { id, status = "concluida" }));
+    public async Task<IActionResult> CompleteAction(Guid id, CancellationToken cancellationToken)
+    {
+        try { return Ok((await V19Db.QueryAsync(configuration, "UPDATE integrarp.jornada_acao_recomendada SET status='concluida', atualizado_em=now() WHERE id=@id RETURNING id,codigo,titulo,status,rota_web AS rotaWeb;", cancellationToken, new Npgsql.NpgsqlParameter("id", id))).FirstOrDefault()); }
+        catch (Exception ex) { logger.LogError(ex, "Falha ao concluir ação recomendada real"); return Problem(ex.Message, statusCode: 503); }
+    }
 
     [HttpPost("recommended-actions/{id:guid}/dismiss")]
-    public IActionResult DismissAction(Guid id, CancellationToken cancellationToken) => WithTenant(() => Ok(new { id, status = "ignorada" }));
+    public async Task<IActionResult> DismissAction(Guid id, CancellationToken cancellationToken)
+    {
+        try { return Ok((await V19Db.QueryAsync(configuration, "UPDATE integrarp.jornada_acao_recomendada SET status='ignorada', atualizado_em=now() WHERE id=@id RETURNING id,codigo,titulo,status,rota_web AS rotaWeb;", cancellationToken, new Npgsql.NpgsqlParameter("id", id))).FirstOrDefault()); }
+        catch (Exception ex) { logger.LogError(ex, "Falha ao ignorar ação recomendada real"); return Problem(ex.Message, statusCode: 503); }
+    }
 
     [HttpGet("contextual-help")]
     public IActionResult Help([FromQuery] string screen = "dashboard", CancellationToken cancellationToken = default) => WithTenant(() => Ok(new { screen, titulo = "Como usar esta tela?", explicacao = "Revise indicadores, pendências e execute a próxima ação recomendada." }));
