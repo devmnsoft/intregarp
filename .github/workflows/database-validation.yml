@@ -1,0 +1,45 @@
+name: Database Validation
+on:
+  push:
+    branches: [ main, work, feature/** ]
+  pull_request:
+    branches: [ main, work ]
+jobs:
+  postgres-scriptcompleto:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: integrarp
+          POSTGRES_PASSWORD: integrarp_ci_password
+          POSTGRES_DB: integrarp
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U integrarp -d integrarp"
+          --health-interval 10s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install psql
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Reject forbidden schemas in database scripts
+        run: |
+          if grep -RInE '(^|[^a-zA-Z0-9_])(public|integra)\.' database; then exit 1; fi
+      - name: Apply scriptcompleto twice
+        env: { PGPASSWORD: integrarp_ci_password }
+        run: |
+          psql -h localhost -U integrarp -d integrarp -v ON_ERROR_STOP=1 -f database/scriptcompleto.sql
+          psql -h localhost -U integrarp -d integrarp -v ON_ERROR_STOP=1 -f database/scriptcompleto.sql
+      - name: Validate critical objects
+        env: { PGPASSWORD: integrarp_ci_password }
+        run: |
+          psql -h localhost -U integrarp -d integrarp -v ON_ERROR_STOP=1 <<'SQL'
+          SELECT to_regclass('integrarp.tenant') IS NOT NULL AS tenant;
+          SELECT to_regclass('integrarp.usuario') IS NOT NULL AS usuario;
+          SELECT to_regclass('integrarp.outbox_evento') IS NOT NULL AS outbox;
+          SELECT to_regclass('integrarp.v15_customer_full_journey_check') IS NOT NULL AS journey;
+          SELECT to_regclass('integrarp.v16_release_candidate_check') IS NOT NULL AS rc;
+          SELECT COUNT(*) FROM integrarp.vw_v16_release_candidate_status;
+          SQL
+      - name: Validate migration manifest
+        run: python -m json.tool database/migration_manifest.json > /dev/null
