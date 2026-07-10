@@ -22,6 +22,9 @@ ON CONFLICT (tenant_id,nome) WHERE excluido_em IS NULL DO UPDATE SET documento=E
 RETURNING id,nome,documento,email,status;", ct, new NpgsqlParameter("nome", nome), new NpgsqlParameter("documento", (object?)request.Documento ?? DBNull.Value), new NpgsqlParameter("email", (object?)request.Email ?? DBNull.Value));
     }
 
+    [HttpPut("customers/{id:guid}")]
+    public Task<IActionResult> UpdateCustomer(Guid id, [FromBody] DemoCustomerRequest request, CancellationToken ct) => Query("cliente atualizado", @"UPDATE integrarp.cliente SET nome=COALESCE(NULLIF(@nome,''),nome),documento=@documento,email=@email,atualizado_em=now() WHERE id=@id AND excluido_em IS NULL RETURNING id,nome,documento,email,status;", ct, new NpgsqlParameter("id", id), new NpgsqlParameter("nome", (object?)request.Nome?.Trim() ?? DBNull.Value), new NpgsqlParameter("documento", (object?)request.Documento ?? DBNull.Value), new NpgsqlParameter("email", (object?)request.Email ?? DBNull.Value));
+
     [HttpGet("products")]
     public Task<IActionResult> Products(CancellationToken ct) => Query("produtos", "SELECT p.id,p.sku,p.nome,p.status,p.estoque_minimo AS estoqueMinimo,p.estoque_atual AS estoqueAtual FROM integrarp.produto p JOIN integrarp.tenant t ON t.id=p.tenant_id AND t.slug='demo' WHERE p.excluido_em IS NULL ORDER BY p.criado_em,p.sku;", ct);
 
@@ -34,6 +37,13 @@ RETURNING id,nome,documento,email,status;", ct, new NpgsqlParameter("nome", nome
 INSERT INTO integrarp.produto (tenant_id,categoria_id,sku,nome,estoque_minimo,estoque_atual,metadata_json) SELECT t.tenant_id,cat.id,@sku,@nome,@minimo,@saldo,'{""origem"":""api-v1.10""}'::jsonb FROM t LEFT JOIN cat ON true
 ON CONFLICT (tenant_id,sku) WHERE excluido_em IS NULL DO UPDATE SET nome=EXCLUDED.nome,estoque_minimo=EXCLUDED.estoque_minimo,estoque_atual=EXCLUDED.estoque_atual,atualizado_em=now()
 RETURNING id,sku,nome,estoque_minimo AS estoqueMinimo,estoque_atual AS estoqueAtual;", ct, new NpgsqlParameter("sku", sku), new NpgsqlParameter("nome", nome), new NpgsqlParameter("minimo", request.EstoqueMinimo), new NpgsqlParameter("saldo", request.EstoqueAtual));
+    }
+
+    [HttpPut("products/{id:guid}")]
+    public Task<IActionResult> UpdateProduct(Guid id, [FromBody] DemoProductRequest request, CancellationToken ct)
+    {
+        var nome = string.IsNullOrWhiteSpace(request.Nome) ? null : request.Nome.Trim();
+        return Query("produto atualizado", "UPDATE integrarp.produto SET sku=COALESCE(NULLIF(@sku,''),sku),nome=COALESCE(@nome,nome),estoque_minimo=@minimo,estoque_atual=@saldo,atualizado_em=now() WHERE id=@id AND excluido_em IS NULL RETURNING id,sku,nome,status,estoque_minimo AS estoqueMinimo,estoque_atual AS estoqueAtual;", ct, new NpgsqlParameter("id", id), new NpgsqlParameter("sku", (object?)request.Sku?.Trim() ?? DBNull.Value), new NpgsqlParameter("nome", (object?)nome ?? DBNull.Value), new NpgsqlParameter("minimo", request.EstoqueMinimo), new NpgsqlParameter("saldo", request.EstoqueAtual));
     }
 
     [HttpPost("inventory/entries")]

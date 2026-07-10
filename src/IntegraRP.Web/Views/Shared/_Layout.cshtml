@@ -25,7 +25,7 @@
         <nav class="d-grid gap-2">
           @foreach (var item in new[] { "Dashboard", "Flow", "Designer", "Tarefas", "Execução", "Studio", "Criador", "Dinâmicos", "Integra AI", "Auditoria IA", "BI", "Project Central", "Setores", "Clientes", "Produtos", "Pedidos", "Faturamento", "Connect", "Financeiro", "Logística", "Entregas", "KPIs", "Configurações" })
           {
-            <a href='@(item == "Flow" ? "/flow" : item == "Faturamento" ? "/billing" : item == "Connect" ? "/connect" : item == "BI" ? "/bi" : item == "KPIs" ? "/bi/kpis" : item == "Project Central" ? "/project" : Url.Action("Page", "Home", new { id = item }))'>@item</a>
+            <a href='@(item == "Dashboard" ? "/dashboard" : item == "Flow" ? "/flow" : item == "Tarefas" ? "/tasks/my" : item == "Clientes" ? "/customers" : item == "Produtos" ? "/products" : item == "Pedidos" ? "/orders" : item == "Logística" ? "/inventory" : item == "Faturamento" ? "/billing" : item == "Connect" ? "/connect" : item == "BI" ? "/bi" : item == "KPIs" ? "/bi/kpis" : item == "Project Central" ? "/project" : Url.Action("Page", "Home", new { id = item }))'>@item</a>
           }
         </nav>
       </aside>
