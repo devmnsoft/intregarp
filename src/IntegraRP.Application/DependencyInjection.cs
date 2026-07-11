@@ -1,6 +1,7 @@
 using IntegraRP.Application.FlowDesigner.UseCases;
 using IntegraRP.Application.OperationalTemplates;
 using IntegraRP.Application.Operations;
+using IntegraRP.Application.Runtime;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace IntegraRP.Application;
@@ -9,6 +10,7 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
+        services.AddScoped<OperationalRuntimeUseCases>();
         services.AddScoped<ListFlowTemplatesUseCase>();
         services.AddScoped<GetFlowTemplateByIdUseCase>();
         services.AddScoped<CloneFlowTemplateToProcessUseCase>();
