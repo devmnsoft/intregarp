@@ -23,9 +23,9 @@
           <small>Valora Group &amp; MNSoft</small>
         </div>
         <nav class="d-grid gap-2">
-          @foreach (var item in new[] { "Dashboard", "Flow", "Designer", "Tarefas", "Execução", "Studio", "Criador", "Dinâmicos", "Integra AI", "Auditoria IA", "BI", "Project Central", "Setores", "Clientes", "Produtos", "Pedidos", "Faturamento", "Connect", "Financeiro", "Logística", "Entregas", "KPIs", "Configurações" })
+          @foreach (var item in new[] { "Dashboard", "Atividades", "Demo funcional", "Homologação", "Jornada", "Clientes", "Produtos", "Estoque", "Pedidos", "Minhas tarefas", "Faturamento", "Outbox", "Templates", "Flow", "Designer", "Studio", "Integra AI", "BI", "Project Central", "Setores", "Connect", "Financeiro", "Logística", "KPIs", "Configurações" })
           {
-            <a href='@(item == "Dashboard" ? "/dashboard" : item == "Flow" ? "/flow" : item == "Tarefas" ? "/tasks/my" : item == "Clientes" ? "/customers" : item == "Produtos" ? "/products" : item == "Pedidos" ? "/orders" : item == "Logística" ? "/inventory" : item == "Faturamento" ? "/billing" : item == "Connect" ? "/connect" : item == "BI" ? "/bi" : item == "KPIs" ? "/bi/kpis" : item == "Project Central" ? "/project" : Url.Action("Page", "Home", new { id = item }))'>@item</a>
+            <a href='@(item == "Dashboard" ? "/dashboard" : item == "Atividades" ? "/activities" : item == "Demo funcional" ? "/demo" : item == "Homologação" ? "/homologation" : item == "Jornada" ? "/journey/what-to-do-now" : item == "Flow" ? "/flow" : item == "Tarefas" || item == "Minhas tarefas" ? "/tasks/my" : item == "Clientes" ? "/customers" : item == "Produtos" ? "/products" : item == "Pedidos" ? "/orders" : item == "Estoque" || item == "Logística" ? "/inventory" : item == "Faturamento" ? "/billing/invoices" : item == "Outbox" ? "/connect/outbox" : item == "Templates" ? "/templates" : item == "Connect" ? "/connect" : item == "BI" ? "/bi" : item == "KPIs" ? "/bi/kpis" : item == "Project Central" ? "/project" : Url.Action("Page", "Home", new { id = item }))'>@item</a>
           }
         </nav>
       </aside>

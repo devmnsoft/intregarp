@@ -39,6 +39,7 @@ public sealed class FinancialTitlesController(IBillingService billingService, IL
     }
 
     [HttpPost("{id:guid}/generate-boleto")]
+    [HttpPost("{id:guid}/fake-boleto")]
     public async Task<IActionResult> GenerateBoleto(Guid id, GenerateFakeBoletoRequest request, CancellationToken cancellationToken)
     {
         try { return Ok(await billingService.GenerateBoletoAsync(TenantId, id, request, cancellationToken)); }

@@ -38,6 +38,13 @@ public sealed class InvoicesController(IBillingService billingService, ILogger<I
         catch (Exception ex) { return ProblemFrom(ex, logger, "criar fatura do pedido"); }
     }
 
+    [HttpPost("{id:guid}/titles")]
+    public async Task<IActionResult> CreateTitleAlias(Guid id, CreateTitleFromInvoiceRequest request, CancellationToken cancellationToken)
+    {
+        try { return Ok(await billingService.CreateTitleFromInvoiceAsync(TenantId, id, request, cancellationToken)); }
+        catch (Exception ex) { return ProblemFrom(ex, logger, "criar título da fatura"); }
+    }
+
     [HttpPost("{id:guid}/items")]
     public async Task<IActionResult> AddItem(Guid id, AddInvoiceItemRequest request, CancellationToken cancellationToken)
     {

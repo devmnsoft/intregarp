@@ -1,0 +1,7 @@
+(async function(){
+  const api=window.api||((u,o)=>fetch(u,{headers:{'Content-Type':'application/json'},...(o||{})}).then(r=>{if(!r.ok)throw new Error(r.statusText);return r.json();}));
+  const grid=document.getElementById('templates-grid'), status=document.getElementById('templates-status');
+  async function load(){try{const rows=await api('/api/templates')||[]; status.textContent=`${rows.length} template(s) carregado(s).`; status.className='alert alert-success'; grid.innerHTML=rows.map(t=>`<div class="col-md-6 col-xl-4"><article class="card h-100 p-3"><span class="badge text-bg-primary align-self-start">${t.categoria||t.category||'Operacional'}</span><h2 class="h5 mt-2">${t.nome||t.name}</h2><p>${t.descricao||t.description||''}</p><div class="mt-auto d-flex gap-2"><a class="btn btn-sm btn-outline-primary" href="/templates/${t.id}">Detalhe</a><button class="btn btn-sm btn-primary" data-install="${t.id}">Instalar</button></div></article></div>`).join('')||'<div class="col"><div class="alert alert-warning">Nenhum template encontrado.</div></div>'; }catch(e){status.textContent='Erro: '+e.message; status.className='alert alert-danger';}}
+  document.addEventListener('click',async ev=>{ if(ev.target.dataset.install){ await api(`/api/templates/${ev.target.dataset.install}/install`,{method:'POST',body:JSON.stringify({usuarioId:null,configuracao:{origem:'web-v112'}})}); status.textContent='Template instalado com sucesso.'; status.className='alert alert-success'; }});
+  await load();
+})();

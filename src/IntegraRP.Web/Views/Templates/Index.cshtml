@@ -1,0 +1,8 @@
+@{ ViewData["Title"] = "Templates operacionais"; }
+<section class="integrarp-page">
+  <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li><li class="breadcrumb-item active">Templates</li></ol></nav>
+  <div class="d-flex justify-content-between align-items-start gap-3 mb-3"><div><h1>Templates instaláveis</h1><p>Instale pacotes operacionais mínimos para pedido ao faturamento, separação, entrega com POD e cobrança.</p></div><a class="btn btn-outline-primary" href="/journey/what-to-do-now">Jornada</a></div>
+  <div id="templates-status" class="alert alert-info">Carregando templates reais...</div>
+  <div id="templates-grid" class="row g-3"></div>
+</section>
+@section Scripts { <script src="~/js/templates.js"></script> }
