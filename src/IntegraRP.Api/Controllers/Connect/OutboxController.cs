@@ -8,6 +8,7 @@ namespace IntegraRP.Api.Controllers.Connect;
 [ApiController]
 [Authorize]
 [Route("api/connect/outbox")]
+[Route("api/outbox")]
 public sealed class OutboxController(IConnectService connectService) : IntegraControllerBase
 {
     [HttpGet] public async Task<IActionResult> List([FromQuery] string? status, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken cancellationToken = default) => Ok(await connectService.ListOutboxAsync(TenantId, status, page, pageSize, cancellationToken));

@@ -1,0 +1,12 @@
+@{ ViewData["Title"] = "Homologação v1.12"; }
+<section class="integrarp-page">
+  <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li><li class="breadcrumb-item active">Homologação</li></ol></nav>
+  <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+    <div><h1>Homologação visual v1.12</h1><p>Valide Banco, API, Web, Worker, CRUDs, faturamento, outbox, templates, demo, dashboard e jornada com ações reais.</p></div>
+    <button class="btn btn-primary" id="homologation-run-all">Validar tudo</button>
+  </div>
+  <div id="homologation-status" class="alert alert-info">Carregando checks...</div>
+  <div class="table-responsive"><table class="table table-hover"><thead><tr><th>Check</th><th>Status</th><th>Detalhe</th><th>Próxima ação</th><th>Ações</th></tr></thead><tbody id="homologation-checks"></tbody></table></div>
+  <a href="/journey/what-to-do-now" class="btn btn-outline-primary">Ver próxima ação da jornada</a>
+</section>
+@section Scripts { <script src="~/js/homologation.js"></script> }
