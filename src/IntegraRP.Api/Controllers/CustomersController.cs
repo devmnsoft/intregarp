@@ -10,9 +10,9 @@ namespace IntegraRP.Api.Controllers;
 public sealed class CustomersController(OperationalRuntimeUseCases useCases) : IntegraControllerBase
 {
     [HttpGet] public async Task<IActionResult> List(CancellationToken ct) => ToAction(await useCases.ListCustomersAsync(TenantId, ct));
-    [HttpGet("{id:guid}")] public IActionResult Get(Guid id) => Problem("Consulta por id será consolidada no repository dedicado.", statusCode: 501);
+    [HttpGet("{id:guid}")] public async Task<IActionResult> Get(Guid id, CancellationToken ct) => ToAction(await useCases.GetCustomerAsync(TenantId, id, ct));
     [HttpPost] public async Task<IActionResult> Create(DemoCustomerRequest request, CancellationToken ct) => ToAction(await useCases.CreateCustomerAsync(TenantId, request, ct));
     [HttpPut("{id:guid}")] public async Task<IActionResult> Update(Guid id, DemoCustomerRequest request, CancellationToken ct) => ToAction(await useCases.UpdateCustomerAsync(TenantId, id, request, ct));
-    [HttpDelete("{id:guid}")] public IActionResult Delete(Guid id) => Problem("Soft delete dedicado será concluído no CRUD completo.", statusCode: 501);
+    [HttpDelete("{id:guid}")] public async Task<IActionResult> Delete(Guid id, CancellationToken ct) => ToAction(await useCases.DeleteCustomerAsync(TenantId, id, ct));
     private IActionResult ToAction<T>(IntegraRP.Application.Common.Result<T> result) => result.IsSuccess ? Ok(result.Value) : Problem(result.Error, statusCode: 400);
 }

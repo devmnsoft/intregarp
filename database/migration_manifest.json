@@ -201,6 +201,16 @@
       "presente_no_scriptcompleto": true,
       "observacoes": "Seeds idempotentes, atividades, jornada real e views v1.9.",
       "status": "documentada"
+    },
+    {
+      "ordem": 23,
+      "arquivo": "0023_v113_consolidacao_funcional_maturidade.sql",
+      "versao": "0023_v113_consolidacao_funcional_maturidade",
+      "descricao": "v113 consolidacao funcional maturidade",
+      "modulo": "Consolidação funcional v1.13",
+      "presente_no_scriptcompleto": true,
+      "observacoes": "Remove 501 dos fluxos principais e adiciona checks/seeds de maturidade funcional.",
+      "status": "documentada"
     }
   ]
 }
