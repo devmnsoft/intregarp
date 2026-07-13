@@ -26,11 +26,11 @@ jobs:
 
       - name: Validate SQL schema usage
         run: |
-          if grep -RInE '(^|[^a-zA-Z0-9_])(public|integra)\.' database; then
+          if rg -n '(^|[^a-zA-Z0-9_])(public|integra)\.' database; then
             echo "Forbidden schema reference found. Use integrarp only."
             exit 1
           fi
-          grep -RIn 'integrarp\.' database/migrations
+          rg -n 'integrarp\.' database/migrations
 
       - name: Validate required docs
         run: |

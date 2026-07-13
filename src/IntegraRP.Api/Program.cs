@@ -1,5 +1,6 @@
 using IntegraRP.Api.Extensions;
 using IntegraRP.Api.Middlewares;
+using IntegraRP.Api.Security;
 using IntegraRP.Application;
 using IntegraRP.Infrastructure.Data.Migrations;
 using IntegraRP.Infrastructure.DependencyInjection;
@@ -13,7 +14,9 @@ builder.Services.AddApiServices(builder.Configuration);
 var app = builder.Build();
 
 app.UseMiddleware<CorrelationIdMiddleware>();
-app.UseMiddleware<TenantMiddleware>();
+app.UseAuthentication();
+app.UseMiddleware<SuperAdminTenantGuardMiddleware>();
+app.UseAuthorization();
 app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseMiddleware<GlobalExceptionMiddleware>();
 

@@ -20,7 +20,7 @@ jobs:
         run: |
           test -f scripts/smoke-test-api.ps1
           test -f scripts/smoke-test-customer-journey.ps1
-          grep -RIn "customer-full-journey" src/IntegraRP.Api scripts docs
+          rg -n "customer-full-journey" src/IntegraRP.Api scripts docs
       - name: Docker compose build when available
         run: |
           if command -v docker >/dev/null 2>&1; then docker compose build; else echo "Docker not available on runner"; fi

@@ -36,11 +36,11 @@ jobs:
       - name: Validate SQL schemas
         shell: bash
         run: |
-          if grep -RInE '(^|[^a-zA-Z0-9_])(public|integra)\.' database; then
+          if rg -n '(^|[^a-zA-Z0-9_])(public|integra)\.' database; then
             echo "Scripts must not reference public. or integra. schemas"
             exit 1
           fi
-          grep -RIn 'integrarp\.' database/migrations
+          rg -n 'integrarp\.' database/migrations
 
       - name: Setup Node
         if: ${{ hashFiles('apps/IntegraRP.Mobile/package.json') != '' }}
@@ -53,7 +53,7 @@ jobs:
       - name: Mobile install
         if: ${{ hashFiles('apps/IntegraRP.Mobile/package.json') != '' }}
         working-directory: apps/IntegraRP.Mobile
-        run: npm install
+        run: npm ci
 
       - name: Mobile typecheck
         if: ${{ hashFiles('apps/IntegraRP.Mobile/package.json') != '' }}

@@ -19,7 +19,7 @@ public sealed class V110RuntimeController(OperationalRuntimeUseCases useCases) :
     [HttpPost("inventory/entries")] public async Task<IActionResult> InventoryEntry([FromBody] DemoInventoryEntryRequest request, CancellationToken ct) => ToAction(await useCases.RegisterInventoryEntryAsync(TenantId, request, ct));
     [HttpGet("orders")] public async Task<IActionResult> Orders(CancellationToken ct) => ToAction(await useCases.ListOrdersAsync(TenantId, ct));
     [HttpPost("orders/{id:guid}/confirm")] public async Task<IActionResult> ConfirmOrder(Guid id, CancellationToken ct) => ToAction(await useCases.ConfirmOrderAsync(TenantId, id, ct));
-    [HttpGet("tasks/my")] public async Task<IActionResult> Tasks(CancellationToken ct) => ToAction(await useCases.ListMyTasksAsync(TenantId, ct));
+    [HttpGet("tasks/my")] public async Task<IActionResult> Tasks(CancellationToken ct) => ToAction(await useCases.ListMyTasksAsync(TenantId, User, ct));
     [HttpPost("tasks/{id:guid}/complete")] public async Task<IActionResult> CompleteTask(Guid id, CancellationToken ct) => ToAction(await useCases.CompleteTaskAsync(TenantId, id, ct));
 
     private IActionResult ToAction<T>(IntegraRP.Application.Common.Result<T> result) => result.IsSuccess ? Ok(result.Value) : Problem(result.Error, statusCode: 400);

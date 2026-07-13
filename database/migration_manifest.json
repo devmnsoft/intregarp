@@ -211,6 +211,12 @@
       "presente_no_scriptcompleto": true,
       "observacoes": "Remove 501 dos fluxos principais e adiciona checks/seeds de maturidade funcional.",
       "status": "documentada"
+    },
+    {
+      "arquivo": "0024_v114_consolidacao_operacional_seguranca.sql",
+      "versao": "v1.14",
+      "descricao": "Consolidação operacional: colunas de produto/pedido/tarefa, comentários reais e índices multi-tenant.",
+      "observacoes": "Migration idempotente usada pelo scriptcompleto."
     }
   ]
 }
