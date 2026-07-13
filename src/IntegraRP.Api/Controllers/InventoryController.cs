@@ -9,9 +9,9 @@ namespace IntegraRP.Api.Controllers;
 [Route("api/inventory")]
 public sealed class InventoryController(OperationalRuntimeUseCases useCases) : IntegraControllerBase
 {
-    [HttpGet("balance")] public IActionResult Balance() => Problem("Saldo detalhado será consolidado no repository dedicado.", statusCode: 501);
-    [HttpGet("movements")] public IActionResult Movements() => Problem("Movimentos paginados serão consolidados no repository dedicado.", statusCode: 501);
-    [HttpGet("critical")] public IActionResult Critical() => Problem("Estoque crítico será consolidado no repository dedicado.", statusCode: 501);
+    [HttpGet("balance")] public async Task<IActionResult> Balance(CancellationToken ct) => ToAction(await useCases.ListInventoryBalanceAsync(TenantId, ct));
+    [HttpGet("movements")] public async Task<IActionResult> Movements(CancellationToken ct) => ToAction(await useCases.ListInventoryMovementsAsync(TenantId, ct));
+    [HttpGet("critical")] public async Task<IActionResult> Critical(CancellationToken ct) => ToAction(await useCases.ListCriticalInventoryAsync(TenantId, ct));
     [HttpPost("entries")] public async Task<IActionResult> Entry(DemoInventoryEntryRequest request, CancellationToken ct) => ToAction(await useCases.RegisterInventoryEntryAsync(TenantId, request, ct));
     private IActionResult ToAction<T>(IntegraRP.Application.Common.Result<T> result) => result.IsSuccess ? Ok(result.Value) : Problem(result.Error, statusCode: 400);
 }
