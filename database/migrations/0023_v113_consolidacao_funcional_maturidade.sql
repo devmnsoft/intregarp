@@ -55,6 +55,6 @@ SELECT tenant_id, codigo, modulo, status, detalhe, proxima_acao
 FROM integrarp.v113_functional_consolidation_check
 WHERE excluido_em IS NULL;
 
-INSERT INTO integrarp.schema_migrations(version)
+-- v1.15: schema_migrations é gerenciada exclusivamente pelo Migration Runner; registro legado removido.
 VALUES ('0023_v113_consolidacao_funcional_maturidade')
 ON CONFLICT (version) DO NOTHING;

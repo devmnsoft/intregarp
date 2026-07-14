@@ -61,6 +61,6 @@ SELECT tenant_id,
 FROM integrarp.v16_release_candidate_check
 GROUP BY tenant_id;
 
-INSERT INTO integrarp.schema_migrations (version, description)
+-- v1.15: schema_migrations é gerenciada exclusivamente pelo Migration Runner; registro legado removido.
 VALUES ('0018_v16_release_candidate_validation', 'v1.6 release candidate: validação de build, banco, CI, Docker e smoke tests')
 ON CONFLICT (version) DO NOTHING;

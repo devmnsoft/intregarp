@@ -10,7 +10,7 @@ BEGIN
 END;
 $$;
 
-CREATE TABLE IF NOT EXISTS integrarp.schema_migrations (version varchar(120) PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now());
+-- v1.15: schema_migrations é gerenciada exclusivamente pelo Migration Runner; registro legado removido.
 
 CREATE TABLE IF NOT EXISTS integrarp.jornada_cliente (jornada_cliente_id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NULL, codigo varchar(120) NOT NULL, nome varchar(180) NOT NULL, descricao text NULL, perfil_alvo varchar(80) NULL, modulo varchar(80) NULL, ordem numeric(12,4) NOT NULL DEFAULT 0, ativo boolean NOT NULL DEFAULT true, criado_em timestamptz NOT NULL DEFAULT now(), criado_por_usuario_id uuid NULL, atualizado_em timestamptz NULL, atualizado_por_usuario_id uuid NULL, excluido_em timestamptz NULL, metadata_json jsonb NOT NULL DEFAULT '{}'::jsonb);
 CREATE TABLE IF NOT EXISTS integrarp.jornada_etapa (jornada_etapa_id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NULL, jornada_cliente_id uuid NOT NULL, codigo varchar(120) NOT NULL, titulo varchar(180) NOT NULL, descricao text NULL, modulo varchar(80) NULL, rota_web varchar(240) NULL, rota_mobile varchar(240) NULL, acao_api varchar(240) NULL, tipo varchar(60) NOT NULL DEFAULT 'manual', obrigatoria boolean NOT NULL DEFAULT true, ordem numeric(12,4) NOT NULL DEFAULT 0, criterio_conclusao_json jsonb NOT NULL DEFAULT '{}'::jsonb, dica_json jsonb NOT NULL DEFAULT '{}'::jsonb, criado_em timestamptz NOT NULL DEFAULT now(), criado_por_usuario_id uuid NULL, atualizado_em timestamptz NULL, atualizado_por_usuario_id uuid NULL, excluido_em timestamptz NULL, metadata_json jsonb NOT NULL DEFAULT '{}'::jsonb);
@@ -69,4 +69,4 @@ ON CONFLICT DO NOTHING;
 INSERT INTO integrarp.jornada_acao_recomendada (tenant_id, titulo, descricao, prioridade, rota_web, motivo) VALUES ('00000000-0000-0000-0000-000000000001','Criar primeiro pedido','Complete cliente, produto e estoque para validar o fluxo comercial.','alta','/onboarding/first-order','seed demo v1.2') ON CONFLICT DO NOTHING;
 -- RBAC v1.2: journey.visualizar journey.iniciar journey.concluir_etapa journey.ignorar_etapa journey.resetar journey.acoes.visualizar journey.acoes.concluir journey.ajuda.visualizar journey.tour.visualizar journey.feedback.enviar
 -- Perfis: Administrador Geral; Administrador do Tenant; Diretor; Coordenador; Financeiro; Vendas; Logística; Motorista; Promotor de Vendas; Operador.
-INSERT INTO integrarp.schema_migrations(version) VALUES ('0014_v12_jornada_cliente_onboarding_ux') ON CONFLICT DO NOTHING;
+-- v1.15: schema_migrations é gerenciada exclusivamente pelo Migration Runner; registro legado removido.

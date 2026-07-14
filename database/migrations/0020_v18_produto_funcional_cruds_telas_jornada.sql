@@ -108,6 +108,6 @@ INSERT INTO integrarp.v18_functional_validation_check (tenant_id, area, modulo, 
 ('00000000-0000-0000-0000-000000000001','cruds','essenciais','warning','["cliente","produto","pedido","tarefa","faturamento","outbox"]'::jsonb,'["validação local limitada por ausência do SDK .NET"]'::jsonb,'Executar CI com dotnet restore/build/test.','/customers','/api/customers')
 ON CONFLICT (tenant_id, area, modulo) DO UPDATE SET status = EXCLUDED.status, checks_json = EXCLUDED.checks_json, warnings_json = EXCLUDED.warnings_json, proxima_acao = EXCLUDED.proxima_acao, atualizado_em = now();
 
-INSERT INTO integrarp.schema_migrations (version, description)
+-- v1.15: schema_migrations é gerenciada exclusivamente pelo Migration Runner; registro legado removido.
 VALUES ('0020_v18_produto_funcional_cruds_telas_jornada', 'v1.8 produto funcional, CRUDs, telas, templates, dashboard e jornada operacional')
 ON CONFLICT (version) DO NOTHING;

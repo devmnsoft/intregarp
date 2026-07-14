@@ -2,7 +2,7 @@ CREATE SCHEMA IF NOT EXISTS integrarp;
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
-CREATE TABLE IF NOT EXISTS integrarp.schema_migrations (version text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now());
+-- v1.15: schema_migrations é gerenciada exclusivamente pelo Migration Runner; registro legado removido.
 
 CREATE OR REPLACE FUNCTION integrarp.fn_set_atualizado_em() RETURNS trigger AS $$ BEGIN NEW.atualizado_em = now(); RETURN NEW; END; $$ LANGUAGE plpgsql;
 
@@ -1402,4 +1402,4 @@ ON CONFLICT (id) DO UPDATE SET
     metadata_json = EXCLUDED.metadata_json,
     atualizado_em = now();
 
-INSERT INTO integrarp.schema_migrations (version) VALUES ('0014_v12_integracoes_fiscal_conciliacao_rotas_offline') ON CONFLICT DO NOTHING;
+-- v1.15: schema_migrations é gerenciada exclusivamente pelo Migration Runner; registro legado removido.

@@ -1,5 +1,4 @@
 using IntegraRP.Application.Common;
-using System.Security.Claims;
 using Microsoft.Extensions.Logging;
 
 namespace IntegraRP.Application.Runtime;
@@ -70,21 +69,11 @@ public sealed class OperationalRuntimeUseCases(IOperationalRuntimeRepository rep
     public Task<Result<IDictionary<string, object?>?>> RemoveOrderItemAsync(Guid tenantId, Guid id, Guid itemId, CancellationToken ct) => RunOne(() => repository.RemoveOrderItemAsync(tenantId, id, itemId, ct), tenantId);
     public Task<Result<IDictionary<string, object?>?>> ConfirmOrderAsync(Guid tenantId, Guid id, CancellationToken ct) => RunOne(() => repository.ConfirmOrderAsync(tenantId, id, ct), tenantId);
     public Task<Result<IDictionary<string, object?>?>> CancelOrderAsync(Guid tenantId, Guid id, CancellationToken ct) => RunOne(() => repository.CancelOrderAsync(tenantId, id, ct), tenantId);
-    public Task<Result<IReadOnlyList<IDictionary<string, object?>>>> ListMyTasksAsync(Guid tenantId, ClaimsPrincipal user, CancellationToken ct) => RunList(() => repository.ListMyTasksAsync(tenantId, ReadGuid(user, ClaimTypes.NameIdentifier, "sub", "user_id") ?? Guid.Empty, ReadGuid(user, "sector_id", "sectorId"), ct), tenantId);
+    public Task<Result<IReadOnlyList<IDictionary<string, object?>>>> ListMyTasksAsync(ICurrentExecutionContext context, CancellationToken ct) => RunList(() => repository.ListMyTasksAsync(context.TenantId, context.UserId, context.SectorId, ct), context.TenantId);
     public Task<Result<IDictionary<string, object?>?>> GetTaskAsync(Guid tenantId, Guid id, CancellationToken ct) => RunOne(() => repository.GetTaskAsync(tenantId, id, ct), tenantId);
-    public Task<Result<IDictionary<string, object?>?>> ClaimTaskAsync(Guid tenantId, Guid id, ClaimsPrincipal user, CancellationToken ct) => RunOne(() => repository.ClaimTaskAsync(tenantId, id, ReadGuid(user, ClaimTypes.NameIdentifier, "sub", "user_id") ?? Guid.Empty, user.FindFirstValue(ClaimTypes.Email) ?? user.FindFirstValue("email"), ct), tenantId);
-    public Task<Result<IDictionary<string, object?>?>> CommentTaskAsync(Guid tenantId, Guid id, AddTaskCommentRequest request, ClaimsPrincipal user, CancellationToken ct) => string.IsNullOrWhiteSpace(request.Text) ? Task.FromResult(Result<IDictionary<string, object?>?>.Failure("Comentário obrigatório.")) : RunOne(() => repository.CommentTaskAsync(tenantId, id, request, ReadGuid(user, ClaimTypes.NameIdentifier, "sub", "user_id") ?? Guid.Empty, ct), tenantId);
+    public Task<Result<IDictionary<string, object?>?>> ClaimTaskAsync(ICurrentExecutionContext context, Guid id, CancellationToken ct) => RunOne(() => repository.ClaimTaskAsync(context.TenantId, id, context.UserId, context.Email, ct), context.TenantId);
+    public Task<Result<IDictionary<string, object?>?>> CommentTaskAsync(ICurrentExecutionContext context, Guid id, AddTaskCommentRequest request, CancellationToken ct) => string.IsNullOrWhiteSpace(request.Text) ? Task.FromResult(Result<IDictionary<string, object?>?>.Failure("Comentário obrigatório.")) : RunOne(() => repository.CommentTaskAsync(context.TenantId, id, request, context.UserId, ct), context.TenantId);
     public Task<Result<IDictionary<string, object?>?>> CompleteTaskAsync(Guid tenantId, Guid id, CancellationToken ct) => RunOne(() => repository.CompleteTaskAsync(tenantId, id, ct), tenantId);
-
-    private static Guid? ReadGuid(ClaimsPrincipal user, params string[] claimTypes)
-    {
-        foreach (var claimType in claimTypes)
-        {
-            var value = user.FindFirstValue(claimType);
-            if (Guid.TryParse(value, out var guid)) return guid;
-        }
-        return null;
-    }
 
     private async Task<Result<IReadOnlyList<IDictionary<string, object?>>>> RunList(Func<Task<IReadOnlyList<IDictionary<string, object?>>>> action, Guid tenantId)
     {

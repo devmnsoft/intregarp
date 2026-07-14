@@ -5,7 +5,7 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE OR REPLACE FUNCTION integrarp.fn_set_atualizado_em()
 RETURNS trigger AS $$ BEGIN NEW.atualizado_em = now(); RETURN NEW; END; $$ LANGUAGE plpgsql;
 
-CREATE TABLE IF NOT EXISTS integrarp.schema_migrations (version text PRIMARY KEY, aplicado_em timestamptz NOT NULL DEFAULT now());
+-- v1.15: schema_migrations é gerenciada exclusivamente pelo Migration Runner; registro legado removido.
 CREATE TABLE IF NOT EXISTS integrarp.tenant (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), slug text NOT NULL, nome text NOT NULL, criado_em timestamptz NOT NULL DEFAULT now(), atualizado_em timestamptz NULL, excluido_em timestamptz NULL, metadata_json jsonb NOT NULL DEFAULT '{}'::jsonb);
 ALTER TABLE integrarp.tenant ADD COLUMN IF NOT EXISTS slug text;
 UPDATE integrarp.tenant SET slug = lower(replace(nome,' ','-')) WHERE slug IS NULL;
@@ -160,7 +160,7 @@ UNION ALL SELECT 'usuarios_demo','Usuários demo existem',CASE WHEN (SELECT coun
 UNION ALL SELECT 'atividades','Atividades existem',CASE WHEN (SELECT count(*) FROM integrarp.atividade_operacional a JOIN t ON t.tenant_id=a.tenant_id)>=14 THEN 'ok' ELSE 'erro' END,'14 atividades mínimas','reaplicar seed'
 UNION ALL SELECT 'fluxo_operacional','Cliente produto estoque pedido tarefa faturamento outbox',CASE WHEN EXISTS(SELECT 1 FROM integrarp.pedido p JOIN t ON t.tenant_id=p.tenant_id) AND EXISTS(SELECT 1 FROM integrarp.fatura f JOIN t ON t.tenant_id=f.tenant_id) THEN 'ok' ELSE 'erro' END,'fluxo demo','executar demo';
 
-INSERT INTO integrarp.schema_migrations(version) VALUES ('0021_v19_demo_funcional_inserts_telas_jornada') ON CONFLICT (version) DO NOTHING;
+-- v1.15: schema_migrations é gerenciada exclusivamente pelo Migration Runner; registro legado removido.
 
 -- Compatibilidade v1.8 preservada para testes de regressão
 CREATE TABLE IF NOT EXISTS integrarp.v18_screen_audit (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, modulo text NOT NULL, objeto text NOT NULL, status text NOT NULL, proxima_acao text NULL, criado_em timestamptz NOT NULL DEFAULT now(), atualizado_em timestamptz NULL, excluido_em timestamptz NULL, metadata_json jsonb NOT NULL DEFAULT '{}'::jsonb);
@@ -171,4 +171,4 @@ DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname='ck_v18_scr
 DROP TRIGGER IF EXISTS trg_v18_screen_audit_atualizado_em ON integrarp.v18_screen_audit;
 CREATE TRIGGER trg_v18_screen_audit_atualizado_em BEFORE UPDATE ON integrarp.v18_screen_audit FOR EACH ROW EXECUTE FUNCTION integrarp.fn_set_atualizado_em();
 CREATE OR REPLACE VIEW integrarp.vw_v18_dashboard_operacional AS SELECT tenant_id, modulo, status, proxima_acao FROM integrarp.v18_screen_audit WHERE excluido_em IS NULL;
-INSERT INTO integrarp.schema_migrations(version) VALUES ('0020_v18_produto_funcional_cruds_telas_jornada') ON CONFLICT (version) DO NOTHING;
+-- v1.15: schema_migrations é gerenciada exclusivamente pelo Migration Runner; registro legado removido.

@@ -55,3 +55,28 @@ jobs:
           test -f scripts/run-pilot-worker-windows.ps1
           test -f scripts/validate-pilot-docker.ps1
           test -f scripts/reset-pilot-docker.ps1
+
+
+  publish-artifacts-v115:
+    name: Publish v1.15 audit artifacts
+    if: always()
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Collect logs
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p artifacts/v115
+          find . -type f \( -name '*.log' -o -name '*.trx' -o -name 'coverage*.xml' -o -name '*.sql' \) -not -path './.git/*' -print > artifacts/v115/artifact-index.txt
+          cp database/scriptcompleto.sql artifacts/v115/scriptcompleto.sql 2>/dev/null || true
+          cp -r TestResults artifacts/v115/TestResults 2>/dev/null || true
+      - name: Upload v1.15 audit artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v115-audit-${{ github.workflow }}
+          path: artifacts/v115
+          retention-days: 30

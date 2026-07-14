@@ -1,8 +1,10 @@
 using System.Text;
 using IntegraRP.Api.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
 namespace IntegraRP.Api.Extensions;
 
@@ -17,7 +19,11 @@ public static class ServiceCollectionExtensions
             {
                 var issuer = configuration["Jwt:Issuer"] ?? "IntegraRP";
                 var audience = configuration["Jwt:Audience"] ?? "IntegraRP.Api";
-                var secret = configuration["Jwt:Secret"] ?? "dev-only-change-me-in-production-32chars";
+                var secret = configuration["Jwt:Secret"] ?? Environment.GetEnvironmentVariable("INTEGRARP_JWT_SECRET");
+                if (string.IsNullOrWhiteSpace(secret) || secret.Length < 32)
+                {
+                    throw new InvalidOperationException("Jwt:Secret/INTEGRARP_JWT_SECRET deve ser configurado fora do repositório com no mínimo 32 caracteres.");
+                }
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
@@ -32,6 +38,9 @@ public static class ServiceCollectionExtensions
             });
         services.AddAuthorization(options =>
         {
+            options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                .RequireAuthenticatedUser()
+                .Build();
             foreach (var permission in ApiPermissions.All)
             {
                 options.AddPolicy(permission, policy => policy.RequireAuthenticatedUser().RequireClaim(ApiPermissions.ClaimType, permission));
@@ -39,7 +48,25 @@ public static class ServiceCollectionExtensions
         });
         services.AddControllers();
         services.AddEndpointsApiExplorer();
-        services.AddSwaggerGen();
+        services.AddSwaggerGen(options =>
+        {
+            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            {
+                Description = "JWT Authorization header usando o esquema Bearer.",
+                Name = "Authorization",
+                In = ParameterLocation.Header,
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT"
+            });
+            options.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                [new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+                }] = Array.Empty<string>()
+            });
+        });
         services.AddHealthChecks();
         services.AddCors();
         services.AddProblemDetails();
