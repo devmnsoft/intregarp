@@ -96,7 +96,7 @@ CREATE INDEX IF NOT EXISTS ix_v13_demo_execucao_tenant_status ON integrarp.v13_d
 DROP TRIGGER IF EXISTS trg_v13_demo_execucao_atualizado_em ON integrarp.v13_demo_execucao;
 CREATE TRIGGER trg_v13_demo_execucao_atualizado_em BEFORE UPDATE ON integrarp.v13_demo_execucao FOR EACH ROW EXECUTE FUNCTION integrarp.fn_set_atualizado_em();
 
-INSERT INTO integrarp.schema_migrations(version) VALUES ('0015_v13_funcionalidade_real_end_to_end') ON CONFLICT (version) DO NOTHING;
+-- v1.15: schema_migrations é gerenciada exclusivamente pelo Migration Runner; registro legado removido.
 
 INSERT INTO integrarp.v13_funcionalidade_status (tenant_id, modulo, componente, status, repositorio_real, tela_conectada_api, proxima_acao, metadata_json)
 VALUES

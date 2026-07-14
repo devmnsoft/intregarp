@@ -11,7 +11,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Core
-CREATE TABLE IF NOT EXISTS integrarp.schema_migrations (version varchar(32) PRIMARY KEY, aplicado_em timestamptz NOT NULL DEFAULT now());
+-- v1.15: schema_migrations é gerenciada exclusivamente pelo Migration Runner; registro legado removido.
 CREATE TABLE IF NOT EXISTS integrarp.tenant (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), nome text NOT NULL, criado_em timestamptz NOT NULL DEFAULT now(), criado_por_usuario_id uuid NULL, atualizado_em timestamptz NULL, atualizado_por_usuario_id uuid NULL, excluido_em timestamptz NULL, metadata_json jsonb NOT NULL DEFAULT '{}'::jsonb);
 -- Segurança
 CREATE TABLE IF NOT EXISTS integrarp.usuario (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, email text NOT NULL, nome text NOT NULL, criado_em timestamptz NOT NULL DEFAULT now(), criado_por_usuario_id uuid NULL, atualizado_em timestamptz NULL, atualizado_por_usuario_id uuid NULL, excluido_em timestamptz NULL, metadata_json jsonb NOT NULL DEFAULT '{}'::jsonb);
@@ -127,4 +127,4 @@ INSERT INTO integrarp.relatorio_definicao (tenant_id,nome,chave_consulta) VALUES
 ON CONFLICT DO NOTHING;
 INSERT INTO integrarp.notificacao (tenant_id,evento,titulo,corpo,canal,status) VALUES ('11111111-1111-1111-1111-111111111111','automacao falhou','Demo v1.1','Notificação demo','sistema','pendente') ON CONFLICT DO NOTHING;
 INSERT INTO integrarp.anexo_configuracao (tenant_id,extensoes_permitidas,tamanho_maximo_bytes,metadata_json) VALUES ('11111111-1111-1111-1111-111111111111','.pdf,.png,.jpg,.jpeg,.csv',10485760,'{"demo":"Anexos demo"}'::jsonb) ON CONFLICT DO NOTHING;
-INSERT INTO integrarp.schema_migrations (version) VALUES ('0013_v11_scriptcompleto_forms_automation') ON CONFLICT (version) DO NOTHING;
+-- v1.15: schema_migrations é gerenciada exclusivamente pelo Migration Runner; registro legado removido.

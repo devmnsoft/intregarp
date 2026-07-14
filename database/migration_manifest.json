@@ -1,6 +1,6 @@
 {
   "schema": "integrarp",
-  "gerado_para": "v1.9-demo-funcional",
+  "gerado_para": "v1.15",
   "migrations": [
     {
       "ordem": 1,
@@ -8,9 +8,9 @@
       "versao": "0001_initial_integrarp",
       "descricao": "initial integrarp",
       "modulo": "Database",
-      "presente_no_scriptcompleto": false,
+      "presente_no_scriptcompleto": true,
       "observacoes": "Validar em PostgreSQL via workflow database-validation.",
-      "status": "documentada"
+      "status": "versionada"
     },
     {
       "ordem": 2,
@@ -18,9 +18,9 @@
       "versao": "0003_flow_bpmn_core",
       "descricao": "flow bpmn core",
       "modulo": "Flow",
-      "presente_no_scriptcompleto": false,
+      "presente_no_scriptcompleto": true,
       "observacoes": "Validar em PostgreSQL via workflow database-validation.",
-      "status": "documentada"
+      "status": "versionada"
     },
     {
       "ordem": 3,
@@ -28,9 +28,9 @@
       "versao": "0004_flow_designer_web",
       "descricao": "flow designer web",
       "modulo": "Flow",
-      "presente_no_scriptcompleto": false,
+      "presente_no_scriptcompleto": true,
       "observacoes": "Validar em PostgreSQL via workflow database-validation.",
-      "status": "documentada"
+      "status": "versionada"
     },
     {
       "ordem": 4,
@@ -38,9 +38,9 @@
       "versao": "0006_faturamento_connect_outbox",
       "descricao": "faturamento connect outbox",
       "modulo": "Billing/Connect",
-      "presente_no_scriptcompleto": false,
+      "presente_no_scriptcompleto": true,
       "observacoes": "Validar em PostgreSQL via workflow database-validation.",
-      "status": "documentada"
+      "status": "versionada"
     },
     {
       "ordem": 5,
@@ -48,9 +48,9 @@
       "versao": "0007_bi_kpis_project_central",
       "descricao": "bi kpis project central",
       "modulo": "BI/Project",
-      "presente_no_scriptcompleto": false,
+      "presente_no_scriptcompleto": true,
       "observacoes": "Validar em PostgreSQL via workflow database-validation.",
-      "status": "documentada"
+      "status": "versionada"
     },
     {
       "ordem": 6,
@@ -58,9 +58,9 @@
       "versao": "0008_mobile_ai_mvp",
       "descricao": "mobile ai mvp",
       "modulo": "Mobile/AI",
-      "presente_no_scriptcompleto": false,
+      "presente_no_scriptcompleto": true,
       "observacoes": "Validar em PostgreSQL via workflow database-validation.",
-      "status": "documentada"
+      "status": "versionada"
     },
     {
       "ordem": 7,
@@ -68,9 +68,9 @@
       "versao": "0009_studio_avancado_modulos_dinamicos",
       "descricao": "studio avancado modulos dinamicos",
       "modulo": "Studio",
-      "presente_no_scriptcompleto": false,
+      "presente_no_scriptcompleto": true,
       "observacoes": "Validar em PostgreSQL via workflow database-validation.",
-      "status": "documentada"
+      "status": "versionada"
     },
     {
       "ordem": 8,
@@ -78,9 +78,9 @@
       "versao": "0010_templates_operacionais_distribuicao_campo",
       "descricao": "templates operacionais distribuicao campo",
       "modulo": "Database",
-      "presente_no_scriptcompleto": false,
+      "presente_no_scriptcompleto": true,
       "observacoes": "Validar em PostgreSQL via workflow database-validation.",
-      "status": "documentada"
+      "status": "versionada"
     },
     {
       "ordem": 9,
@@ -88,9 +88,9 @@
       "versao": "0011_hardening_indexes_observability",
       "descricao": "hardening indexes observability",
       "modulo": "BI/Project",
-      "presente_no_scriptcompleto": false,
+      "presente_no_scriptcompleto": true,
       "observacoes": "Validar em PostgreSQL via workflow database-validation.",
-      "status": "documentada"
+      "status": "versionada"
     },
     {
       "ordem": 10,
@@ -98,9 +98,9 @@
       "versao": "0012_piloto_v1_final_adjustments",
       "descricao": "piloto v1 final adjustments",
       "modulo": "Database",
-      "presente_no_scriptcompleto": false,
+      "presente_no_scriptcompleto": true,
       "observacoes": "Validar em PostgreSQL via workflow database-validation.",
-      "status": "documentada"
+      "status": "versionada"
     },
     {
       "ordem": 11,
@@ -110,7 +110,7 @@
       "modulo": "Forms/Automation",
       "presente_no_scriptcompleto": true,
       "observacoes": "Validar em PostgreSQL via workflow database-validation.",
-      "status": "documentada"
+      "status": "versionada"
     },
     {
       "ordem": 12,
@@ -120,7 +120,7 @@
       "modulo": "Integrations/Journey",
       "presente_no_scriptcompleto": true,
       "observacoes": "Número 0014 possui duas migrations históricas; ordem preservada por nome de arquivo.",
-      "status": "documentada"
+      "status": "versionada"
     },
     {
       "ordem": 13,
@@ -130,7 +130,7 @@
       "modulo": "Integrations/Journey",
       "presente_no_scriptcompleto": true,
       "observacoes": "Número 0014 possui duas migrations históricas; ordem preservada por nome de arquivo.",
-      "status": "documentada"
+      "status": "versionada"
     },
     {
       "ordem": 14,
@@ -140,7 +140,7 @@
       "modulo": "Functional E2E",
       "presente_no_scriptcompleto": true,
       "observacoes": "Validar em PostgreSQL via workflow database-validation.",
-      "status": "documentada"
+      "status": "versionada"
     },
     {
       "ordem": 15,
@@ -150,7 +150,7 @@
       "modulo": "PostgreSQL repositories",
       "presente_no_scriptcompleto": true,
       "observacoes": "Validar em PostgreSQL via workflow database-validation.",
-      "status": "documentada"
+      "status": "versionada"
     },
     {
       "ordem": 16,
@@ -160,7 +160,7 @@
       "modulo": "Operational validation",
       "presente_no_scriptcompleto": true,
       "observacoes": "Validar em PostgreSQL via workflow database-validation.",
-      "status": "documentada"
+      "status": "versionada"
     },
     {
       "ordem": 17,
@@ -170,7 +170,7 @@
       "modulo": "Release Candidate",
       "presente_no_scriptcompleto": true,
       "observacoes": "Validar em PostgreSQL via workflow database-validation.",
-      "status": "documentada"
+      "status": "versionada"
     },
     {
       "ordem": 18,
@@ -180,7 +180,7 @@
       "modulo": "Runtime validation",
       "presente_no_scriptcompleto": true,
       "observacoes": "Complementa v1.6 com checks v1.7, objetos críticos de smoke e índices de performance.",
-      "status": "documentada"
+      "status": "versionada"
     },
     {
       "ordem": 19,
@@ -190,33 +190,56 @@
       "modulo": "Produto funcional",
       "presente_no_scriptcompleto": true,
       "observacoes": "Adiciona auditoria de telas, catálogo de templates e validação funcional por módulo.",
-      "status": "documentada"
+      "status": "versionada"
     },
     {
-      "ordem": 21,
+      "ordem": 20,
       "arquivo": "0021_v19_fix_scriptcompleto_inserts_demo_jornada.sql",
       "versao": "0021_v19_fix_scriptcompleto_inserts_demo_jornada",
       "descricao": "v19 fix scriptcompleto inserts demo jornada",
       "modulo": "Demo funcional",
       "presente_no_scriptcompleto": true,
       "observacoes": "Seeds idempotentes, atividades, jornada real e views v1.9.",
-      "status": "documentada"
+      "status": "versionada"
     },
     {
-      "ordem": 23,
+      "ordem": 21,
       "arquivo": "0023_v113_consolidacao_funcional_maturidade.sql",
       "versao": "0023_v113_consolidacao_funcional_maturidade",
       "descricao": "v113 consolidacao funcional maturidade",
       "modulo": "Consolidação funcional v1.13",
       "presente_no_scriptcompleto": true,
       "observacoes": "Remove 501 dos fluxos principais e adiciona checks/seeds de maturidade funcional.",
-      "status": "documentada"
+      "status": "versionada"
     },
     {
       "arquivo": "0024_v114_consolidacao_operacional_seguranca.sql",
       "versao": "v1.14",
       "descricao": "Consolidação operacional: colunas de produto/pedido/tarefa, comentários reais e índices multi-tenant.",
-      "observacoes": "Migration idempotente usada pelo scriptcompleto."
+      "observacoes": "Migration idempotente usada pelo scriptcompleto.",
+      "ordem": 22,
+      "presente_no_scriptcompleto": true,
+      "status": "versionada"
+    },
+    {
+      "arquivo": "0020_v18_funcionalidade_real_produto.sql",
+      "versao": "0020_v18_funcionalidade_real_produto",
+      "descricao": "v18 funcionalidade real produto",
+      "modulo": "Product",
+      "presente_no_scriptcompleto": true,
+      "observacoes": "Migration histórica com prefixo duplicado preservada sem renomear para não quebrar bancos já aplicados. Ordem definida por manifesto v1.15.",
+      "status": "versionada",
+      "ordem": 23
+    },
+    {
+      "arquivo": "0021_v19_demo_funcional_inserts_telas_jornada.sql",
+      "versao": "0021_v19_demo_funcional_inserts_telas_jornada",
+      "descricao": "v19 demo funcional inserts telas jornada",
+      "modulo": "Journey",
+      "presente_no_scriptcompleto": true,
+      "observacoes": "Migration histórica com prefixo duplicado preservada sem renomear para não quebrar bancos já aplicados. Ordem definida por manifesto v1.15.",
+      "status": "versionada",
+      "ordem": 24
     }
   ]
 }

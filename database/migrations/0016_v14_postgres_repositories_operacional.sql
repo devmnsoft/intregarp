@@ -3,8 +3,8 @@
 CREATE SCHEMA IF NOT EXISTS integrarp;
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
-CREATE TABLE IF NOT EXISTS integrarp.schema_migrations (version text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now());
-ALTER TABLE integrarp.schema_migrations ADD COLUMN IF NOT EXISTS description text;
+-- v1.15: schema_migrations é gerenciada exclusivamente pelo Migration Runner; registro legado removido.
+-- v1.15: schema_migrations é gerenciada exclusivamente pelo Migration Runner; registro legado removido.
 
 CREATE TABLE IF NOT EXISTS integrarp.v14_repository_status (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -116,6 +116,6 @@ SELECT tenant_id, codigo, count(*) AS etapas, count(*) FILTER (WHERE status = 'o
 FROM integrarp.v14_operational_demo_run
 GROUP BY tenant_id, codigo;
 
-INSERT INTO integrarp.schema_migrations (version, description)
+-- v1.15: schema_migrations é gerenciada exclusivamente pelo Migration Runner; registro legado removido.
 VALUES ('0016_v14_postgres_repositories_operacional', 'v1.4 PostgreSQL real, Dapper readiness e demo pedido-faturamento-outbox')
 ON CONFLICT (version) DO NOTHING;

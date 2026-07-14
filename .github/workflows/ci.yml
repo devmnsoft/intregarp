@@ -67,3 +67,28 @@ jobs:
           echo "## IntegraRP CI" >> "$GITHUB_STEP_SUMMARY"
           echo "- OS: ${{ matrix.os }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- Restore, build, test, SQL schema check and mobile typecheck configured." >> "$GITHUB_STEP_SUMMARY"
+
+
+  publish-artifacts-v115:
+    name: Publish v1.15 audit artifacts
+    if: always()
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Collect logs
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p artifacts/v115
+          find . -type f \( -name '*.log' -o -name '*.trx' -o -name 'coverage*.xml' -o -name '*.sql' \) -not -path './.git/*' -print > artifacts/v115/artifact-index.txt
+          cp database/scriptcompleto.sql artifacts/v115/scriptcompleto.sql 2>/dev/null || true
+          cp -r TestResults artifacts/v115/TestResults 2>/dev/null || true
+      - name: Upload v1.15 audit artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v115-audit-${{ github.workflow }}
+          path: artifacts/v115
+          retention-days: 30
