@@ -1,10 +1,10 @@
 -- Produto: IntegraRP
--- Versão: v1.20
+-- Versão: v1.23
 -- Data de geração: 2026-07-21
--- PostgreSQL suportado: 16
+-- PostgreSQL: 16
 -- Schema: integrarp
--- Checksum SHA-256 do corpo transacional: 2c6da00c94bd9a9a9ef794535d8a210311a42b0a815707812ba49717ac5c9654
--- Número de migrations: 27
+-- Checksum SHA-256 do corpo transacional: 4b3be93c3f94de85fb846597b8d1ff150e6ef5854cbc468bbf4c47fb3aac78c3
+-- Número de migrations: 29
 -- Instruções: executar no pgAdmin Query Tool ou via psql -X "$DATABASE_URL" --set ON_ERROR_STOP=1 --file database/script_completop.sql.
 -- Aviso: este script não cria usuário com senha nem armazena credenciais.
 
@@ -6939,5 +6939,112 @@ CREATE UNIQUE INDEX IF NOT EXISTS ux_tarefa_operacional_idempotency ON integrarp
 CREATE INDEX IF NOT EXISTS ix_tarefa_operacional_processo_instancia ON integrarp.tarefa_operacional (tenant_id, processo_instancia_id) WHERE processo_instancia_id IS NOT NULL;
 
 -- <<< 0027_v119_postgresql_standalone_flow_persistido.sql
+
+-- >>> 0028_v122_release_candidate_core_real.sql
+-- v1.22 release candidate hardening marker.
+-- This migration is intentionally additive and idempotent. It records the
+-- release-candidate database contract without changing existing data because
+-- the runtime schema objects required by authentication, tasks, Flow, outbox
+-- and audit already exist in the consolidated script at the v1.21 base.
+CREATE TABLE IF NOT EXISTS integrarp.release_candidate_evidencia (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    versao text NOT NULL,
+    base_sha text NOT NULL,
+    status text NOT NULL,
+    observacao text NOT NULL,
+    criado_em timestamptz NOT NULL DEFAULT now(),
+    atualizado_em timestamptz NOT NULL DEFAULT now(),
+    row_version bigint NOT NULL DEFAULT 1,
+    CONSTRAINT ck_release_candidate_evidencia_status CHECK (status IN ('parcial','bloqueado','homologacao','aprovado')),
+    CONSTRAINT uq_release_candidate_evidencia_versao UNIQUE (versao)
+);
+
+INSERT INTO integrarp.release_candidate_evidencia (versao, base_sha, status, observacao)
+VALUES ('v1.22', '1bddde90549e062fd4514fe61eb89b93ab690122', 'parcial', 'Registro idempotente da preparação do release candidate v1.22; evidências detalhadas em docs/v1.22-*.md.')
+ON CONFLICT (versao) DO UPDATE SET
+    base_sha = EXCLUDED.base_sha,
+    status = EXCLUDED.status,
+    observacao = EXCLUDED.observacao,
+    atualizado_em = now(),
+    row_version = integrarp.release_candidate_evidencia.row_version + 1;
+
+CREATE INDEX IF NOT EXISTS ix_release_candidate_evidencia_status
+    ON integrarp.release_candidate_evidencia (status, criado_em DESC);
+-- <<< 0028_v122_release_candidate_core_real.sql
+
+-- >>> 0029_v123_core_operacional_real.sql
+-- IntegraRP v1.23 - hardening operacional real.
+-- Migration aditiva e idempotente; transação controlada pelo Migration Runner/script completo.
+
+ALTER TABLE IF EXISTS integrarp.usuario ADD COLUMN IF NOT EXISTS lockout_until timestamptz NULL;
+ALTER TABLE IF EXISTS integrarp.usuario ADD COLUMN IF NOT EXISTS failed_login_count integer NOT NULL DEFAULT 0;
+ALTER TABLE IF EXISTS integrarp.usuario ADD COLUMN IF NOT EXISTS last_failed_login_at timestamptz NULL;
+ALTER TABLE IF EXISTS integrarp.usuario ADD COLUMN IF NOT EXISTS security_stamp uuid NOT NULL DEFAULT gen_random_uuid();
+ALTER TABLE IF EXISTS integrarp.usuario ADD COLUMN IF NOT EXISTS row_version bigint NOT NULL DEFAULT 0;
+
+CREATE TABLE IF NOT EXISTS integrarp.auth_login_attempt (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id uuid NULL,
+    usuario_id uuid NULL,
+    tenant_slug text NULL,
+    email_normalizado text NOT NULL,
+    success boolean NOT NULL,
+    failure_reason text NULL,
+    ip_address inet NULL,
+    correlation_id text NULL,
+    criado_em timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS ix_auth_login_attempt_lookup
+    ON integrarp.auth_login_attempt (tenant_id, email_normalizado, criado_em DESC);
+
+CREATE TABLE IF NOT EXISTS integrarp.auth_password_history (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id uuid NOT NULL,
+    usuario_id uuid NOT NULL,
+    password_hash text NOT NULL,
+    security_stamp uuid NOT NULL,
+    criado_em timestamptz NOT NULL DEFAULT now(),
+    CONSTRAINT fk_auth_password_history_usuario FOREIGN KEY (tenant_id, usuario_id) REFERENCES integrarp.usuario (tenant_id, id)
+);
+CREATE INDEX IF NOT EXISTS ix_auth_password_history_usuario
+    ON integrarp.auth_password_history (tenant_id, usuario_id, criado_em DESC);
+
+ALTER TABLE IF EXISTS integrarp.cliente ADD COLUMN IF NOT EXISTS row_version bigint NOT NULL DEFAULT 0;
+ALTER TABLE IF EXISTS integrarp.produto ADD COLUMN IF NOT EXISTS row_version bigint NOT NULL DEFAULT 0;
+ALTER TABLE IF EXISTS integrarp.pedido ADD COLUMN IF NOT EXISTS row_version bigint NOT NULL DEFAULT 0;
+
+CREATE TABLE IF NOT EXISTS integrarp.worker_tenant_job_lock (
+    tenant_id uuid NOT NULL,
+    job_name text NOT NULL,
+    locked_until timestamptz NOT NULL,
+    locked_by text NOT NULL,
+    correlation_id text NULL,
+    atualizado_em timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY (tenant_id, job_name)
+);
+
+CREATE TABLE IF NOT EXISTS integrarp.worker_dead_letter (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id uuid NOT NULL,
+    job_name text NOT NULL,
+    payload jsonb NOT NULL DEFAULT '{}'::jsonb,
+    erro text NOT NULL,
+    attempts integer NOT NULL DEFAULT 0,
+    correlation_id text NULL,
+    criado_em timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS ix_worker_dead_letter_tenant_job
+    ON integrarp.worker_dead_letter (tenant_id, job_name, criado_em DESC);
+
+CREATE OR REPLACE VIEW integrarp.vw_dashboard_operacional AS
+SELECT
+    t.id AS tenant_id,
+    COALESCE((SELECT count(*) FROM integrarp.pedido p WHERE p.tenant_id = t.id AND COALESCE(p.status, '') NOT IN ('Entregue','Cancelado')), 0) AS pedidos_em_andamento,
+    COALESCE((SELECT count(*) FROM integrarp.tarefa_operacional ta WHERE ta.tenant_id = t.id AND ta.excluido_em IS NULL AND ta.status NOT IN ('Concluida','Cancelada','concluida','cancelada') AND ta.vencimento_em < now()), 0) AS tarefas_vencidas,
+    COALESCE((SELECT count(*) FROM integrarp.processo_instancia pi WHERE pi.tenant_id = t.id AND COALESCE(pi.status, '') NOT IN ('Concluido','Cancelado')), 0) AS processos_ativos,
+    COALESCE((SELECT count(*) FROM integrarp.outbox_evento oe WHERE oe.tenant_id = t.id AND COALESCE(oe.status, '') IN ('erro','falha')), 0) AS outbox_com_erro
+FROM integrarp.tenant t
+WHERE COALESCE(t.status, '') = 'ativo' AND t.excluido_em IS NULL;
+-- <<< 0029_v123_core_operacional_real.sql
 
 COMMIT;
