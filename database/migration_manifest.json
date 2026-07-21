@@ -272,6 +272,16 @@
       "presente_no_script_completop": true,
       "status": "versionada",
       "observacoes": "Incluída no script_completop v1.19."
+    },
+    {
+      "ordem": 28,
+      "arquivo": "0028_v122_release_candidate_core_real.sql",
+      "versao": "0028_v122_release_candidate_core_real",
+      "descricao": "0028 v122 release candidate core real",
+      "modulo": "ReleaseCandidate",
+      "presente_no_script_completop": false,
+      "status": "versionada",
+      "observacoes": "Migration aditiva idempotente; script_completop/scriptcompleto preservados byte a byte nesta preparação."
     }
   ]
 }
