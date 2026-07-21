@@ -385,3 +385,16 @@ A v1.2 adiciona base técnica para conectores plugáveis, fiscal fake/sandbox, c
 ## v1.2 — Jornada do Cliente e Onboarding Guiado
 
 A versão v1.2 adiciona jornada guiada, onboarding operacional, widget “O que fazer agora”, ajuda contextual, estados vazios inteligentes, telas mobile de orientação e base de score de adoção. O script completo permanece em `database/scriptcompleto.sql` e a migration versionada está em `database/migrations/0014_v12_jornada_cliente_onboarding_ux.sql`.
+
+## IntegraRP v1.16 — Estabilização do Runtime, Persistência Real e Evolução da Experiência do Usuário
+
+Esta versão inicia a estabilização de runtime com foco em segurança e honestidade funcional:
+
+- o BFF Web restringe o proxy genérico por allowlist e repassa `Authorization`, `X-Correlation-Id` e tenant autorizado;
+- Swagger fica habilitado apenas em Development;
+- CORS em Production exige `Cors:AllowedOrigins`;
+- endpoints mobile não retornam mais tokens de demonstração;
+- endpoints mobile sem persistência deixam de simular sucesso e retornam `501 ProblemDetails`;
+- testes que usavam contrato legado de comentário de tarefa foram atualizados para `ICurrentExecutionContext`.
+
+Consulte `docs/v1.16-diagnostico-runtime.md`, `docs/v1.16-functional-maturity-matrix.md` e `docs/v1.16-known-limitations.md` antes de homologar.

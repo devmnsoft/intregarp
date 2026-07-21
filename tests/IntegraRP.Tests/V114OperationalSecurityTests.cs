@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using IntegraRP.Application.Runtime;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -32,12 +31,21 @@ public sealed class V114OperationalSecurityTests
     public async Task TaskComment_Requires_Text_Payload()
     {
         var useCases = new OperationalRuntimeUseCases(new FakeOperationalRepository(), NullLogger<OperationalRuntimeUseCases>.Instance);
-        var user = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString())], "test"));
+        var context = new FakeExecutionContext(Guid.NewGuid(), Guid.NewGuid(), "operador@integrarp.local");
 
-        var result = await useCases.CommentTaskAsync(Guid.NewGuid(), Guid.NewGuid(), new AddTaskCommentRequest(" "), user, CancellationToken.None);
+        var result = await useCases.CommentTaskAsync(context, Guid.NewGuid(), new AddTaskCommentRequest(" "), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
         Assert.Equal("Comentário obrigatório.", result.Error);
+    }
+
+    private sealed record FakeExecutionContext(Guid TenantId, Guid UserId, string? Email) : ICurrentExecutionContext
+    {
+        public IReadOnlySet<string> Roles { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        public IReadOnlySet<string> Permissions { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        public Guid? SectorId => null;
+        public bool IsSuperAdmin => false;
+        public string? CorrelationId => "test-correlation";
     }
 
     private sealed class FakeOperationalRepository : IOperationalRuntimeRepository

@@ -20,8 +20,11 @@ app.UseAuthorization();
 app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
-app.UseSwagger();
-app.UseSwaggerUI();
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 if (app.Configuration.GetValue<bool>("IntegraRP:RunMigrations") && !app.Environment.IsProduction())
 {
@@ -29,7 +32,24 @@ if (app.Configuration.GetValue<bool>("IntegraRP:RunMigrations") && !app.Environm
     await scope.ServiceProvider.GetRequiredService<IMigrationRunner>().RunAsync(CancellationToken.None);
 }
 
-app.UseCors(policy => policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+var allowedOrigins = app.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+app.UseCors(policy =>
+{
+    policy.AllowAnyHeader().AllowAnyMethod();
+    if (app.Environment.IsProduction())
+    {
+        if (allowedOrigins.Length == 0)
+        {
+            throw new InvalidOperationException("Cors:AllowedOrigins deve ser configurado em Production.");
+        }
+
+        policy.WithOrigins(allowedOrigins);
+    }
+    else
+    {
+        policy.SetIsOriginAllowed(_ => true);
+    }
+});
 app.MapControllers();
 app.MapHealthChecks("/health");
 app.MapHealthChecks("/api/health/live");
