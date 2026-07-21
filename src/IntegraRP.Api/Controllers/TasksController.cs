@@ -17,8 +17,18 @@ public sealed class TasksController(OperationalRuntimeUseCases useCases, ICurren
     [Authorize(Policy = "tasks.claim")]
     [HttpPost("{id:guid}/claim")] public async Task<IActionResult> Claim(Guid id, CancellationToken ct) => ToAction(await useCases.ClaimTaskAsync(currentUser, id, ct));
     [Authorize(Policy = "tasks.view")]
+    [HttpPost("{id:guid}/start")] public async Task<IActionResult> Start(Guid id, CancellationToken ct) => ToAction(await useCases.StartTaskAsync(currentUser, id, ct));
+    [Authorize(Policy = "tasks.view")]
+    [HttpPut("{id:guid}/form")] public async Task<IActionResult> Form(Guid id, SaveTaskJsonRequest request, CancellationToken ct) => ToAction(await useCases.SaveTaskFormAsync(TenantId, id, request, ct));
+    [Authorize(Policy = "tasks.view")]
+    [HttpPut("{id:guid}/checklist")] public async Task<IActionResult> Checklist(Guid id, SaveTaskJsonRequest request, CancellationToken ct) => ToAction(await useCases.SaveTaskChecklistAsync(TenantId, id, request, ct));
+    [Authorize(Policy = "tasks.view")]
     [HttpPost("{id:guid}/comments")] public async Task<IActionResult> Comment(Guid id, AddTaskCommentRequest request, CancellationToken ct) => ToAction(await useCases.CommentTaskAsync(currentUser, id, request, ct));
+    [Authorize(Policy = "tasks.view")]
+    [HttpPost("{id:guid}/evidences")] public async Task<IActionResult> Evidence(Guid id, SaveTaskJsonRequest request, CancellationToken ct) => ToAction(await useCases.AddTaskEvidenceAsync(currentUser, id, request, ct));
     [Authorize(Policy = "tasks.complete")]
     [HttpPost("{id:guid}/complete")] public async Task<IActionResult> Complete(Guid id, CancellationToken ct) => ToAction(await useCases.CompleteTaskAsync(TenantId, id, ct));
+    [Authorize(Policy = "tasks.complete")]
+    [HttpPost("{id:guid}/cancel")] public async Task<IActionResult> Cancel(Guid id, CancellationToken ct) => ToAction(await useCases.CancelTaskAsync(TenantId, id, ct));
     private IActionResult ToAction<T>(IntegraRP.Application.Common.Result<T> result) => result.IsSuccess ? Ok(result.Value) : Problem(title: "Falha de validação", detail: result.Error, statusCode: 400);
 }

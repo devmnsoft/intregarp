@@ -27,6 +27,9 @@ jobs:
       - name: Restore
         run: dotnet restore
 
+      - name: Format check
+        run: dotnet format IntegraRP.sln --verify-no-changes
+
       - name: Build
         run: dotnet build --no-restore
 
@@ -59,6 +62,12 @@ jobs:
         if: ${{ hashFiles('apps/IntegraRP.Mobile/package.json') != '' }}
         working-directory: apps/IntegraRP.Mobile
         run: npm run typecheck
+
+      - name: Docker compose config
+        run: docker compose config
+
+      - name: Docker compose build
+        run: docker compose build
 
       - name: Build summary
         if: always()

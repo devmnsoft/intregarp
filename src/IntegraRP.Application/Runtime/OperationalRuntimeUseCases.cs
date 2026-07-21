@@ -30,7 +30,12 @@ public interface IOperationalRuntimeRepository
     Task<IDictionary<string, object?>?> GetTaskAsync(Guid tenantId, Guid id, CancellationToken ct);
     Task<IDictionary<string, object?>?> ClaimTaskAsync(Guid tenantId, Guid id, Guid userId, string? email, CancellationToken ct);
     Task<IDictionary<string, object?>?> CommentTaskAsync(Guid tenantId, Guid id, AddTaskCommentRequest request, Guid userId, CancellationToken ct);
+    Task<IDictionary<string, object?>?> StartTaskAsync(Guid tenantId, Guid id, Guid userId, CancellationToken ct);
+    Task<IDictionary<string, object?>?> SaveTaskFormAsync(Guid tenantId, Guid id, string formJson, CancellationToken ct);
+    Task<IDictionary<string, object?>?> SaveTaskChecklistAsync(Guid tenantId, Guid id, string checklistJson, CancellationToken ct);
+    Task<IDictionary<string, object?>?> AddTaskEvidenceAsync(Guid tenantId, Guid id, Guid userId, string evidenceJson, CancellationToken ct);
     Task<IDictionary<string, object?>?> CompleteTaskAsync(Guid tenantId, Guid id, CancellationToken ct);
+    Task<IDictionary<string, object?>?> CancelTaskAsync(Guid tenantId, Guid id, CancellationToken ct);
 }
 
 public sealed record DemoCustomerRequest(string? Nome, string? Documento, string? Email);
@@ -39,6 +44,7 @@ public sealed record DemoInventoryEntryRequest(string? Sku, decimal Quantidade =
 public sealed record CreateOrderRequest(Guid CustomerId, DateTimeOffset? ExpectedDeliveryDate, string? Notes, IReadOnlyList<AddOrderItemRequest> Items);
 public sealed record AddOrderItemRequest(Guid ProductId, decimal Quantity, decimal? UnitPrice = null, decimal Discount = 0);
 public sealed record AddTaskCommentRequest(string Text, IReadOnlyList<Guid>? MentionedUserIds = null);
+public sealed record SaveTaskJsonRequest(string Json);
 
 public sealed class OperationalRuntimeUseCases(IOperationalRuntimeRepository repository, ILogger<OperationalRuntimeUseCases> logger)
 {
@@ -73,7 +79,12 @@ public sealed class OperationalRuntimeUseCases(IOperationalRuntimeRepository rep
     public Task<Result<IDictionary<string, object?>?>> GetTaskAsync(Guid tenantId, Guid id, CancellationToken ct) => RunOne(() => repository.GetTaskAsync(tenantId, id, ct), tenantId);
     public Task<Result<IDictionary<string, object?>?>> ClaimTaskAsync(ICurrentExecutionContext context, Guid id, CancellationToken ct) => RunOne(() => repository.ClaimTaskAsync(context.TenantId, id, context.UserId, context.Email, ct), context.TenantId);
     public Task<Result<IDictionary<string, object?>?>> CommentTaskAsync(ICurrentExecutionContext context, Guid id, AddTaskCommentRequest request, CancellationToken ct) => string.IsNullOrWhiteSpace(request.Text) ? Task.FromResult(Result<IDictionary<string, object?>?>.Failure("Comentário obrigatório.")) : RunOne(() => repository.CommentTaskAsync(context.TenantId, id, request, context.UserId, ct), context.TenantId);
+    public Task<Result<IDictionary<string, object?>?>> StartTaskAsync(ICurrentExecutionContext context, Guid id, CancellationToken ct) => RunOne(() => repository.StartTaskAsync(context.TenantId, id, context.UserId, ct), context.TenantId);
+    public Task<Result<IDictionary<string, object?>?>> SaveTaskFormAsync(Guid tenantId, Guid id, SaveTaskJsonRequest request, CancellationToken ct) => string.IsNullOrWhiteSpace(request.Json) ? Task.FromResult(Result<IDictionary<string, object?>?>.Failure("Formulário obrigatório.")) : RunOne(() => repository.SaveTaskFormAsync(tenantId, id, request.Json, ct), tenantId);
+    public Task<Result<IDictionary<string, object?>?>> SaveTaskChecklistAsync(Guid tenantId, Guid id, SaveTaskJsonRequest request, CancellationToken ct) => string.IsNullOrWhiteSpace(request.Json) ? Task.FromResult(Result<IDictionary<string, object?>?>.Failure("Checklist obrigatório.")) : RunOne(() => repository.SaveTaskChecklistAsync(tenantId, id, request.Json, ct), tenantId);
+    public Task<Result<IDictionary<string, object?>?>> AddTaskEvidenceAsync(ICurrentExecutionContext context, Guid id, SaveTaskJsonRequest request, CancellationToken ct) => string.IsNullOrWhiteSpace(request.Json) ? Task.FromResult(Result<IDictionary<string, object?>?>.Failure("Evidência obrigatória.")) : RunOne(() => repository.AddTaskEvidenceAsync(context.TenantId, id, context.UserId, request.Json, ct), context.TenantId);
     public Task<Result<IDictionary<string, object?>?>> CompleteTaskAsync(Guid tenantId, Guid id, CancellationToken ct) => RunOne(() => repository.CompleteTaskAsync(tenantId, id, ct), tenantId);
+    public Task<Result<IDictionary<string, object?>?>> CancelTaskAsync(Guid tenantId, Guid id, CancellationToken ct) => RunOne(() => repository.CancelTaskAsync(tenantId, id, ct), tenantId);
 
     private async Task<Result<IReadOnlyList<IDictionary<string, object?>>>> RunList(Func<Task<IReadOnlyList<IDictionary<string, object?>>>> action, Guid tenantId)
     {

@@ -240,6 +240,16 @@
       "observacoes": "Migration histórica com prefixo duplicado preservada sem renomear para não quebrar bancos já aplicados. Ordem definida por manifesto v1.15.",
       "status": "versionada",
       "ordem": 24
+    },
+    {
+      "arquivo": "0025_v117_auth_tasks_mobile_persistence.sql",
+      "versao": "0025_v117_auth_tasks_mobile_persistence",
+      "descricao": "v1.17 identidade real, refresh token, tarefas persistidas e fila offline mobile",
+      "modulo": "Auth/Tasks/Mobile",
+      "presente_no_scriptcompleto": true,
+      "observacoes": "Migration idempotente e transacional para jornada vertical v1.17.",
+      "status": "versionada",
+      "ordem": 25
     }
   ]
 }

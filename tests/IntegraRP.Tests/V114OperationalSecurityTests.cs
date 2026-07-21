@@ -75,7 +75,12 @@ public sealed class V114OperationalSecurityTests
         public Task<IDictionary<string, object?>?> GetTaskAsync(Guid tenantId, Guid id, CancellationToken ct) => EmptyOne();
         public Task<IDictionary<string, object?>?> ClaimTaskAsync(Guid tenantId, Guid id, Guid userId, string? email, CancellationToken ct) => EmptyOne();
         public Task<IDictionary<string, object?>?> CommentTaskAsync(Guid tenantId, Guid id, AddTaskCommentRequest request, Guid userId, CancellationToken ct) => EmptyOne();
+        public Task<IDictionary<string, object?>?> StartTaskAsync(Guid tenantId, Guid id, Guid userId, CancellationToken ct) => EmptyOne();
+        public Task<IDictionary<string, object?>?> SaveTaskFormAsync(Guid tenantId, Guid id, string formJson, CancellationToken ct) => EmptyOne();
+        public Task<IDictionary<string, object?>?> SaveTaskChecklistAsync(Guid tenantId, Guid id, string checklistJson, CancellationToken ct) => EmptyOne();
+        public Task<IDictionary<string, object?>?> AddTaskEvidenceAsync(Guid tenantId, Guid id, Guid userId, string evidenceJson, CancellationToken ct) => EmptyOne();
         public Task<IDictionary<string, object?>?> CompleteTaskAsync(Guid tenantId, Guid id, CancellationToken ct) => EmptyOne();
+        public Task<IDictionary<string, object?>?> CancelTaskAsync(Guid tenantId, Guid id, CancellationToken ct) => EmptyOne();
         private static Task<IDictionary<string, object?>?> EmptyOne() => Task.FromResult<IDictionary<string, object?>?>(new Dictionary<string, object?>());
         private static Task<IReadOnlyList<IDictionary<string, object?>>> EmptyList() => Task.FromResult<IReadOnlyList<IDictionary<string, object?>>>([]);
     }
