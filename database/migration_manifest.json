@@ -302,8 +302,18 @@
       "presente_no_script_completop": true,
       "status": "versionada",
       "observacoes": "Incluída no script_completop v1.24."
+    },
+    {
+      "ordem": 31,
+      "arquivo": "0031_v125_core_comercial_ux_operacional.sql",
+      "versao": "0031_v125_core_comercial_ux_operacional",
+      "descricao": "v1.25 core comercial ux premium operacional",
+      "modulo": "Core",
+      "presente_no_script_completop": true,
+      "status": "versionada",
+      "observacoes": "Migration aditiva v1.25; 0030 corrigida do checksum defeituoso 622e78b2156dde781f87eae95691d62ef53e8e3d7cbf69c0974ef5aeb298bf2e para a35cbcaf3af9e63b36234f862f3f477f97b340200355ce7ca05a566bf6ea6cf2."
     }
   ],
   "postgresql": "16",
-  "generatedAtUtc": "2026-07-21T21:20:00Z"
+  "generatedAtUtc": "2026-07-21T00:00:00Z"
 }

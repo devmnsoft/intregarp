@@ -1,3 +1,4 @@
+using IntegraRP.Contracts.Auth;
 using System.Security.Claims;
 
 namespace IntegraRP.Web.Services.Identity;

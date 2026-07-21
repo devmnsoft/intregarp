@@ -9,7 +9,7 @@ public sealed class PostgreSqlConnectionHealthCheck(IConfiguration configuration
     {
         try
         {
-            await using var connection = new NpgsqlConnection(configuration.GetConnectionString("DefaultConnection"));
+            await using var connection = new NpgsqlConnection(configuration.GetConnectionString("IntegraRP"));
             await connection.OpenAsync(cancellationToken);
             await using var command = new NpgsqlCommand("select 1", connection);
             await command.ExecuteScalarAsync(cancellationToken);
@@ -25,12 +25,12 @@ public sealed class IntegraRpSchemaHealthCheck(IConfiguration configuration) : I
     {
         try
         {
-            await using var connection = new NpgsqlConnection(configuration.GetConnectionString("DefaultConnection"));
+            await using var connection = new NpgsqlConnection(configuration.GetConnectionString("IntegraRP"));
             await connection.OpenAsync(cancellationToken);
-            const string sql = "select exists(select 1 from information_schema.schemata where schema_name = 'integrarp') and exists(select 1 from information_schema.tables where table_schema = 'integrarp' and table_name = 'schema_migrations') and exists(select 1 from integrarp.schema_migrations where version = '0030')";
+            const string sql = "select exists(select 1 from information_schema.schemata where schema_name = 'integrarp') and exists(select 1 from information_schema.tables where table_schema = 'integrarp' and table_name = 'schema_migrations') and exists(select 1 from integrarp.schema_migrations where script_name = '0031_v125_core_comercial_ux_operacional.sql')";
             await using var command = new NpgsqlCommand(sql, connection);
             var ready = (bool?)await command.ExecuteScalarAsync(cancellationToken) == true;
-            return ready ? HealthCheckResult.Healthy("Schema integrarp v1.24 aplicado.") : HealthCheckResult.Unhealthy("Schema integrarp ou migration 0030 ausente.");
+            return ready ? HealthCheckResult.Healthy("Schema integrarp v1.25 aplicado.") : HealthCheckResult.Unhealthy("Schema integrarp ou migration 0031 ausente.");
         }
         catch (Exception ex) { return HealthCheckResult.Unhealthy("Falha ao validar schema integrarp.", ex); }
     }

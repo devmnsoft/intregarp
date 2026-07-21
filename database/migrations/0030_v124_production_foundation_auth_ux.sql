@@ -39,11 +39,17 @@ CREATE TABLE IF NOT EXISTS integrarp.auth_login_tentativa (
     ip text,
     user_agent text,
     motivo text,
+    correlation_id text,
     criado_em timestamptz NOT NULL DEFAULT now()
 );
 
-INSERT INTO integrarp.auth_login_tentativa (id, tenant_id, usuario_id, email_normalizado, sucesso, ip, user_agent, motivo, criado_em)
-SELECT a.id, a.tenant_id, a.usuario_id, a.email_normalizado, a.sucesso, a.ip, a.user_agent, a.motivo, a.criado_em
+ALTER TABLE IF EXISTS integrarp.auth_login_tentativa
+    ADD COLUMN IF NOT EXISTS user_agent text,
+    ADD COLUMN IF NOT EXISTS motivo text,
+    ADD COLUMN IF NOT EXISTS correlation_id text;
+
+INSERT INTO integrarp.auth_login_tentativa (id, tenant_id, usuario_id, email_normalizado, sucesso, ip, user_agent, motivo, correlation_id, criado_em)
+SELECT a.id, a.tenant_id, a.usuario_id, a.email_normalizado, a.success, a.ip_address::text, NULL::text, a.failure_reason, a.correlation_id, a.criado_em
   FROM integrarp.auth_login_attempt a
  WHERE EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'integrarp' AND table_name = 'auth_login_attempt' AND table_type = 'BASE TABLE')
    AND NOT EXISTS (SELECT 1 FROM integrarp.auth_login_tentativa t WHERE t.id = a.id);
@@ -51,9 +57,14 @@ SELECT a.id, a.tenant_id, a.usuario_id, a.email_normalizado, a.sucesso, a.ip, a.
 CREATE INDEX IF NOT EXISTS ix_auth_login_tentativa_lookup
     ON integrarp.auth_login_tentativa (tenant_id, email_normalizado, criado_em DESC);
 
-CREATE UNIQUE INDEX IF NOT EXISTS ux_usuario_tenant_id_id
-    ON integrarp.usuario (tenant_id, id)
-    WHERE tenant_id IS NOT NULL;
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'integrarp' AND table_name = 'usuario')
+       AND NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'uq_usuario_tenant_id_id') THEN
+        ALTER TABLE integrarp.usuario
+            ADD CONSTRAINT uq_usuario_tenant_id_id UNIQUE (tenant_id, id);
+    END IF;
+END $$;
 
 DO $$
 BEGIN

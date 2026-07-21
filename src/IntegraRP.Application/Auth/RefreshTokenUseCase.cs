@@ -1,3 +1,4 @@
+using IntegraRP.Contracts.Auth;
 namespace IntegraRP.Application.Auth;
 public sealed class RefreshTokenUseCase(IAuthenticationRepository repository, IRefreshTokenService refreshTokens, ITokenService tokens)
 {
@@ -10,6 +11,6 @@ public sealed class RefreshTokenUseCase(IAuthenticationRepository repository, IR
         var roles = await repository.GetRolesAsync(rotation.User.TenantId, rotation.User.UserId, ct);
         var permissions = await repository.GetPermissionsAsync(rotation.User.TenantId, rotation.User.UserId, ct);
         var expiresAt = tokens.GetAccessTokenExpiresAt();
-        return AuthResult<AuthResponse>.Ok(new AuthResponse(tokens.CreateAccessToken(rotation.User, roles, permissions, rotation.SessionId, expiresAt), refresh, expiresAt, new(rotation.User.UserId, rotation.User.Name, rotation.User.Email), new(rotation.User.TenantId, rotation.User.TenantSlug, rotation.User.TenantName), roles, permissions));
+        return AuthResult<AuthResponse>.Ok(new AuthResponse(tokens.CreateAccessToken(rotation.User, roles, permissions, rotation.SessionId, expiresAt), refresh, expiresAt, rotation.SessionId, new(rotation.User.UserId, rotation.User.Name, rotation.User.Email), new(rotation.User.TenantId, rotation.User.TenantSlug, rotation.User.TenantName), roles, permissions));
     }
 }

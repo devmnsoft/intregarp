@@ -1,2 +1,3 @@
+using IntegraRP.Contracts.Auth;
 namespace IntegraRP.Application.Auth;
 public sealed class ForgotPasswordUseCase(IAuthenticationRepository repository, IRefreshTokenService refreshTokens, IPasswordResetSender sender) { public async Task<AuthResult<object>> ExecuteAsync(ForgotPasswordRequest request, CancellationToken ct) { var token = refreshTokens.CreateToken(); var issued = await repository.CreatePasswordResetAsync(request.TenantSlug.Trim().ToLowerInvariant(), request.Email.Trim().ToLowerInvariant(), refreshTokens.HashToken(token), DateTimeOffset.UtcNow.AddHours(1), ct); if (issued is not null) await sender.SendAsync(issued.Email, token, ct); return AuthResult<object>.Accepted("accepted", "Se os dados estiverem corretos, as instruções serão enviadas."); } }

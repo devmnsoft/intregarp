@@ -1,2 +1,3 @@
+using IntegraRP.Contracts.Auth;
 namespace IntegraRP.Application.Auth;
 public sealed class LogoutUseCase(IAuthenticationRepository repository) { public async Task<AuthResult<object>> ExecuteAsync(Guid tenantId, Guid userId, Guid sessionId, bool allSessions, CancellationToken ct) { if (allSessions) await repository.RevokeUserSessionsExceptAsync(tenantId, userId, null, "logout_all", ct); else await repository.RevokeSessionAsync(tenantId, userId, sessionId, "logout", ct); return AuthResult<object>.Ok(new { }); } }

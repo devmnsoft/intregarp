@@ -1,3 +1,4 @@
+using IntegraRP.Contracts.Auth;
 using System.Collections.Concurrent;
 using System.Text.Json;
 using Microsoft.AspNetCore.DataProtection;

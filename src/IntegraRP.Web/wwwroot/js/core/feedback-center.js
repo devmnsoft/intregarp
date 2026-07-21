@@ -1,0 +1,1 @@
+(function(){"use strict";window.IntegraRPFeedback={success:function(t,d){window.IntegraRPToast&&window.IntegraRPToast.show({type:"success",title:t,description:d});},error:function(t,d){window.IntegraRPToast&&window.IntegraRPToast.show({type:"error",title:t,description:d,duration:10000});}};})();

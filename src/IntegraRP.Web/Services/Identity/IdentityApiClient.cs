@@ -1,6 +1,6 @@
+using IntegraRP.Contracts.Auth;
 using System.Net;
 using System.Net.Http.Json;
-using IntegraRP.Application.Auth;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IntegraRP.Web.Services.Identity;

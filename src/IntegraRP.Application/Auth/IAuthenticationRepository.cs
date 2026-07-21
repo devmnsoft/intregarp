@@ -1,3 +1,4 @@
+using IntegraRP.Contracts.Auth;
 namespace IntegraRP.Application.Auth;
 
 public interface IAuthenticationRepository

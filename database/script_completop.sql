@@ -1,10 +1,10 @@
 -- Produto: IntegraRP
--- Versão: v1.24
+-- Versão: v1.25
 -- Data de geração: 2026-07-21
 -- PostgreSQL: 16
 -- Schema: integrarp
--- Checksum SHA-256 do corpo transacional: e7f7414b3a1378cc48c01dcf49037f43aaa74b08e1e5a87675a401f1493c2743
--- Número de migrations: 30
+-- Checksum SHA-256 do corpo transacional: c1ffd6a9b092f24d20fd62d375436c761b0d3e7686b4d06756f0920c903b9167
+-- Número de migrations: 31
 -- Instruções: executar no pgAdmin Query Tool ou via psql -X "$DATABASE_URL" --set ON_ERROR_STOP=1 --file database/script_completop.sql.
 -- Aviso: este script não cria usuário com senha nem armazena credenciais.
 
@@ -7091,11 +7091,17 @@ CREATE TABLE IF NOT EXISTS integrarp.auth_login_tentativa (
     ip text,
     user_agent text,
     motivo text,
+    correlation_id text,
     criado_em timestamptz NOT NULL DEFAULT now()
 );
 
-INSERT INTO integrarp.auth_login_tentativa (id, tenant_id, usuario_id, email_normalizado, sucesso, ip, user_agent, motivo, criado_em)
-SELECT a.id, a.tenant_id, a.usuario_id, a.email_normalizado, a.sucesso, a.ip, a.user_agent, a.motivo, a.criado_em
+ALTER TABLE IF EXISTS integrarp.auth_login_tentativa
+    ADD COLUMN IF NOT EXISTS user_agent text,
+    ADD COLUMN IF NOT EXISTS motivo text,
+    ADD COLUMN IF NOT EXISTS correlation_id text;
+
+INSERT INTO integrarp.auth_login_tentativa (id, tenant_id, usuario_id, email_normalizado, sucesso, ip, user_agent, motivo, correlation_id, criado_em)
+SELECT a.id, a.tenant_id, a.usuario_id, a.email_normalizado, a.success, a.ip_address::text, NULL::text, a.failure_reason, a.correlation_id, a.criado_em
   FROM integrarp.auth_login_attempt a
  WHERE EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'integrarp' AND table_name = 'auth_login_attempt' AND table_type = 'BASE TABLE')
    AND NOT EXISTS (SELECT 1 FROM integrarp.auth_login_tentativa t WHERE t.id = a.id);
@@ -7103,9 +7109,14 @@ SELECT a.id, a.tenant_id, a.usuario_id, a.email_normalizado, a.sucesso, a.ip, a.
 CREATE INDEX IF NOT EXISTS ix_auth_login_tentativa_lookup
     ON integrarp.auth_login_tentativa (tenant_id, email_normalizado, criado_em DESC);
 
-CREATE UNIQUE INDEX IF NOT EXISTS ux_usuario_tenant_id_id
-    ON integrarp.usuario (tenant_id, id)
-    WHERE tenant_id IS NOT NULL;
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'integrarp' AND table_name = 'usuario')
+       AND NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'uq_usuario_tenant_id_id') THEN
+        ALTER TABLE integrarp.usuario
+            ADD CONSTRAINT uq_usuario_tenant_id_id UNIQUE (tenant_id, id);
+    END IF;
+END $$;
 
 DO $$
 BEGIN
@@ -7128,5 +7139,73 @@ SELECT
 FROM integrarp.tenant t;
 
 -- <<< 0030_v124_production_foundation_auth_ux.sql
+
+-- >>> 0031_v125_core_comercial_ux_operacional.sql
+-- IntegraRP v1.25 - Core Comercial, UX Premium e Operação Intuitiva
+-- PostgreSQL 16; schema integrarp; migration aditiva, idempotente e sem search_path.
+
+ALTER TABLE IF EXISTS integrarp.auth_sessao
+    ADD COLUMN IF NOT EXISTS correlation_id text,
+    ADD COLUMN IF NOT EXISTS last_refreshed_at timestamptz;
+
+ALTER TABLE IF EXISTS integrarp.auth_login_tentativa
+    ADD COLUMN IF NOT EXISTS user_agent text,
+    ADD COLUMN IF NOT EXISTS motivo text,
+    ADD COLUMN IF NOT EXISTS correlation_id text;
+
+CREATE TABLE IF NOT EXISTS integrarp.v125_audit_evento (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id uuid NOT NULL,
+    usuario_id uuid NULL,
+    entidade text NOT NULL,
+    entidade_id uuid NULL,
+    acao text NOT NULL,
+    detalhes jsonb NOT NULL DEFAULT '{}'::jsonb,
+    correlation_id text NULL,
+    criado_em timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS ix_v125_audit_evento_tenant_criado
+    ON integrarp.v125_audit_evento (tenant_id, criado_em DESC);
+
+CREATE TABLE IF NOT EXISTS integrarp.v125_outbox_evento (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id uuid NOT NULL,
+    tipo text NOT NULL,
+    payload jsonb NOT NULL,
+    status text NOT NULL DEFAULT 'pendente',
+    tentativas integer NOT NULL DEFAULT 0,
+    proxima_tentativa_em timestamptz NULL,
+    correlation_id text NULL,
+    criado_em timestamptz NOT NULL DEFAULT now(),
+    processado_em timestamptz NULL
+);
+
+CREATE INDEX IF NOT EXISTS ix_v125_outbox_evento_tenant_status
+    ON integrarp.v125_outbox_evento (tenant_id, status, criado_em);
+
+CREATE TABLE IF NOT EXISTS integrarp.v125_dashboard_agregado (
+    tenant_id uuid PRIMARY KEY,
+    pedidos_em_andamento integer NOT NULL DEFAULT 0,
+    pedidos_aguardando_confirmacao integer NOT NULL DEFAULT 0,
+    tarefas_vencidas integer NOT NULL DEFAULT 0,
+    tarefas_para_hoje integer NOT NULL DEFAULT 0,
+    estoque_critico integer NOT NULL DEFAULT 0,
+    reservas_pendentes integer NOT NULL DEFAULT 0,
+    processos_ativos integer NOT NULL DEFAULT 0,
+    outbox_com_erro integer NOT NULL DEFAULT 0,
+    atualizado_em timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS integrarp.v125_worker_lock (
+    tenant_id uuid NOT NULL,
+    job_name text NOT NULL,
+    locked_until timestamptz NOT NULL,
+    correlation_id text NULL,
+    updated_at timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY (tenant_id, job_name)
+);
+
+-- <<< 0031_v125_core_comercial_ux_operacional.sql
 
 COMMIT;
