@@ -1,0 +1,19 @@
+@model IntegraRP.Web.ViewModels.Account.LoginViewModel
+@{ ViewData["Title"] = "Entrar"; Layout = "_Layout"; }
+@section Styles { <link rel="stylesheet" href="~/css/pages/account.css" asp-append-version="true" /> }
+<section class="account-page" aria-labelledby="login-title">
+  <div class="account-card">
+    <div class="account-story"><p class="eyebrow">IntegraRP</p><h1>Processos conectados para uma operação governável.</h1><p>Entre para acompanhar pedidos, tarefas, estoque, Flow e indicadores em um workspace empresarial seguro.</p><div class="process-illustration" role="img" aria-label="Fluxos operacionais conectados por etapas e indicadores"></div></div>
+    <form class="account-form" method="post" asp-controller="Account" asp-action="Login" novalidate>
+      @Html.AntiForgeryToken()<input type="hidden" asp-for="ReturnUrl" />
+      <h2 id="login-title">Acessar workspace</h2><p class="text-muted">Use suas credenciais da organização. Tokens não são expostos ao navegador.</p>
+      <div asp-validation-summary="ModelOnly" class="alert alert-warning" role="alert"></div>
+      <div class="mb-4"><label class="form-label" asp-for="Tenant"></label><input class="form-control" asp-for="Tenant" autocomplete="organization" /><span asp-validation-for="Tenant"></span></div>
+      <div class="mb-4"><label class="form-label" asp-for="Email"></label><input class="form-control" asp-for="Email" autocomplete="email" /><span asp-validation-for="Email"></span></div>
+      <div class="mb-4"><label class="form-label" asp-for="Password"></label><input class="form-control" asp-for="Password" autocomplete="current-password" /><span asp-validation-for="Password"></span></div>
+      <label class="d-flex gap-2 mb-4"><input asp-for="RememberTenant" /> <span>Lembrar organização neste dispositivo</span></label>
+      <button class="btn btn-primary" type="submit" data-submit-button>Entrar com segurança</button>
+      <a class="btn btn-outline-secondary" asp-action="ForgotPassword">Esqueci minha senha</a>
+    </form>
+  </div>
+</section>

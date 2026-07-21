@@ -1,0 +1,10 @@
+<header class="app-topbar">
+  <button class="icon-button" type="button" data-sidebar-toggle aria-label="Expandir ou recolher navegação" aria-controls="app-sidebar"><i class="bi bi-list"></i></button>
+  @await Html.PartialAsync("_Breadcrumbs")
+  <div class="topbar-search"><label class="visually-hidden" for="global-search">Pesquisa global</label><input id="global-search" type="search" class="form-control" placeholder="Pesquisar clientes, pedidos, tarefas e processos" data-command-open /></div>
+  <button class="btn btn-primary btn-sm" type="button"><i class="bi bi-plus-lg"></i> Criar</button>
+  <button class="icon-button" type="button" data-command-open aria-label="Abrir command palette (Ctrl K)"><i class="bi bi-command"></i></button>
+  <button class="icon-button" type="button" data-notification-toggle aria-label="Abrir notificações"><i class="bi bi-bell"></i></button>
+  <span class="tenant-chip">Tenant: Matriz</span>
+  @await Html.PartialAsync("_UserMenu")
+</header>
