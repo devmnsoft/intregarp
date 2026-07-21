@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] - IntegraRP</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/css/bootstrap.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/design-tokens.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/base.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/accessibility.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/feedback.css" asp-append-version="true" />
+</head>
+<body class="account-shell">
+    <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+    <main id="conteudo" class="account-shell__main" role="main">
+        <section class="account-card" aria-label="Acesso ao IntegraRP">
+            <div class="account-brand">
+                <strong>IntegraRP</strong>
+                <span>Core comercial e operação intuitiva</span>
+            </div>
+            @RenderBody()
+        </section>
+        <aside class="account-illustration" aria-hidden="true">
+            <svg viewBox="0 0 420 320" role="img" focusable="false">
+                <path d="M70 210 C130 80 270 80 350 210" fill="none" stroke="#2563eb" stroke-width="8" opacity=".22"/>
+                <g fill="#0f172a"><circle cx="86" cy="214" r="18"/><circle cx="168" cy="118" r="14"/><circle cx="258" cy="116" r="14"/><circle cx="342" cy="214" r="18"/></g>
+                <g fill="#14b8a6"><rect x="130" y="190" width="70" height="54" rx="12"/><rect x="222" y="184" width="78" height="60" rx="12"/></g>
+                <g stroke="#f59e0b" stroke-width="6" stroke-linecap="round"><path d="M118 252h190"/><path d="M150 270h126"/></g>
+            </svg>
+        </aside>
+    </main>
+    <partial name="_FeedbackHost" />
+    <script src="~/lib/bootstrap/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
+    <script src="~/js/core/toast.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

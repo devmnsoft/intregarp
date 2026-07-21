@@ -1,3 +1,4 @@
+using IntegraRP.Contracts.Auth;
 namespace IntegraRP.Application.Auth;
 
 public sealed record AuthResult<T>(bool Success, int StatusCode, string Code, string Message, T? Value = default)

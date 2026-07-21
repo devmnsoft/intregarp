@@ -48,7 +48,7 @@
   }
 
   document.querySelector('[data-action="boleto"]')?.addEventListener("click", async function () {
-    if (!confirm("Gerar boleto fake/log para este título?")) return;
+    
     const id = document.querySelector(".integrarp-page").dataset.id;
     const boleto = await api(`/api/billing/titles/${id}/generate-boleto`, { method: "POST", body: JSON.stringify({ observacao: "Gerado pela tela" }) });
     if (boleto) showToast(`Boleto fake gerado: ${boleto.linhaDigitavel}`, "success");

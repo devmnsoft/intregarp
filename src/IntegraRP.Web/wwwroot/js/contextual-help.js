@@ -1,3 +1,3 @@
 window.showContextualHelp = function showContextualHelp(screen) {
-  alert(`Como usar esta tela: ${screen}. Revise os campos e execute a próxima ação recomendada.`);
+  if (window.IntegraRPToast) window.IntegraRPToast.show({type:"info",title:"Como usar",description:`Tela ${screen}: revise os campos e execute a próxima ação recomendada.`});
 };

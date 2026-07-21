@@ -1,0 +1,17 @@
+# commands
+/bin/bash: line 4: dotnet: command not found
+DOTNET_INFO_EXIT:127
+/bin/bash: line 5: dotnet: command not found
+SLN_LIST_EXIT:127
+/bin/bash: line 6: dotnet: command not found
+CLEAN_EXIT:127
+/bin/bash: line 7: dotnet: command not found
+RESTORE_EXIT:127
+/bin/bash: line 8: dotnet: command not found
+BUILD_EXIT:127
+/bin/bash: line 9: dotnet: command not found
+TEST_EXIT:127
+/bin/bash: line 10: dotnet: command not found
+FORMAT_EXIT:127
+/bin/bash: line 11: dotnet: command not found
+WAE_EXIT:127

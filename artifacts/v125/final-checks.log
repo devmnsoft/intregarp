@@ -1,0 +1,10 @@
+git branch: codex/v125-core-comercial-ux-premium-operacional
+base sha: d6b6f0a013b45b2e4df7a73229f2ed0cf0b6094e
+SCRIPT_CMP_EXIT:0
+a35cbcaf3af9e63b36234f862f3f477f97b340200355ce7ca05a566bf6ea6cf2  database/migrations/0030_v124_production_foundation_auth_ux.sql
+a900480526dfe266eab0ac691cbf3b660e15673f60b6d6d7ae8934ba39f11c23  database/migrations/0031_v125_core_comercial_ux_operacional.sql
+FORBIDDEN_DIALOGS_EXIT:1
+WEB_APP_AUTH_REF_EXIT:1
+HEALTH_VERSION_EXIT:1
+NODE_CHECK_EXIT:0
+BASH_EXIT:0

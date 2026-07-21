@@ -1,3 +1,4 @@
+using IntegraRP.Contracts.Auth;
 using Microsoft.Extensions.Logging;
 
 namespace IntegraRP.Application.Auth;
@@ -22,6 +23,6 @@ public sealed class LoginUseCase(IAuthenticationRepository repository, IPassword
         var permissions = await repository.GetPermissionsAsync(user.TenantId, user.UserId, ct);
         var expiresAt = tokens.GetAccessTokenExpiresAt();
         await repository.RegisterLoginAttemptAsync(user.TenantId, user.UserId, email, true, "success", context.Ip, context.CorrelationId, ct);
-        return AuthResult<AuthResponse>.Ok(new AuthResponse(tokens.CreateAccessToken(user, roles, permissions, session.SessionId, expiresAt), refresh, expiresAt, new(user.UserId, user.Name, user.Email), new(user.TenantId, user.TenantSlug, user.TenantName), roles, permissions));
+        return AuthResult<AuthResponse>.Ok(new AuthResponse(tokens.CreateAccessToken(user, roles, permissions, session.SessionId, expiresAt), refresh, expiresAt, session.SessionId, new(user.UserId, user.Name, user.Email), new(user.TenantId, user.TenantSlug, user.TenantName), roles, permissions));
     }
 }

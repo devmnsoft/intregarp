@@ -12,6 +12,6 @@
         event.preventDefault();
         const column = event.target.closest(".kanban-column");
         const itemId = event.dataTransfer.getData("text/plain");
-        if (column && itemId && confirm("Mover card para esta coluna?")) await fetch(`/api/project/items/${itemId}/move`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ colunaId: column.dataset.columnId, ordem: 1 }) });
+        if (column && itemId) await fetch(`/api/project/items/${itemId}/move`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ colunaId: column.dataset.columnId, ordem: 1 }) });
     });
 })();

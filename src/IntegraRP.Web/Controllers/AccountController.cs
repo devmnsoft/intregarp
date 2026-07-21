@@ -1,4 +1,4 @@
-using IntegraRP.Application.Auth;
+using IntegraRP.Contracts.Auth;
 using IntegraRP.Web.Services.Identity;
 using IntegraRP.Web.ViewModels.Account;
 using Microsoft.AspNetCore.Authorization;
@@ -35,7 +35,7 @@ public sealed class AccountController(IIdentityApiClient identityApiClient, IIde
             }
 
             var response = await identityApiClient.LoginAsync(new LoginRequest(model.Tenant, model.Email, model.Password, deviceId, "Web"), cancellationToken);
-            var sessionId = Guid.NewGuid();
+            var sessionId = response.SessionId;
             await sessionStore.StoreAsync(sessionId.ToString(), new IdentitySessionTokens(response.AccessToken, response.RefreshToken, response.ExpiresAt, response.Usuario.Id, response.Tenant.Id, sessionId), cancellationToken);
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsFactory.Create(response, sessionId));
             if (model.RememberTenant) Response.Cookies.Append("IntegraRP.Tenant", model.Tenant, new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.Lax, Secure = Request.IsHttps, MaxAge = TimeSpan.FromDays(30) });

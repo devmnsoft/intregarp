@@ -64,3 +64,24 @@ public sealed class V122ArchitectureAndSecurityTests
         Assert.DoesNotContain("@email=''", text, StringComparison.OrdinalIgnoreCase);
     }
 }
+
+public sealed class V125ArchitectureTests
+{
+    [Fact]
+    public void Web_Nao_Deve_Referenciar_Application_Infrastructure_Npgsql_Ou_Dapper()
+    {
+        var refs = typeof(IntegraRP.Web.Controllers.AccountController).Assembly.GetReferencedAssemblies().Select(x => x.Name).ToArray();
+        Assert.DoesNotContain("IntegraRP.Application", refs);
+        Assert.DoesNotContain("IntegraRP.Infrastructure", refs);
+        Assert.DoesNotContain("Npgsql", refs);
+        Assert.DoesNotContain("Dapper", refs);
+    }
+
+    [Fact]
+    public void AuthResponse_Deve_Transportar_SessionId_Real()
+    {
+        var property = typeof(IntegraRP.Contracts.Auth.AuthResponse).GetProperty("SessionId");
+        Assert.NotNull(property);
+        Assert.Equal(typeof(Guid), property!.PropertyType);
+    }
+}

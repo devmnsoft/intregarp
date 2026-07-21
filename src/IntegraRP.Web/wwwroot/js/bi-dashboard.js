@@ -4,7 +4,7 @@
     const dashboard = page.dataset.dashboard || "executive";
     const url = dashboard === "executive" ? "/api/bi/dashboard/executive" : `/api/bi/dashboard/${dashboard}`;
     const response = await fetch(url);
-    if (response.status === 401 || response.status === 403) { alert("Acesso negado ao BI. Verifique suas permissões."); return; }
+    if (response.status === 401 || response.status === 403) { if (window.IntegraRPToast) window.IntegraRPToast.show({type:"error",title:"Acesso negado",description:"Verifique suas permissões."}); return; }
     const data = await response.json();
     const cards = data.cards || [];
     document.getElementById("bi-cards").innerHTML = cards.map(card => `<article class="bi-card status-${card.status}"><span>${card.icone}</span><h3>${card.titulo}</h3><strong>${card.valor}</strong><small>${card.unidade}</small></article>`).join("");

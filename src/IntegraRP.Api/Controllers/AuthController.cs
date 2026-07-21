@@ -1,3 +1,4 @@
+using IntegraRP.Contracts.Auth;
 using System.Security.Claims;
 using IntegraRP.Application.Auth;
 using Microsoft.AspNetCore.Authorization;
