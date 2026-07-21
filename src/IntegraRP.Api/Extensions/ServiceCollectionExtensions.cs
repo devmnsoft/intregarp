@@ -1,5 +1,6 @@
 using System.Text;
 using IntegraRP.Api.Security;
+using IntegraRP.Api.Health;
 using System.Security.Claims;
 using IntegraRP.Application.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -89,7 +90,10 @@ public static class ServiceCollectionExtensions
                 }] = Array.Empty<string>()
             });
         });
-        services.AddHealthChecks();
+        services.AddHealthChecks()
+            .AddCheck<PostgreSqlConnectionHealthCheck>("postgresql", tags: ["ready"])
+            .AddCheck<IntegraRpSchemaHealthCheck>("integrarp-schema", tags: ["ready"])
+            .AddCheck<LocalStorageHealthCheck>("local-storage", tags: ["ready"]);
         services.AddCors();
         services.AddProblemDetails();
         services.Configure<ApiBehaviorOptions>(options => options.SuppressModelStateInvalidFilter = false);

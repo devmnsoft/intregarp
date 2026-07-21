@@ -1,7 +1,7 @@
 {
   "schema": "integrarp",
-  "gerado_para": "v1.23",
-  "contrato": "v1.23-script-completop",
+  "gerado_para": "v1.24",
+  "contrato": "v1.24-script-completop",
   "migrations": [
     {
       "ordem": 1,
@@ -292,6 +292,18 @@
       "presente_no_script_completop": true,
       "status": "versionada",
       "observacoes": "Hardening operacional aditivo para autenticação, auditoria, worker e dashboard real."
+    },
+    {
+      "ordem": 30,
+      "arquivo": "0030_v124_production_foundation_auth_ux.sql",
+      "versao": "0030_v124_production_foundation_auth_ux",
+      "descricao": "v1.24 fundacao producao auth web ux",
+      "modulo": "Auth",
+      "presente_no_script_completop": true,
+      "status": "versionada",
+      "observacoes": "Incluída no script_completop v1.24."
     }
-  ]
+  ],
+  "postgresql": "16",
+  "generatedAtUtc": "2026-07-21T21:20:00Z"
 }

@@ -13,12 +13,9 @@ builder.Services.AddApiServices(builder.Configuration);
 
 var app = builder.Build();
 
-app.UseMiddleware<CorrelationIdMiddleware>();
-app.UseAuthentication();
-app.UseMiddleware<SuperAdminTenantGuardMiddleware>();
-app.UseAuthorization();
-app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseMiddleware<GlobalExceptionMiddleware>();
+app.UseMiddleware<CorrelationIdMiddleware>();
+app.UseMiddleware<RequestLoggingMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
@@ -50,8 +47,10 @@ app.UseCors(policy =>
         policy.SetIsOriginAllowed(_ => true);
     }
 });
+app.UseAuthentication();
+app.UseMiddleware<SuperAdminTenantGuardMiddleware>();
+app.UseAuthorization();
 app.MapControllers();
-app.MapHealthChecks("/health");
-app.MapHealthChecks("/api/health/live");
-app.MapHealthChecks("/api/health/ready");
+app.MapHealthChecks("/api/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions { Predicate = _ => false });
+app.MapHealthChecks("/api/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions { Predicate = check => check.Tags.Contains("ready") });
 app.Run();

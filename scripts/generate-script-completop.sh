@@ -36,9 +36,9 @@ for e in sorted(manifest['migrations'], key=lambda x:x['ordem']):
 body="BEGIN;\n\n"+"\n".join(parts)+"\nCOMMIT;\n"
 checksum=hashlib.sha256(body.encode('utf-8')).hexdigest()
 header=f"""-- Produto: IntegraRP
--- Versão: v1.20
+-- Versão: v1.24
 -- Data de geração: 2026-07-21
--- PostgreSQL suportado: 16
+-- PostgreSQL: 16
 -- Schema: integrarp
 -- Checksum SHA-256 do corpo transacional: {checksum}
 -- Número de migrations: {len(included)}
