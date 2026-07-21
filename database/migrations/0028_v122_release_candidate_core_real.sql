@@ -1,5 +1,3 @@
-BEGIN;
-
 -- v1.22 release candidate hardening marker.
 -- This migration is intentionally additive and idempotent. It records the
 -- release-candidate database contract without changing existing data because
@@ -30,4 +28,3 @@ ON CONFLICT (versao) DO UPDATE SET
 CREATE INDEX IF NOT EXISTS ix_release_candidate_evidencia_status
     ON integrarp.release_candidate_evidencia (status, criado_em DESC);
 
-COMMIT;
