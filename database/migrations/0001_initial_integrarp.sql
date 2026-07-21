@@ -1,15 +1,15 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE SCHEMA IF NOT EXISTS integrarp;
 
--- v1.15: schema_migrations é gerenciada exclusivamente pelo Migration Runner; registro legado removido.
-  migration_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  script_name varchar(260) UNIQUE NOT NULL,
-  checksum_sha256 varchar(128) NOT NULL,
-  executed_at timestamptz NOT NULL DEFAULT now(),
-  duration_ms bigint NOT NULL DEFAULT 0,
-  success boolean NOT NULL DEFAULT true,
-  error_message text NULL,
-  executed_by varchar(160) NULL
+CREATE TABLE IF NOT EXISTS integrarp.schema_migrations (
+    migration_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    script_name varchar(260) UNIQUE NOT NULL,
+    checksum_sha256 varchar(128) NOT NULL,
+    executed_at timestamptz NOT NULL DEFAULT now(),
+    duration_ms bigint NOT NULL DEFAULT 0,
+    success boolean NOT NULL DEFAULT true,
+    error_message text NULL,
+    executed_by varchar(160) NULL
 );
 
 CREATE OR REPLACE FUNCTION integrarp.fn_set_atualizado_em()

@@ -1,4 +1,3 @@
-BEGIN;
 CREATE SCHEMA IF NOT EXISTS integrarp;
 
 ALTER TABLE IF EXISTS integrarp.usuario ADD COLUMN IF NOT EXISTS tentativas_invalidas integer NOT NULL DEFAULT 0;
@@ -48,4 +47,3 @@ CREATE TABLE IF NOT EXISTS integrarp.tarefa_arquivo_evidencia (
     CONSTRAINT fk_tarefa_arquivo_tarefa FOREIGN KEY (tenant_id, tarefa_id) REFERENCES integrarp.tarefa_operacional (tenant_id, id)
 );
 CREATE INDEX IF NOT EXISTS ix_tarefa_arquivo_tarefa ON integrarp.tarefa_arquivo_evidencia (tenant_id, tarefa_id) WHERE excluido_em IS NULL;
-COMMIT;

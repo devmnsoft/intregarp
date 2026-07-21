@@ -1,4 +1,3 @@
-BEGIN;
 CREATE SCHEMA IF NOT EXISTS integrarp;
 ALTER TABLE integrarp.tenant ADD COLUMN IF NOT EXISTS slug text;
 ALTER TABLE integrarp.tenant ADD COLUMN IF NOT EXISTS status text NOT NULL DEFAULT 'ativo';
@@ -27,4 +26,3 @@ CREATE TABLE IF NOT EXISTS integrarp.auditoria_evento (id uuid PRIMARY KEY DEFAU
 CREATE INDEX IF NOT EXISTS ix_v117_refresh_session ON integrarp.auth_refresh_token (sessao_id, revoked_at, expires_at);
 CREATE INDEX IF NOT EXISTS ix_v117_tasks_my ON integrarp.tarefa_operacional (tenant_id, responsavel_usuario_id, status, vencimento_em) WHERE excluido_em IS NULL;
 CREATE INDEX IF NOT EXISTS ix_v117_sync_status ON integrarp.mobile_sync_queue (tenant_id, usuario_id, device_id, status, proxima_tentativa_em);
-COMMIT;
