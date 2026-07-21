@@ -1,3 +1,11 @@
+# IntegraRP
+
+## Instalação standalone recomendada (v1.19)
+
+O caminho principal não exige Docker: instale .NET 8 e PostgreSQL 16, configure `ConnectionStrings__IntegraRP`, execute `database/script_completop.sql`, valide com `database/validate_script_completop.sql` e inicie API, Worker e Web pelos scripts `scripts/*standalone*`. Docker permanece apenas como alternativa opcional.
+
+## Execução opcional com Docker
+
 # IntegraRP / Integra Gestão Inteligente
 
 **Valora Group & MNSoft** — “Do pedido ao faturamento, tudo integrado, comunicado e medido.”
