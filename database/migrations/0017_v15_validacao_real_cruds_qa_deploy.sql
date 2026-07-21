@@ -138,6 +138,4 @@ CREATE OR REPLACE VIEW integrarp.vw_v15_operational_readiness AS
 SELECT tenant_id, modulo, objeto, rota_api, rota_web, repositorio_postgres, status, requer_paginacao, requer_rbac
 FROM integrarp.v15_operational_object;
 
--- v1.15: schema_migrations é gerenciada exclusivamente pelo Migration Runner; registro legado removido.
-VALUES ('0017_v15_validacao_real_cruds_qa_deploy', 'v1.5 validação real, CRUDs operacionais, jornada completa, QA e deploy assistido')
-ON CONFLICT (version) DO NOTHING;
+-- v1.20: registro manual em schema_migrations removido; Migration Runner/script completo registram checksums.

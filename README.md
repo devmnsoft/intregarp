@@ -40,6 +40,19 @@ scripts\run-web-windows.cmd
 scripts\run-worker-windows.cmd
 ```
 
+
+## Execução standalone (sem Docker)
+
+A forma recomendada para validação v1.20 é standalone, usando PostgreSQL 16 local e o script canônico `database/script_completop.sql`.
+
+1. Copie `.env.standalone.example` para `.env.standalone` e preencha somente valores locais.
+2. Ajuste `config/appsettings.Standalone.example.json` conforme o ambiente.
+3. Execute `scripts/generate-script-completop.sh` para regenerar o script canônico.
+4. Execute `psql -X "$DATABASE_URL" --set ON_ERROR_STOP=1 --file database/script_completop.sql`.
+5. Execute `psql -X "$DATABASE_URL" --set ON_ERROR_STOP=1 --file database/validate_script_completop.sql`.
+
+A execução Docker permanece disponível como caminho opcional de compatibilidade, não como requisito principal.
+
 ## Docker
 
 ```powershell
