@@ -1,1 +1,12 @@
-<Project Sdk="Microsoft.NET.Sdk.Worker"><PropertyGroup><TargetFramework>net8.0</TargetFramework></PropertyGroup><ItemGroup><ProjectReference Include="..\IntegraRP.Application\IntegraRP.Application.csproj" /><ProjectReference Include="..\IntegraRP.Infrastructure\IntegraRP.Infrastructure.csproj" /><ProjectReference Include="..\IntegraRP.Contracts\IntegraRP.Contracts.csproj" /><PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="8.0.0" /><PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.9" /></ItemGroup></Project>
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\IntegraRP.Application\IntegraRP.Application.csproj" />
+    <ProjectReference Include="..\IntegraRP.Infrastructure\IntegraRP.Infrastructure.csproj" />
+    <ProjectReference Include="..\IntegraRP.Contracts\IntegraRP.Contracts.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
+  </ItemGroup>
+</Project>

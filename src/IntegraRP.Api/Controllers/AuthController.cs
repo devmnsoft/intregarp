@@ -63,8 +63,15 @@ public sealed class AuthController(PostgresConnectionFactory connectionFactory, 
         if (string.IsNullOrWhiteSpace(request.RefreshToken)) return UnauthorizedProblem();
         var hash = HashSecret(request.RefreshToken);
         await using var c = (NpgsqlConnection)await connectionFactory.OpenAsync(ct);
-        var token = await FirstAsync(c, "SELECT rt.id,rt.tenant_id,rt.usuario_id,rt.sessao_id,rt.family_id,rt.revoked_at,rt.used_at,rt.expires_at,u.email,u.nome,u.status AS user_status,t.slug,t.nome AS tenant_nome,COALESCE(t.status,'ativo') AS tenant_status FROM integrarp.auth_refresh_token rt JOIN integrarp.usuario u ON u.id=rt.usuario_id AND u.tenant_id=rt.tenant_id JOIN integrarp.tenant t ON t.id=rt.tenant_id WHERE rt.token_hash=@hash;", ct, P("hash", hash));
-        if (token is null || token["revoked_at"] is not null || token["used_at"] is not null || (DateTimeOffset)token["expires_at"]! <= DateTimeOffset.UtcNow || (string)token["user_status"]! != "ativo" || (string)token["tenant_status"]! != "ativo") return UnauthorizedProblem();
+        var token = await FirstAsync(c, "SELECT rt.id,rt.tenant_id,rt.usuario_id,rt.sessao_id,rt.family_id,rt.revoked_at,rt.used_at,rt.expires_at,s.revoked_at AS session_revoked_at,u.email,u.nome,u.status AS user_status,t.slug,t.nome AS tenant_nome,COALESCE(t.status,'ativo') AS tenant_status FROM integrarp.auth_refresh_token rt JOIN integrarp.auth_sessao s ON s.id=rt.sessao_id AND s.tenant_id=rt.tenant_id JOIN integrarp.usuario u ON u.id=rt.usuario_id AND u.tenant_id=rt.tenant_id JOIN integrarp.tenant t ON t.id=rt.tenant_id WHERE rt.token_hash=@hash;", ct, P("hash", hash));
+        if (token is null) return UnauthorizedProblem();
+        if (token["used_at"] is not null)
+        {
+            await ExecAsync(c, null, "UPDATE integrarp.auth_refresh_token SET revoked_at=COALESCE(revoked_at,now()) WHERE family_id=@family; UPDATE integrarp.auth_sessao SET revoked_at=COALESCE(revoked_at,now()) WHERE id=@session;", ct, P("family", (Guid)token["family_id"]!), P("session", (Guid)token["sessao_id"]!));
+            logger.LogWarning("Refresh token reutilizado; família de sessão revogada para usuário {UserId}.", token["usuario_id"]);
+            return UnauthorizedProblem();
+        }
+        if (token["revoked_at"] is not null || token["session_revoked_at"] is not null || (DateTimeOffset)token["expires_at"]! <= DateTimeOffset.UtcNow || (string)token["user_status"]! != "ativo" || (string)token["tenant_status"]! != "ativo") return UnauthorizedProblem();
         var user = new UserRow((Guid)token["usuario_id"]!, (Guid)token["tenant_id"]!, (string)token["email"]!, (string)token["nome"]!, (string)token["slug"]!, (string)token["tenant_nome"]!, "", "ativo", "ativo", null);
         var roles = await QueryRolesAsync(c, user.TenantId, user.UserId, ct); var permissions = await QueryPermissionsAsync(c, user.TenantId, user.UserId, ct);
         var refresh = CreateOpaqueToken(); var newHash = HashSecret(refresh); var expiresAt = DateTimeOffset.UtcNow.AddMinutes(configuration.GetValue("Jwt:AccessTokenMinutes", 15));
