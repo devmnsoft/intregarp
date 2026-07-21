@@ -1,0 +1,8 @@
+.dashboard-hero { display: flex; justify-content: space-between; gap: 1rem; align-items: center; margin-bottom: 1rem; }
+.kpi-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+.kpi-card { display: grid; gap: .35rem; }
+.kpi-card strong { font-size: 2rem; }
+.kpi-card span { color: var(--text-muted); }
+.dashboard-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+@media (max-width: 1200px) { .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 760px) { .dashboard-hero, .dashboard-grid { grid-template-columns: 1fr; display: grid; } .kpi-grid { grid-template-columns: 1fr; } }

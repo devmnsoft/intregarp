@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
+using IntegraRP.Web.Services.Navigation;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +10,7 @@ builder.Services.AddAntiforgery(options => { options.Cookie.Name = "__Host-Integ
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options => { options.LoginPath = "/account/login"; options.AccessDeniedPath = "/account/access-denied"; options.ExpireTimeSpan = TimeSpan.FromHours(8); options.SlidingExpiration = true; options.Cookie.Name = "__Host-IntegraRP.Web"; options.Cookie.HttpOnly = true; options.Cookie.SameSite = SameSiteMode.Lax; options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; });
 builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<INavigationService, NavigationService>();
 builder.Services.AddHttpClient("IntegraRP.Api", client => { client.BaseAddress = new Uri(builder.Configuration["IntegraRP:ApiBaseUrl"] ?? "http://localhost:7001"); });
 
 var app = builder.Build();

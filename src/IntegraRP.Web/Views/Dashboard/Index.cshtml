@@ -1,3 +1,20 @@
-@{ ViewData["Title"] = "Dashboard"; }
-<section class="integrarp-page"><h1>Dashboard funcional</h1><p>KPIs carregados da API real ou endpoint de demo v1.9.</p><div id="dashboard-status" class="alert alert-info">Carregando dashboard...</div><div id="dashboard-cards" class="row g-3"></div><nav class="d-flex gap-2 mt-3"><a class="btn btn-primary" href="/activities">Nova atividade</a><a class="btn btn-outline-primary" href="/customers">Novo cliente</a><a class="btn btn-outline-primary" href="/products">Novo produto</a><a class="btn btn-outline-primary" href="/inventory">Entrada de estoque</a><a class="btn btn-outline-primary" href="/orders">Novo pedido</a><a class="btn btn-outline-primary" href="/tasks/my">Minhas tarefas</a><a class="btn btn-success" href="/demo">Demo funcional</a></nav></section>
-@section Scripts { <script src="~/js/dashboard.js"></script> }
+@model IntegraRP.Web.ViewModels.Dashboard.DashboardViewModel
+@{ ViewData["Title"] = "Dashboard executivo"; ViewData["Description"] = "Priorize riscos, gargalos e próximas ações com dados operacionais reais."; }
+@section Styles { <link rel="stylesheet" href="~/css/pages/dashboard.css" asp-append-version="true" /> }
+<section class="dashboard-hero panel" aria-labelledby="dashboard-heading">
+  <div><p class="eyebrow">Bom trabalho</p><h2 id="dashboard-heading">Visão executiva da operação — @Model.TenantName</h2><p>Período atual · última atualização @Model.LastUpdatedAt.ToLocalTime().ToString("g")</p></div>
+  <div class="d-flex gap-2"><button class="btn btn-primary" type="button" data-refresh-dashboard>Atualizar</button><a class="btn btn-outline-primary" href="/tasks/my">Ver tarefas</a></div>
+</section>
+<section class="kpi-grid" aria-label="Indicadores principais">
+@foreach (var kpi in Model.Kpis)
+{
+  <article class="kpi-card" data-status="@kpi.Status"><i class="bi @kpi.Icon" aria-hidden="true"></i><p>@kpi.Title</p><strong>@kpi.Value</strong><span>@kpi.Context</span><a href="@kpi.DetailUrl">Abrir detalhe</a></article>
+}
+</section>
+<section class="dashboard-grid">
+  <article class="panel"><h2>O que precisa da sua atenção</h2><p class="text-muted">Nenhum alerta crítico foi retornado pela API. Quando houver dados, priorize atrasos, rupturas e exceções de SLA.</p></article>
+  <article class="panel"><h2>Minhas próximas tarefas</h2><p class="text-muted">A lista será preenchida por tarefas atribuídas ao usuário autenticado.</p></article>
+  <article class="panel"><h2>Processos em andamento</h2><p class="text-muted">Instâncias do Integra Flow aparecerão aqui com etapa atual e responsável.</p></article>
+  <article class="panel"><h2>Saúde dos módulos</h2><p class="text-muted">API, Web, Worker, banco e integrações serão exibidos sem números fictícios em Production.</p></article>
+</section>
+@section Scripts { <script src="~/js/pages/dashboard.js" asp-append-version="true" defer></script> }

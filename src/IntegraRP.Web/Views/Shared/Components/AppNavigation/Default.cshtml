@@ -1,0 +1,23 @@
+@model IReadOnlyList<IntegraRP.Web.Models.Navigation.NavigationGroup>
+@{
+    var currentController = (ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty).ToLowerInvariant();
+}
+<nav class="sidebar-nav">
+@foreach (var group in Model)
+{
+  var expanded = group.Items.Any(item => item.Controller.Equals(currentController, StringComparison.OrdinalIgnoreCase));
+  <section class="nav-group" data-menu-group>
+    <h2 class="nav-group-title">@group.Title</h2>
+    <div class="nav-group-items">
+    @foreach (var item in group.Items)
+    {
+      var active = item.Controller.Equals(currentController, StringComparison.OrdinalIgnoreCase);
+      <a class="nav-item @(active ? "active" : string.Empty)" asp-controller="@item.Controller" asp-action="@item.Action" aria-current="@(active ? "page" : null)">
+        <i class="bi @item.Icon" aria-hidden="true"></i><span>@item.Text</span>
+        @if (item.Badge is not null) { <span class="nav-badge nav-badge-@item.Badge.Variant">@item.Badge.Text</span> }
+      </a>
+    }
+    </div>
+  </section>
+}
+</nav>

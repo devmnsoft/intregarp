@@ -423,3 +423,9 @@ Consulte `docs/v1.16-diagnostico-runtime.md`, `docs/v1.16-functional-maturity-ma
 ## v1.17 — Identidade real e tarefas persistidas
 
 A v1.17 introduz a jornada vertical de autenticação JWT persistida, sessões com refresh token rotativo, tabelas de credenciais e evolução da execução de tarefas com formulário, checklist, comentários e evidências. O seed de administrador inicial deve ser habilitado apenas em Development por configuração e variáveis de ambiente; nenhuma senha padrão deve ser versionada.
+
+## IntegraRP v1.21 — Premium Workspace
+
+A v1.21 inicia a consolidação do workspace empresarial premium com shell responsivo, navegação por grupos, design tokens próprios, autenticação Web visual real, dashboard executivo tipado e CI atualizado para PostgreSQL 16 e artefatos `v121`.
+
+Consulte `docs/v1.21-diagnostico-inicial.md` e os documentos `docs/v1.21-*.md` para evidências, limitações e próximos passos de homologação.

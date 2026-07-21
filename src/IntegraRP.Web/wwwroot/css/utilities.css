@@ -1,0 +1,1 @@
+.grid { display: grid; gap: 1rem; } .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } .text-muted-strong { color: var(--text-muted); } @media (max-width: 900px) { .grid-3 { grid-template-columns: 1fr; } }

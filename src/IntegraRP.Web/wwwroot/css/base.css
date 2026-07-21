@@ -1,0 +1,6 @@
+* { box-sizing: border-box; }
+html { min-height: 100%; }
+body { min-height: 100%; margin: 0; font-family: var(--font-sans); color: var(--text-primary); background: var(--app-bg); }
+a { color: var(--accent-600); text-decoration: none; }
+a:hover { text-decoration: underline; }
+:focus-visible { outline: none; box-shadow: var(--focus-ring); }
