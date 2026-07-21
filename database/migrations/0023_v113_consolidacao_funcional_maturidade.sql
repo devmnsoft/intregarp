@@ -1,6 +1,4 @@
 -- v1.13 - Consolidação funcional, maturidade operacional e smoke E2E
-SET search_path TO integrarp;
-
 CREATE TABLE IF NOT EXISTS integrarp.v113_functional_consolidation_check (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id uuid NOT NULL REFERENCES integrarp.tenant(id),
@@ -55,6 +53,4 @@ SELECT tenant_id, codigo, modulo, status, detalhe, proxima_acao
 FROM integrarp.v113_functional_consolidation_check
 WHERE excluido_em IS NULL;
 
--- v1.15: schema_migrations é gerenciada exclusivamente pelo Migration Runner; registro legado removido.
-VALUES ('0023_v113_consolidacao_funcional_maturidade')
-ON CONFLICT (version) DO NOTHING;
+-- v1.20: registro manual em schema_migrations removido; Migration Runner/script completo registram checksums.

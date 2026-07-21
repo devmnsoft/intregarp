@@ -91,7 +91,7 @@ INSERT INTO integrarp.v14_operational_demo_run (tenant_id, codigo, etapa_ordem, 
 ('00000000-0000-0000-0000-000000000001','order-to-billing-demo',3,'produto','ok','produto','{}'),
 ('00000000-0000-0000-0000-000000000001','order-to-billing-demo',4,'estoque','ok','movimento_estoque','{}'),
 ('00000000-0000-0000-0000-000000000001','order-to-billing-demo',5,'pedido_confirmado','ok','pedido','{}'),
-('00000000-0000-0000-0000-000000000001','order-to-billing-demo',6,'flow_tarefa','ok','workflow_task','{}'),
+('00000000-0000-0000-0000-000000000001','order-to-billing-demo',6,'flow_tarefa','ok','tarefa_operacional','{}'),
 ('00000000-0000-0000-0000-000000000001','order-to-billing-demo',7,'fatura_titulo','ok','fatura','{}'),
 ('00000000-0000-0000-0000-000000000001','order-to-billing-demo',8,'outbox_worker','ok','outbox','{}'),
 ('00000000-0000-0000-0000-000000000001','order-to-billing-demo',9,'dashboard_kpi','ok','kpi','{}'),
@@ -116,6 +116,4 @@ SELECT tenant_id, codigo, count(*) AS etapas, count(*) FILTER (WHERE status = 'o
 FROM integrarp.v14_operational_demo_run
 GROUP BY tenant_id, codigo;
 
--- v1.15: schema_migrations é gerenciada exclusivamente pelo Migration Runner; registro legado removido.
-VALUES ('0016_v14_postgres_repositories_operacional', 'v1.4 PostgreSQL real, Dapper readiness e demo pedido-faturamento-outbox')
-ON CONFLICT (version) DO NOTHING;
+-- v1.20: registro manual em schema_migrations removido; Migration Runner/script completo registram checksums.

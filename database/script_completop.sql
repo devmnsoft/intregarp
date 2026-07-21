@@ -1,16 +1,17 @@
 -- Produto: IntegraRP
--- Versão: v1.19
+-- Versão: v1.20
 -- Data de geração: 2026-07-21
+-- PostgreSQL suportado: 16
 -- Schema: integrarp
--- Checksum SHA-256 do corpo transacional: 5e653bec30a6bbcec09d2d8932d3950a4f9913f01a58f3b7f5a6c9d5d0b2f41c
--- Instruções: executar no pgAdmin Query Tool ou via psql com ON_ERROR_STOP=1.
--- Compatibilidade: PostgreSQL 16; SQL puro sem comandos específicos do psql.
+-- Checksum SHA-256 do corpo transacional: 2c6da00c94bd9a9a9ef794535d8a210311a42b0a815707812ba49717ac5c9654
+-- Número de migrations: 27
+-- Instruções: executar no pgAdmin Query Tool ou via psql -X "$DATABASE_URL" --set ON_ERROR_STOP=1 --file database/script_completop.sql.
+-- Aviso: este script não cria usuário com senha nem armazena credenciais.
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE SCHEMA IF NOT EXISTS integrarp;
 
 BEGIN;
-SET LOCAL search_path = integrarp, pg_catalog;
 
 -- >>> 0001_initial_integrarp.sql
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
@@ -5909,7 +5910,7 @@ INSERT INTO integrarp.v14_operational_demo_run (tenant_id, codigo, etapa_ordem, 
 ('00000000-0000-0000-0000-000000000001','order-to-billing-demo',3,'produto','ok','produto','{}'),
 ('00000000-0000-0000-0000-000000000001','order-to-billing-demo',4,'estoque','ok','movimento_estoque','{}'),
 ('00000000-0000-0000-0000-000000000001','order-to-billing-demo',5,'pedido_confirmado','ok','pedido','{}'),
-('00000000-0000-0000-0000-000000000001','order-to-billing-demo',6,'flow_tarefa','ok','workflow_task','{}'),
+('00000000-0000-0000-0000-000000000001','order-to-billing-demo',6,'flow_tarefa','ok','tarefa_operacional','{}'),
 ('00000000-0000-0000-0000-000000000001','order-to-billing-demo',7,'fatura_titulo','ok','fatura','{}'),
 ('00000000-0000-0000-0000-000000000001','order-to-billing-demo',8,'outbox_worker','ok','outbox','{}'),
 ('00000000-0000-0000-0000-000000000001','order-to-billing-demo',9,'dashboard_kpi','ok','kpi','{}'),
@@ -5934,9 +5935,7 @@ SELECT tenant_id, codigo, count(*) AS etapas, count(*) FILTER (WHERE status = 'o
 FROM integrarp.v14_operational_demo_run
 GROUP BY tenant_id, codigo;
 
--- v1.15: schema_migrations é gerenciada exclusivamente pelo Migration Runner; registro legado removido.
-VALUES ('0016_v14_postgres_repositories_operacional', 'v1.4 PostgreSQL real, Dapper readiness e demo pedido-faturamento-outbox')
-ON CONFLICT (version) DO NOTHING;
+-- v1.20: registro manual em schema_migrations removido; Migration Runner/script completo registram checksums.
 
 -- <<< 0016_v14_postgres_repositories_operacional.sql
 
@@ -6080,9 +6079,7 @@ CREATE OR REPLACE VIEW integrarp.vw_v15_operational_readiness AS
 SELECT tenant_id, modulo, objeto, rota_api, rota_web, repositorio_postgres, status, requer_paginacao, requer_rbac
 FROM integrarp.v15_operational_object;
 
--- v1.15: schema_migrations é gerenciada exclusivamente pelo Migration Runner; registro legado removido.
-VALUES ('0017_v15_validacao_real_cruds_qa_deploy', 'v1.5 validação real, CRUDs operacionais, jornada completa, QA e deploy assistido')
-ON CONFLICT (version) DO NOTHING;
+-- v1.20: registro manual em schema_migrations removido; Migration Runner/script completo registram checksums.
 
 -- <<< 0017_v15_validacao_real_cruds_qa_deploy.sql
 
@@ -6149,9 +6146,7 @@ SELECT tenant_id,
 FROM integrarp.v16_release_candidate_check
 GROUP BY tenant_id;
 
--- v1.15: schema_migrations é gerenciada exclusivamente pelo Migration Runner; registro legado removido.
-VALUES ('0018_v16_release_candidate_validation', 'v1.6 release candidate: validação de build, banco, CI, Docker e smoke tests')
-ON CONFLICT (version) DO NOTHING;
+-- v1.20: registro manual em schema_migrations removido; Migration Runner/script completo registram checksums.
 
 -- <<< 0018_v16_release_candidate_validation.sql
 
@@ -6351,9 +6346,7 @@ INSERT INTO integrarp.v18_functional_validation_check (tenant_id, area, modulo, 
 ('00000000-0000-0000-0000-000000000001','cruds','essenciais','warning','["cliente","produto","pedido","tarefa","faturamento","outbox"]'::jsonb,'["validação local limitada por ausência do SDK .NET"]'::jsonb,'Executar CI com dotnet restore/build/test.','/customers','/api/customers')
 ON CONFLICT (tenant_id, area, modulo) DO UPDATE SET status = EXCLUDED.status, checks_json = EXCLUDED.checks_json, warnings_json = EXCLUDED.warnings_json, proxima_acao = EXCLUDED.proxima_acao, atualizado_em = now();
 
--- v1.15: schema_migrations é gerenciada exclusivamente pelo Migration Runner; registro legado removido.
-VALUES ('0020_v18_produto_funcional_cruds_telas_jornada', 'v1.8 produto funcional, CRUDs, telas, templates, dashboard e jornada operacional')
-ON CONFLICT (version) DO NOTHING;
+-- v1.20: registro manual em schema_migrations removido; Migration Runner/script completo registram checksums.
 
 -- <<< 0020_v18_produto_funcional_cruds_telas_jornada.sql
 
@@ -6715,8 +6708,6 @@ CREATE OR REPLACE VIEW integrarp.vw_v18_dashboard_operacional AS SELECT tenant_i
 
 -- >>> 0023_v113_consolidacao_funcional_maturidade.sql
 -- v1.13 - Consolidação funcional, maturidade operacional e smoke E2E
-SET search_path TO integrarp;
-
 CREATE TABLE IF NOT EXISTS integrarp.v113_functional_consolidation_check (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id uuid NOT NULL REFERENCES integrarp.tenant(id),
@@ -6771,9 +6762,7 @@ SELECT tenant_id, codigo, modulo, status, detalhe, proxima_acao
 FROM integrarp.v113_functional_consolidation_check
 WHERE excluido_em IS NULL;
 
--- v1.15: schema_migrations é gerenciada exclusivamente pelo Migration Runner; registro legado removido.
-VALUES ('0023_v113_consolidacao_funcional_maturidade')
-ON CONFLICT (version) DO NOTHING;
+-- v1.20: registro manual em schema_migrations removido; Migration Runner/script completo registram checksums.
 
 -- <<< 0023_v113_consolidacao_funcional_maturidade.sql
 
@@ -6938,9 +6927,16 @@ FOR EACH ROW
 EXECUTE FUNCTION integrarp.fn_set_atualizado_em();
 
 ALTER TABLE IF EXISTS integrarp.processo_instancia ADD COLUMN IF NOT EXISTS tarefa_operacional_id uuid NULL;
-ALTER TABLE IF EXISTS integrarp.workflow_task ADD COLUMN IF NOT EXISTS tarefa_operacional_id uuid NULL;
-ALTER TABLE IF EXISTS integrarp.workflow_task ADD COLUMN IF NOT EXISTS idempotency_key text NULL;
-CREATE UNIQUE INDEX IF NOT EXISTS ux_workflow_task_idempotency ON integrarp.workflow_task (tenant_id, idempotency_key) WHERE idempotency_key IS NOT NULL;
+ALTER TABLE IF EXISTS integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS processo_definicao_id uuid NULL;
+ALTER TABLE IF EXISTS integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS processo_versao_id uuid NULL;
+ALTER TABLE IF EXISTS integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS processo_instancia_id uuid NULL;
+ALTER TABLE IF EXISTS integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS processo_elemento_id uuid NULL;
+ALTER TABLE IF EXISTS integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS origem_tipo text NULL;
+ALTER TABLE IF EXISTS integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS origem_id uuid NULL;
+ALTER TABLE IF EXISTS integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS idempotency_key text NULL;
+ALTER TABLE IF EXISTS integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS row_version bigint NOT NULL DEFAULT 0;
+CREATE UNIQUE INDEX IF NOT EXISTS ux_tarefa_operacional_idempotency ON integrarp.tarefa_operacional (tenant_id, idempotency_key) WHERE idempotency_key IS NOT NULL;
+CREATE INDEX IF NOT EXISTS ix_tarefa_operacional_processo_instancia ON integrarp.tarefa_operacional (tenant_id, processo_instancia_id) WHERE processo_instancia_id IS NOT NULL;
 
 -- <<< 0027_v119_postgresql_standalone_flow_persistido.sql
 

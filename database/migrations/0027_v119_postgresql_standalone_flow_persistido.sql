@@ -28,6 +28,13 @@ FOR EACH ROW
 EXECUTE FUNCTION integrarp.fn_set_atualizado_em();
 
 ALTER TABLE IF EXISTS integrarp.processo_instancia ADD COLUMN IF NOT EXISTS tarefa_operacional_id uuid NULL;
-ALTER TABLE IF EXISTS integrarp.workflow_task ADD COLUMN IF NOT EXISTS tarefa_operacional_id uuid NULL;
-ALTER TABLE IF EXISTS integrarp.workflow_task ADD COLUMN IF NOT EXISTS idempotency_key text NULL;
-CREATE UNIQUE INDEX IF NOT EXISTS ux_workflow_task_idempotency ON integrarp.workflow_task (tenant_id, idempotency_key) WHERE idempotency_key IS NOT NULL;
+ALTER TABLE IF EXISTS integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS processo_definicao_id uuid NULL;
+ALTER TABLE IF EXISTS integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS processo_versao_id uuid NULL;
+ALTER TABLE IF EXISTS integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS processo_instancia_id uuid NULL;
+ALTER TABLE IF EXISTS integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS processo_elemento_id uuid NULL;
+ALTER TABLE IF EXISTS integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS origem_tipo text NULL;
+ALTER TABLE IF EXISTS integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS origem_id uuid NULL;
+ALTER TABLE IF EXISTS integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS idempotency_key text NULL;
+ALTER TABLE IF EXISTS integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS row_version bigint NOT NULL DEFAULT 0;
+CREATE UNIQUE INDEX IF NOT EXISTS ux_tarefa_operacional_idempotency ON integrarp.tarefa_operacional (tenant_id, idempotency_key) WHERE idempotency_key IS NOT NULL;
+CREATE INDEX IF NOT EXISTS ix_tarefa_operacional_processo_instancia ON integrarp.tarefa_operacional (tenant_id, processo_instancia_id) WHERE processo_instancia_id IS NOT NULL;
