@@ -429,3 +429,7 @@ A v1.17 introduz a jornada vertical de autenticação JWT persistida, sessões c
 A v1.21 inicia a consolidação do workspace empresarial premium com shell responsivo, navegação por grupos, design tokens próprios, autenticação Web visual real, dashboard executivo tipado e CI atualizado para PostgreSQL 16 e artefatos `v121`.
 
 Consulte `docs/v1.21-diagnostico-inicial.md` e os documentos `docs/v1.21-*.md` para evidências, limitações e próximos passos de homologação.
+
+## IntegraRP v1.22 release candidate
+
+A preparação da v1.22 registra evidências em `docs/v1.22-*.md`. O ambiente local deste ajuste não possui SDK .NET nem PostgreSQL, portanto as páginas de evidência diferenciam correções aplicadas, análise estática e validações bloqueadas por ambiente. A branch de release candidate deve permanecer em Draft até que os checks obrigatórios estejam verdes.

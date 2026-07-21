@@ -63,7 +63,7 @@ public sealed class AuthController(LoginUseCase login, RefreshTokenUseCase refre
     public async Task<IActionResult> RevokeSession(Guid sessionId, CancellationToken ct)
     {
         var ids = GetRequiredIds();
-        await repository.RevokeSessionAsync(ids.TenantId, sessionId, "user_revoked", ct);
+        await repository.RevokeSessionAsync(ids.TenantId, ids.UserId, sessionId, "user_revoked", ct);
         return NoContent();
     }
 
