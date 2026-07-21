@@ -1,3 +1,4 @@
+using IntegraRP.Application.Auth;
 using IntegraRP.Application.FlowDesigner.UseCases;
 using IntegraRP.Application.OperationalTemplates;
 using IntegraRP.Application.Operations;
@@ -10,6 +11,14 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
+        services.AddScoped<LoginUseCase>();
+        services.AddScoped<IAuthenticationService, AuthenticationService>();
+        services.AddScoped<RefreshTokenUseCase>();
+        services.AddScoped<LogoutUseCase>();
+        services.AddScoped<ChangePasswordUseCase>();
+        services.AddScoped<ForgotPasswordUseCase>();
+        services.AddScoped<ResetPasswordUseCase>();
+        services.AddScoped<GetCurrentUserUseCase>();
         services.AddScoped<OperationalRuntimeUseCases>();
         services.AddScoped<ListFlowTemplatesUseCase>();
         services.AddScoped<GetFlowTemplateByIdUseCase>();

@@ -250,6 +250,11 @@
       "observacoes": "Migration idempotente e transacional para jornada vertical v1.17.",
       "status": "versionada",
       "ordem": 25
+    },
+    {
+      "version": "0026",
+      "script": "migrations/0026_v118_auth_ux_task_hardening.sql",
+      "description": "v1.18 auth ux task hardening"
     }
   ]
 }
