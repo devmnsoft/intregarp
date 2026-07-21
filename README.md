@@ -398,3 +398,7 @@ Esta versão inicia a estabilização de runtime com foco em segurança e honest
 - testes que usavam contrato legado de comentário de tarefa foram atualizados para `ICurrentExecutionContext`.
 
 Consulte `docs/v1.16-diagnostico-runtime.md`, `docs/v1.16-functional-maturity-matrix.md` e `docs/v1.16-known-limitations.md` antes de homologar.
+
+## v1.17 — Identidade real e tarefas persistidas
+
+A v1.17 introduz a jornada vertical de autenticação JWT persistida, sessões com refresh token rotativo, tabelas de credenciais e evolução da execução de tarefas com formulário, checklist, comentários e evidências. O seed de administrador inicial deve ser habilitado apenas em Development por configuração e variáveis de ambiente; nenhuma senha padrão deve ser versionada.
