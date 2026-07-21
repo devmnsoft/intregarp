@@ -1,5 +1,7 @@
 using System.Text;
 using IntegraRP.Api.Security;
+using System.Security.Claims;
+using IntegraRP.Application.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -34,6 +36,26 @@ public static class ServiceCollectionExtensions
                     ValidAudience = audience,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
                     ClockSkew = TimeSpan.FromMinutes(2)
+                };
+                options.Events = new JwtBearerEvents
+                {
+                    OnTokenValidated = async context =>
+                    {
+                        var userIdText = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier) ?? context.Principal?.FindFirstValue("sub");
+                        var tenantIdText = context.Principal?.FindFirstValue("tenant_id");
+                        var sessionIdText = context.Principal?.FindFirstValue("session_id");
+                        if (!Guid.TryParse(userIdText, out var userId) || !Guid.TryParse(tenantIdText, out var tenantId) || !Guid.TryParse(sessionIdText, out var sessionId))
+                        {
+                            context.Fail("Token sem sessão válida.");
+                            return;
+                        }
+
+                        var repository = context.HttpContext.RequestServices.GetRequiredService<IAuthenticationRepository>();
+                        if (!await repository.IsSessionActiveAsync(tenantId, userId, sessionId, context.HttpContext.RequestAborted))
+                        {
+                            context.Fail("Sessão revogada ou expirada.");
+                        }
+                    }
                 };
             });
         services.AddAuthorization(options =>

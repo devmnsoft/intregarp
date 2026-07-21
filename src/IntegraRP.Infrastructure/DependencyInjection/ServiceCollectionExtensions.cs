@@ -19,6 +19,8 @@ using IntegraRP.Infrastructure.Services.Sprint7;
 using IntegraRP.Application.Abstractions.OperationalTemplates;
 using IntegraRP.Application.Abstractions.Operations;
 using IntegraRP.Application.Runtime;
+using IntegraRP.Application.Auth;
+using IntegraRP.Infrastructure.Auth;
 using IntegraRP.Infrastructure.Repositories.Postgres;
 
 namespace IntegraRP.Infrastructure.DependencyInjection;
@@ -29,6 +31,11 @@ public static class ServiceCollectionExtensions
     {
         services.AddSingleton<IDbConnectionFactory, NpgsqlConnectionFactory>();
         services.AddSingleton<PostgresConnectionFactory>();
+        services.AddScoped<IAuthenticationRepository, PostgresAuthenticationRepository>();
+        services.AddSingleton<IPasswordService, AspNetPasswordService>();
+        services.AddSingleton<IRefreshTokenService, RefreshTokenService>();
+        services.AddSingleton<ITokenService, JwtTokenService>();
+        services.AddSingleton<IPasswordResetSender, DevelopmentPasswordResetSender>();
         services.AddSingleton<RepositoryTransactionRunner>();
         services.AddScoped<PostgresRepositoryReadiness>();
         services.AddScoped<IOperationalRuntimeRepository, PostgresV112OperationalRepository>();
