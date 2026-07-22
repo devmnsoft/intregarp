@@ -1,10 +1,10 @@
 -- Produto: IntegraRP
--- Versão: v1.25
--- Data de geração: 2026-07-21
+-- Versão: v1.26
+-- Data de geração: 2026-07-22
 -- PostgreSQL: 16
 -- Schema: integrarp
--- Checksum SHA-256 do corpo transacional: c1ffd6a9b092f24d20fd62d375436c761b0d3e7686b4d06756f0920c903b9167
--- Número de migrations: 31
+-- Checksum SHA-256 do corpo transacional: 939b0767ba847c0bd87b7eb8b20b7319fe8d7aa923730b1b2aeed02658ef4120
+-- Número de migrations: 32
 -- Instruções: executar no pgAdmin Query Tool ou via psql -X "$DATABASE_URL" --set ON_ERROR_STOP=1 --file database/script_completop.sql.
 -- Aviso: este script não cria usuário com senha nem armazena credenciais.
 
@@ -6983,6 +6983,15 @@ ALTER TABLE IF EXISTS integrarp.usuario ADD COLUMN IF NOT EXISTS last_failed_log
 ALTER TABLE IF EXISTS integrarp.usuario ADD COLUMN IF NOT EXISTS security_stamp uuid NOT NULL DEFAULT gen_random_uuid();
 ALTER TABLE IF EXISTS integrarp.usuario ADD COLUMN IF NOT EXISTS row_version bigint NOT NULL DEFAULT 0;
 
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'integrarp' AND table_name = 'usuario')
+       AND NOT EXISTS (SELECT 1 FROM pg_constraint WHERE connamespace = 'integrarp'::regnamespace AND conname = 'uq_usuario_tenant_id_id') THEN
+        ALTER TABLE integrarp.usuario
+            ADD CONSTRAINT uq_usuario_tenant_id_id UNIQUE (tenant_id, id);
+    END IF;
+END $$;
+
 CREATE TABLE IF NOT EXISTS integrarp.auth_login_attempt (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id uuid NULL,
@@ -7098,7 +7107,18 @@ CREATE TABLE IF NOT EXISTS integrarp.auth_login_tentativa (
 ALTER TABLE IF EXISTS integrarp.auth_login_tentativa
     ADD COLUMN IF NOT EXISTS user_agent text,
     ADD COLUMN IF NOT EXISTS motivo text,
+    ADD COLUMN IF NOT EXISTS reason text,
     ADD COLUMN IF NOT EXISTS correlation_id text;
+
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'integrarp' AND table_name = 'auth_login_tentativa' AND column_name = 'reason') THEN
+        UPDATE integrarp.auth_login_tentativa
+           SET motivo = COALESCE(motivo, reason)
+         WHERE motivo IS NULL AND reason IS NOT NULL;
+        ALTER TABLE integrarp.auth_login_tentativa ALTER COLUMN reason DROP NOT NULL;
+    END IF;
+END $$;
 
 INSERT INTO integrarp.auth_login_tentativa (id, tenant_id, usuario_id, email_normalizado, sucesso, ip, user_agent, motivo, correlation_id, criado_em)
 SELECT a.id, a.tenant_id, a.usuario_id, a.email_normalizado, a.success, a.ip_address::text, NULL::text, a.failure_reason, a.correlation_id, a.criado_em
@@ -7142,7 +7162,7 @@ FROM integrarp.tenant t;
 
 -- >>> 0031_v125_core_comercial_ux_operacional.sql
 -- IntegraRP v1.25 - Core Comercial, UX Premium e Operação Intuitiva
--- PostgreSQL 16; schema integrarp; migration aditiva, idempotente e sem search_path.
+-- PostgreSQL 16; schema integrarp; migration aditiva, idempotente.
 
 ALTER TABLE IF EXISTS integrarp.auth_sessao
     ADD COLUMN IF NOT EXISTS correlation_id text,
@@ -7153,59 +7173,182 @@ ALTER TABLE IF EXISTS integrarp.auth_login_tentativa
     ADD COLUMN IF NOT EXISTS motivo text,
     ADD COLUMN IF NOT EXISTS correlation_id text;
 
-CREATE TABLE IF NOT EXISTS integrarp.v125_audit_evento (
+
+CREATE TABLE IF NOT EXISTS integrarp.auditoria_evento (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id uuid NOT NULL,
     usuario_id uuid NULL,
     entidade text NOT NULL,
     entidade_id uuid NULL,
     acao text NOT NULL,
-    detalhes jsonb NOT NULL DEFAULT '{}'::jsonb,
+    dados_json jsonb NULL,
+    detalhes jsonb NULL,
+    correlation_id text NULL,
+    criado_em timestamptz NOT NULL DEFAULT now(),
+    metadata_json jsonb NOT NULL DEFAULT '{}'::jsonb
+);
+
+CREATE INDEX IF NOT EXISTS ix_auditoria_evento_tenant_criado
+    ON integrarp.auditoria_evento (tenant_id, criado_em DESC);
+
+CREATE TABLE IF NOT EXISTS integrarp.outbox_evento (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id uuid NOT NULL,
+    tipo text NULL,
+    tipo_evento text NULL,
+    canal text NULL,
+    payload jsonb NULL,
+    payload_json jsonb NOT NULL DEFAULT '{}'::jsonb,
+    status text NOT NULL DEFAULT 'pendente',
+    tentativas integer NOT NULL DEFAULT 0,
+    max_tentativas integer NOT NULL DEFAULT 5,
+    proxima_tentativa_em timestamptz NULL,
+    correlation_id text NULL,
+    criado_em timestamptz NOT NULL DEFAULT now(),
+    processado_em timestamptz NULL,
+    erro text NULL,
+    metadata_json jsonb NOT NULL DEFAULT '{}'::jsonb
+);
+
+CREATE INDEX IF NOT EXISTS ix_outbox_evento_tenant_status_criado
+    ON integrarp.outbox_evento (tenant_id, status, criado_em);
+
+CREATE TABLE IF NOT EXISTS integrarp.worker_tenant_job_lock (
+    tenant_id uuid NOT NULL,
+    job_name text NOT NULL,
+    locked_until timestamptz NOT NULL,
+    locked_by text NOT NULL DEFAULT 'integrarp-worker',
+    correlation_id text NULL,
+    atualizado_em timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY (tenant_id, job_name)
+);
+
+CREATE TABLE IF NOT EXISTS integrarp.worker_dead_letter (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id uuid NOT NULL,
+    job_name text NOT NULL,
+    payload jsonb NOT NULL DEFAULT '{}'::jsonb,
+    erro text NOT NULL,
+    attempts integer NOT NULL DEFAULT 0,
     correlation_id text NULL,
     criado_em timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX IF NOT EXISTS ix_v125_audit_evento_tenant_criado
-    ON integrarp.v125_audit_evento (tenant_id, criado_em DESC);
+DO $$
+BEGIN
+    IF to_regclass('integrarp.v125_audit_evento') IS NOT NULL THEN
+        INSERT INTO integrarp.auditoria_evento (id, tenant_id, usuario_id, entidade, entidade_id, acao, detalhes, correlation_id, criado_em)
+        SELECT id, tenant_id, usuario_id, entidade, entidade_id, acao, detalhes, correlation_id, criado_em
+          FROM integrarp.v125_audit_evento
+        ON CONFLICT (id) DO NOTHING;
+        IF NOT EXISTS (SELECT 1 FROM integrarp.v125_audit_evento) THEN
+            DROP TABLE integrarp.v125_audit_evento;
+        END IF;
+    END IF;
+    IF to_regclass('integrarp.v125_outbox_evento') IS NOT NULL THEN
+        INSERT INTO integrarp.outbox_evento (id, tenant_id, tipo, tipo_evento, payload, payload_json, status, tentativas, proxima_tentativa_em, correlation_id, criado_em, processado_em)
+        SELECT id, tenant_id, tipo, tipo, payload, payload, status, tentativas, proxima_tentativa_em, correlation_id, criado_em, processado_em
+          FROM integrarp.v125_outbox_evento
+        ON CONFLICT (id) DO NOTHING;
+        IF NOT EXISTS (SELECT 1 FROM integrarp.v125_outbox_evento) THEN
+            DROP TABLE integrarp.v125_outbox_evento;
+        END IF;
+    END IF;
+    IF to_regclass('integrarp.v125_worker_lock') IS NOT NULL THEN
+        INSERT INTO integrarp.worker_tenant_job_lock (tenant_id, job_name, locked_until, correlation_id, atualizado_em)
+        SELECT tenant_id, job_name, locked_until, correlation_id, updated_at FROM integrarp.v125_worker_lock
+        ON CONFLICT (tenant_id, job_name) DO UPDATE SET locked_until = EXCLUDED.locked_until, correlation_id = EXCLUDED.correlation_id, atualizado_em = EXCLUDED.atualizado_em;
+        IF NOT EXISTS (SELECT 1 FROM integrarp.v125_worker_lock) THEN
+            DROP TABLE integrarp.v125_worker_lock;
+        END IF;
+    END IF;
+    IF to_regclass('integrarp.v125_dashboard_agregado') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM integrarp.v125_dashboard_agregado) THEN
+        DROP TABLE integrarp.v125_dashboard_agregado;
+    END IF;
+END $$;
 
-CREATE TABLE IF NOT EXISTS integrarp.v125_outbox_evento (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    tenant_id uuid NOT NULL,
-    tipo text NOT NULL,
-    payload jsonb NOT NULL,
-    status text NOT NULL DEFAULT 'pendente',
-    tentativas integer NOT NULL DEFAULT 0,
-    proxima_tentativa_em timestamptz NULL,
-    correlation_id text NULL,
-    criado_em timestamptz NOT NULL DEFAULT now(),
-    processado_em timestamptz NULL
-);
-
-CREATE INDEX IF NOT EXISTS ix_v125_outbox_evento_tenant_status
-    ON integrarp.v125_outbox_evento (tenant_id, status, criado_em);
-
-CREATE TABLE IF NOT EXISTS integrarp.v125_dashboard_agregado (
-    tenant_id uuid PRIMARY KEY,
-    pedidos_em_andamento integer NOT NULL DEFAULT 0,
-    pedidos_aguardando_confirmacao integer NOT NULL DEFAULT 0,
-    tarefas_vencidas integer NOT NULL DEFAULT 0,
-    tarefas_para_hoje integer NOT NULL DEFAULT 0,
-    estoque_critico integer NOT NULL DEFAULT 0,
-    reservas_pendentes integer NOT NULL DEFAULT 0,
-    processos_ativos integer NOT NULL DEFAULT 0,
-    outbox_com_erro integer NOT NULL DEFAULT 0,
-    atualizado_em timestamptz NOT NULL DEFAULT now()
-);
-
-CREATE TABLE IF NOT EXISTS integrarp.v125_worker_lock (
-    tenant_id uuid NOT NULL,
-    job_name text NOT NULL,
-    locked_until timestamptz NOT NULL,
-    correlation_id text NULL,
-    updated_at timestamptz NOT NULL DEFAULT now(),
-    PRIMARY KEY (tenant_id, job_name)
-);
+CREATE OR REPLACE VIEW integrarp.vw_dashboard_operacional AS
+SELECT
+    t.id AS tenant_id,
+    COALESCE((SELECT count(*) FROM integrarp.pedido p WHERE p.tenant_id = t.id AND lower(COALESCE(p.status, '')) IN ('aberto','em_andamento','andamento','processando','confirmado','em_separacao')), 0)::integer AS pedidos_em_andamento,
+    COALESCE((SELECT count(*) FROM integrarp.pedido p WHERE p.tenant_id = t.id AND lower(COALESCE(p.status, '')) IN ('rascunho','aguardando_confirmacao')), 0)::integer AS pedidos_aguardando_confirmacao,
+    COALESCE((SELECT count(*) FROM integrarp.tarefa tf WHERE tf.tenant_id = t.id AND tf.prazo_em < now() AND lower(COALESCE(tf.status, '')) NOT IN ('concluida','concluído','cancelada')), 0)::integer AS tarefas_vencidas,
+    COALESCE((SELECT count(*) FROM integrarp.outbox_evento oe WHERE oe.tenant_id = t.id AND lower(COALESCE(oe.status, '')) IN ('erro','failed','falha')), 0)::integer AS outbox_com_erro,
+    now() AS atualizado_em
+FROM integrarp.tenant t;
 
 -- <<< 0031_v125_core_comercial_ux_operacional.sql
+
+-- >>> 0032_v126_jornada_comercial_ux_premium.sql
+-- IntegraRP v1.26 - Jornada Comercial Real, UX Premium e Homologação Verde
+-- PostgreSQL 16; schema integrarp; migration aditiva, idempotente.
+
+ALTER TABLE IF EXISTS integrarp.auth_login_tentativa
+    ADD COLUMN IF NOT EXISTS motivo text,
+    ADD COLUMN IF NOT EXISTS reason text,
+    ADD COLUMN IF NOT EXISTS user_agent text,
+    ADD COLUMN IF NOT EXISTS correlation_id text;
+
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'integrarp' AND table_name = 'auth_login_tentativa' AND column_name = 'reason') THEN
+        UPDATE integrarp.auth_login_tentativa
+           SET motivo = COALESCE(motivo, reason)
+         WHERE motivo IS NULL AND reason IS NOT NULL;
+        ALTER TABLE integrarp.auth_login_tentativa ALTER COLUMN reason DROP NOT NULL;
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'integrarp' AND table_name = 'auth_login_attempt' AND column_name = 'failure_reason') THEN
+        INSERT INTO integrarp.auth_login_tentativa (id, tenant_id, usuario_id, email_normalizado, sucesso, ip, user_agent, motivo, correlation_id, criado_em)
+        SELECT a.id, a.tenant_id, a.usuario_id, a.email_normalizado, a.success, a.ip_address::text, NULL::text, a.failure_reason, a.correlation_id, a.criado_em
+          FROM integrarp.auth_login_attempt a
+         WHERE NOT EXISTS (SELECT 1 FROM integrarp.auth_login_tentativa t WHERE t.id = a.id);
+    END IF;
+END $$;
+
+CREATE INDEX IF NOT EXISTS ix_auth_login_tentativa_tenant_sucesso_criado
+    ON integrarp.auth_login_tentativa (tenant_id, sucesso, criado_em DESC);
+
+CREATE TABLE IF NOT EXISTS integrarp.pedido_historico_status (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id uuid NOT NULL,
+    pedido_id uuid NOT NULL,
+    status_anterior text NULL,
+    status_novo text NOT NULL,
+    usuario_id uuid NULL,
+    motivo text NULL,
+    correlation_id text NULL,
+    criado_em timestamptz NOT NULL DEFAULT now()
+);
+
+ALTER TABLE IF EXISTS integrarp.estoque_movimento
+    ADD COLUMN IF NOT EXISTS idempotency_key text,
+    ADD COLUMN IF NOT EXISTS correlation_id text;
+
+ALTER TABLE IF EXISTS integrarp.estoque_reserva
+    ADD COLUMN IF NOT EXISTS idempotency_key text,
+    ADD COLUMN IF NOT EXISTS correlation_id text;
+
+CREATE UNIQUE INDEX IF NOT EXISTS ux_estoque_movimento_idempotency
+    ON integrarp.estoque_movimento (tenant_id, idempotency_key)
+    WHERE idempotency_key IS NOT NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS ux_estoque_reserva_idempotency
+    ON integrarp.estoque_reserva (tenant_id, idempotency_key)
+    WHERE idempotency_key IS NOT NULL;
+
+CREATE OR REPLACE VIEW integrarp.vw_dashboard_operacional AS
+SELECT
+    t.id AS tenant_id,
+    COALESCE((SELECT count(*) FROM integrarp.pedido p WHERE p.tenant_id = t.id AND lower(COALESCE(p.status, '')) IN ('confirmado','em_separacao','separado','faturamento_pendente','aberto','em_andamento','andamento','processando')), 0)::integer AS pedidos_em_andamento,
+    COALESCE((SELECT count(*) FROM integrarp.pedido p WHERE p.tenant_id = t.id AND lower(COALESCE(p.status, '')) IN ('rascunho','aguardando_confirmacao')), 0)::integer AS pedidos_aguardando_confirmacao,
+    COALESCE((SELECT count(*) FROM integrarp.tarefa tf WHERE tf.tenant_id = t.id AND tf.prazo_em < now() AND lower(COALESCE(tf.status, '')) NOT IN ('concluida','concluído','cancelada')), 0)::integer AS tarefas_vencidas,
+    COALESCE((SELECT count(*) FROM integrarp.tarefa tf WHERE tf.tenant_id = t.id AND tf.prazo_em::date = CURRENT_DATE AND lower(COALESCE(tf.status, '')) NOT IN ('concluida','concluído','cancelada')), 0)::integer AS tarefas_para_hoje,
+    COALESCE((SELECT count(*) FROM integrarp.estoque_saldo es JOIN integrarp.produto p ON p.tenant_id = es.tenant_id AND p.id = es.produto_id WHERE es.tenant_id = t.id AND COALESCE(es.quantidade_disponivel, es.quantidade, 0) <= COALESCE(p.estoque_minimo, 0)), 0)::integer AS estoque_critico,
+    COALESCE((SELECT count(*) FROM integrarp.estoque_reserva er WHERE er.tenant_id = t.id AND lower(COALESCE(er.status, '')) IN ('pendente','reservado')), 0)::integer AS reservas_pendentes,
+    COALESCE((SELECT count(*) FROM integrarp.outbox_evento oe WHERE oe.tenant_id = t.id AND lower(COALESCE(oe.status, '')) IN ('erro','failed','falha')), 0)::integer AS outbox_com_erro,
+    now() AS atualizado_em
+FROM integrarp.tenant t;
+
+-- <<< 0032_v126_jornada_comercial_ux_premium.sql
 
 COMMIT;

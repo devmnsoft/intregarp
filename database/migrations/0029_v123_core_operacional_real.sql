@@ -7,6 +7,15 @@ ALTER TABLE IF EXISTS integrarp.usuario ADD COLUMN IF NOT EXISTS last_failed_log
 ALTER TABLE IF EXISTS integrarp.usuario ADD COLUMN IF NOT EXISTS security_stamp uuid NOT NULL DEFAULT gen_random_uuid();
 ALTER TABLE IF EXISTS integrarp.usuario ADD COLUMN IF NOT EXISTS row_version bigint NOT NULL DEFAULT 0;
 
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'integrarp' AND table_name = 'usuario')
+       AND NOT EXISTS (SELECT 1 FROM pg_constraint WHERE connamespace = 'integrarp'::regnamespace AND conname = 'uq_usuario_tenant_id_id') THEN
+        ALTER TABLE integrarp.usuario
+            ADD CONSTRAINT uq_usuario_tenant_id_id UNIQUE (tenant_id, id);
+    END IF;
+END $$;
+
 CREATE TABLE IF NOT EXISTS integrarp.auth_login_attempt (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id uuid NULL,

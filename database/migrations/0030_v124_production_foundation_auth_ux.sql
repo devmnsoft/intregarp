@@ -46,7 +46,18 @@ CREATE TABLE IF NOT EXISTS integrarp.auth_login_tentativa (
 ALTER TABLE IF EXISTS integrarp.auth_login_tentativa
     ADD COLUMN IF NOT EXISTS user_agent text,
     ADD COLUMN IF NOT EXISTS motivo text,
+    ADD COLUMN IF NOT EXISTS reason text,
     ADD COLUMN IF NOT EXISTS correlation_id text;
+
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'integrarp' AND table_name = 'auth_login_tentativa' AND column_name = 'reason') THEN
+        UPDATE integrarp.auth_login_tentativa
+           SET motivo = COALESCE(motivo, reason)
+         WHERE motivo IS NULL AND reason IS NOT NULL;
+        ALTER TABLE integrarp.auth_login_tentativa ALTER COLUMN reason DROP NOT NULL;
+    END IF;
+END $$;
 
 INSERT INTO integrarp.auth_login_tentativa (id, tenant_id, usuario_id, email_normalizado, sucesso, ip, user_agent, motivo, correlation_id, criado_em)
 SELECT a.id, a.tenant_id, a.usuario_id, a.email_normalizado, a.success, a.ip_address::text, NULL::text, a.failure_reason, a.correlation_id, a.criado_em

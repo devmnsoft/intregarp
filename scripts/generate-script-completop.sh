@@ -4,7 +4,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MANIFEST="$ROOT/database/migration_manifest.json"
 OUT="$ROOT/database/script_completop.sql"
 LEGACY="$ROOT/database/scriptcompleto.sql"
-LOG="$ROOT/artifacts/v120/database/script_completop_generation.log"
+LOG="$ROOT/artifacts/v126/database/script_completop_generation.log"
 mkdir -p "$(dirname "$LOG")"
 python3 - <<'PY' "$ROOT" "$MANIFEST" "$OUT" "$LEGACY" "$LOG"
 import json, re, sys, hashlib
@@ -36,8 +36,8 @@ for e in sorted(manifest['migrations'], key=lambda x:x['ordem']):
 body="BEGIN;\n\n"+"\n".join(parts)+"\nCOMMIT;\n"
 checksum=hashlib.sha256(body.encode('utf-8')).hexdigest()
 header=f"""-- Produto: IntegraRP
--- Versão: v1.24
--- Data de geração: 2026-07-21
+-- Versão: v1.26
+-- Data de geração: 2026-07-22
 -- PostgreSQL: 16
 -- Schema: integrarp
 -- Checksum SHA-256 do corpo transacional: {checksum}
