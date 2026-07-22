@@ -12,6 +12,22 @@ public sealed class PostgresMigrationRunner(
 {
     private const long LockKey = 2026070201;
 
+    private static readonly IReadOnlyDictionary<string, HashSet<string>> KnownHistoricalChecksums = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase)
+    {
+        ["0029_v123_core_operacional_real.sql"] = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "edb3ca5b3b1ff6413824efcaba388b5f46868812124b27f9d40c55a1df0f660e",
+        },
+        ["0030_v124_production_foundation_auth_ux.sql"] = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "a35cbcaf3af9e63b36234f862f3f477f97b340200355ce7ca05a566bf6ea6cf2",
+        },
+        ["0031_v125_core_comercial_ux_operacional.sql"] = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "a900480526dfe266eab0ac691cbf3b660e15673f60b6d6d7ae8934ba39f11c23",
+        },
+    };
+
     public async Task RunAsync(CancellationToken ct)
     {
         try
@@ -45,7 +61,13 @@ public sealed class PostgresMigrationRunner(
 
                     if (existingChecksum is not null)
                     {
-                        throw new InvalidOperationException($"Migration {script.Name} já executada com checksum diferente.");
+                        if (IsKnownHistoricalChecksum(script.Name, existingChecksum))
+                        {
+                            logger.LogWarning("Migration {ScriptName} já executada com checksum histórico conhecido {Checksum}; preservando histórico e não reaplicando script corrigido", script.Name, existingChecksum);
+                            continue;
+                        }
+
+                        throw new InvalidOperationException($"Migration {script.Name} já executada com checksum diferente e não reconhecido: {existingChecksum}.");
                     }
 
                     await ExecuteScriptAsync(connection, script, ct);
@@ -62,6 +84,9 @@ public sealed class PostgresMigrationRunner(
             throw;
         }
     }
+
+    private static bool IsKnownHistoricalChecksum(string scriptName, string checksum) =>
+        KnownHistoricalChecksums.TryGetValue(scriptName, out var checksums) && checksums.Contains(checksum);
 
     private async Task ExecuteScriptAsync(System.Data.IDbConnection connection, MigrationScript script, CancellationToken cancellationToken)
     {
