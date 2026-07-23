@@ -1,54 +1,61 @@
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-MIGRATIONS="$ROOT/database/migrations"
 MANIFEST="$ROOT/database/migration_manifest.json"
-OUT="$ROOT/database/scriptcompleto.sql"
-TMP="$(mktemp)"
-trap 'rm -f "$TMP"' EXIT
+OUT="$ROOT/database/script_completop.sql"
+LEGACY="$ROOT/database/scriptcompleto.sql"
 
-python3 - "$MIGRATIONS" "$MANIFEST" "$OUT" <<'PY'
-import hashlib, json, pathlib, re, sys
-migrations=pathlib.Path(sys.argv[1]); manifest=pathlib.Path(sys.argv[2]); out=pathlib.Path(sys.argv[3])
-data=json.loads(manifest.read_text(encoding='utf-8'))
-data['gerado_para']='v1.15'
-entries=data.get('migrations', [])
-files=sorted(p.name for p in migrations.glob('*.sql'))
-manifest_files=[e.get('arquivo') for e in entries]
-missing=[f for f in files if f not in manifest_files]
-absent=[f for f in manifest_files if f and not (migrations/f).exists()]
-prefixes={}
-for f in files:
-    prefix=f.split('_',1)[0]
-    prefixes.setdefault(prefix,[]).append(f)
-allowed_duplicate_prefixes={'0014','0020','0021'}
-dups={k:v for k,v in prefixes.items() if len(v)>1 and k not in allowed_duplicate_prefixes}
-if missing or absent or dups:
-    raise SystemExit(f'manifest mismatch missing={missing} absent={absent} duplicate_prefix={dups}')
-for i,e in enumerate(entries, start=1):
-    e['ordem']=i
-    e['presente_no_scriptcompleto']=True
-    e.setdefault('status','versionada')
-manifest.write_text(json.dumps(data, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
-allowed=re.compile(r'\bintegrarp\.', re.I)
-for p in migrations.glob('*.sql'):
-    txt=p.read_text(encoding='utf-8')
-    forbidden=re.findall(r'\b(public|integra)\.', txt, flags=re.I)
-    if forbidden:
-        raise SystemExit(f'{p.name}: schema não permitido: {forbidden}')
-parts=['-- IntegraRP scriptcompleto gerado deterministicamente para v1.15', 'CREATE SCHEMA IF NOT EXISTS integrarp;']
-for name in files:
-    txt=(migrations/name).read_text(encoding='utf-8').strip()
-    parts.append(f"\n-- =====================================================================\n-- Migration: {name}\n-- =====================================================================\n{txt}\n")
-body='\n'.join(parts)+'\n'
+python3 - <<'PY' "$ROOT" "$MANIFEST" "$OUT" "$LEGACY"
+import json, re, sys, hashlib
+from pathlib import Path
+root, manifest_path, out, legacy = map(Path, sys.argv[1:])
+manifest=json.loads(manifest_path.read_text())
+version=manifest["gerado_para"]
+artifact_version=version.replace(".", "")
+log=root/"artifacts"/artifact_version/"database"/"script_completop_generation.log"
+log.parent.mkdir(parents=True, exist_ok=True)
+generated_at=__import__("datetime").datetime.now(__import__("datetime").timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+required={"ordem","arquivo","versao","descricao","modulo","presente_no_script_completop","status","observacoes"}
+files={p.name for p in (root/'database/migrations').glob('*.sql')}
+seen=[]; parts=[]; included=[]
+for e in manifest.get('migrations',[]):
+    keys=set(e.keys())
+    if not required.issubset(keys): raise SystemExit(f"Contrato inválido: {e}")
+    if e['arquivo'] not in files: raise SystemExit(f"Migration ausente: {e['arquivo']}")
+    if e['arquivo'] in seen: raise SystemExit(f"Migration duplicada: {e['arquivo']}")
+    seen.append(e['arquivo'])
+extra=files-set(seen)
+if extra: raise SystemExit(f"Migration excedente no diretório: {sorted(extra)}")
+for e in sorted(manifest['migrations'], key=lambda x:x['ordem']):
+    if not e['presente_no_script_completop']: continue
+    path=root/'database/migrations'/e['arquivo']
+    text=path.read_text().replace('\r\n','\n').replace('\r','\n')
+    lines=[ln for ln in text.splitlines() if ln.strip().upper() not in ('BEGIN;','COMMIT;')]
+    text='\n'.join(lines).strip()+"\n"
+    if re.search(r'\bSET\s+(LOCAL\s+)?search_path\b', text, re.I): raise SystemExit(f"search_path proibido em {e['arquivo']}")
+    if re.search(r'(^|\s)(public|integra|dbo)\.', text, re.I): raise SystemExit(f"Schema proibido em {e['arquivo']}")
+    if re.search(r'(?m)^\s*VALUES\s*\(', text) and re.search(r'(?m)^\s*ON\s+CONFLICT\s*\(version\)', text): raise SystemExit(f"Bloco órfão provável em {e['arquivo']}")
+    parts.append(f"-- >>> {e['arquivo']}\n{text}\n-- <<< {e['arquivo']}\n")
+    included.append(e['arquivo'])
+body="BEGIN;\n\n"+"\n".join(parts)+"\nCOMMIT;\n"
 checksum=hashlib.sha256(body.encode('utf-8')).hexdigest()
-out.write_text(f'-- checksum_sha256: {checksum}\n'+body, encoding='utf-8')
-print(checksum)
-PY
+header=f"""-- Produto: IntegraRP
+-- Versão: {version}
+-- Data UTC: {generated_at}
+-- PostgreSQL: 16
+-- Schema: integrarp
+-- Checksum SHA-256 do corpo transacional: {checksum}
+-- Contrato: {manifest.get("contrato", "")}
+-- Número de migrations: {len(included)}
+-- Instruções: executar no pgAdmin Query Tool ou via psql -X "$DATABASE_URL" --set ON_ERROR_STOP=1 --file database/script_completop.sql.
+-- Aviso: este script não cria usuário com senha nem armazena credenciais.
 
-if command -v psql >/dev/null 2>&1 && [[ -n "${DATABASE_URL:-}" ]]; then
-  psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$OUT"
-  psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$OUT"
-else
-  echo "psql/DATABASE_URL ausente; geração concluída sem validação PostgreSQL." >&2
-fi
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE SCHEMA IF NOT EXISTS integrarp;
+
+"""
+content=header+body
+out.write_text(content, encoding='utf-8', newline='\n')
+legacy.write_text(content, encoding='utf-8', newline='\n')
+log.write_text("Script gerado: database/script_completop.sql\nChecksum corpo: "+checksum+"\nMigrations incluídas:\n"+"\n".join(included)+"\n", encoding='utf-8')
+PY

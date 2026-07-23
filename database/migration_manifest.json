@@ -1,7 +1,7 @@
 {
   "schema": "integrarp",
-  "gerado_para": "v1.28",
-  "contrato": "v1.28-script-completop",
+  "gerado_para": "v1.29",
+  "contrato": "v1.29-script-completop",
   "migrations": [
     {
       "ordem": 1,
@@ -342,6 +342,16 @@
       "presente_no_script_completop": true,
       "status": "versionada",
       "observacoes": "Migration aditiva para reconciliação comercial v1.28."
+    },
+    {
+      "ordem": 35,
+      "arquivo": "0035_v129_jornada_comercial_real.sql",
+      "versao": "0035_v129_jornada_comercial_real",
+      "descricao": "v1.29 jornada comercial real, multi-tenant keys, tarefas, auditoria, outbox e dashboard",
+      "modulo": "Commercial",
+      "presente_no_script_completop": true,
+      "status": "versionada",
+      "observacoes": "Entrega v1.29."
     }
   ],
   "postgresql": "16",

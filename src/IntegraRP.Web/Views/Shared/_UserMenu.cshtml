@@ -1,1 +1,1 @@
-<div class="user-menu"><span class="avatar" aria-hidden="true">IR</span><div><strong>Operador</strong><small>Administrador</small></div><a class="btn btn-outline-secondary btn-sm" asp-controller="Account" asp-action="Logout">Sair</a></div>
+<div class="user-menu"><span class="avatar" aria-hidden="true">IR</span><div><strong>@(User.Identity?.Name ?? "Usuário")</strong><small>@(User.FindFirst("role")?.Value ?? "Perfil")</small></div><a class="btn btn-outline-secondary btn-sm" asp-controller="Account" asp-action="Logout">Sair</a></div>
