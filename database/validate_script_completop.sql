@@ -74,3 +74,18 @@ BEGIN
 END $$;
 
 SELECT 'integrarp validation ok' AS status;
+
+-- IntegraRP v1.27 validation gates
+DO $$
+BEGIN
+    IF to_regclass('integrarp.vw_dashboard_operacional') IS NULL THEN
+        RAISE EXCEPTION 'v1.27 inválida: view integrarp.vw_dashboard_operacional ausente';
+    END IF;
+    IF to_regclass('integrarp.tarefa_operacional') IS NULL THEN
+        RAISE EXCEPTION 'v1.27 inválida: fila canônica integrarp.tarefa_operacional ausente';
+    END IF;
+    IF to_regclass('integrarp.auditoria_evento') IS NULL OR to_regclass('integrarp.outbox_evento') IS NULL THEN
+        RAISE EXCEPTION 'v1.27 inválida: objetos canônicos de auditoria/outbox ausentes';
+    END IF;
+    PERFORM 1 FROM integrarp.vw_dashboard_operacional LIMIT 1;
+END $$;

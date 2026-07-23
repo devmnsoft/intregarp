@@ -1,7 +1,7 @@
 {
   "schema": "integrarp",
-  "gerado_para": "v1.26",
-  "contrato": "v1.26-script-completop",
+  "gerado_para": "v1.27",
+  "contrato": "v1.27-script-completop",
   "migrations": [
     {
       "ordem": 1,
@@ -322,6 +322,16 @@
       "presente_no_script_completop": true,
       "status": "versionada",
       "observacoes": "Migration aditiva para consolidar contrato canônico de login, idempotência de estoque/reserva, histórico de pedidos e dashboard operacional v1.26."
+    },
+    {
+      "ordem": 33,
+      "arquivo": "0033_v127_operacao_comercial_executavel.sql",
+      "versao": "0033_v127_operacao_comercial_executavel",
+      "descricao": "v1.27 operacao comercial executavel",
+      "modulo": "Database",
+      "presente_no_script_completop": true,
+      "status": "versionada",
+      "observacoes": "Migration corretiva aditiva para compatibilidade histórica, objetos canônicos e dashboard operacional."
     }
   ],
   "postgresql": "16",

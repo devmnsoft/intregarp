@@ -12,21 +12,7 @@ public sealed class PostgresMigrationRunner(
 {
     private const long LockKey = 2026070201;
 
-    private static readonly IReadOnlyDictionary<string, HashSet<string>> KnownHistoricalChecksums = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase)
-    {
-        ["0029_v123_core_operacional_real.sql"] = new(StringComparer.OrdinalIgnoreCase)
-        {
-            "edb3ca5b3b1ff6413824efcaba388b5f46868812124b27f9d40c55a1df0f660e",
-        },
-        ["0030_v124_production_foundation_auth_ux.sql"] = new(StringComparer.OrdinalIgnoreCase)
-        {
-            "a35cbcaf3af9e63b36234f862f3f477f97b340200355ce7ca05a566bf6ea6cf2",
-        },
-        ["0031_v125_core_comercial_ux_operacional.sql"] = new(StringComparer.OrdinalIgnoreCase)
-        {
-            "a900480526dfe266eab0ac691cbf3b660e15673f60b6d6d7ae8934ba39f11c23",
-        },
-    };
+    private static readonly MigrationCompatibilityPlan CompatibilityPlan = MigrationCompatibilityPlan.V127();
 
     public async Task RunAsync(CancellationToken ct)
     {
@@ -47,6 +33,8 @@ public sealed class PostgresMigrationRunner(
 
             try
             {
+                var historicalMigrationsToValidate = new List<KnownHistoricalMigration>();
+
                 foreach (var file in Directory.GetFiles(directory, "*.sql").OrderBy(Path.GetFileName))
                 {
                     var script = new MigrationScript(Path.GetFileName(file), file, await File.ReadAllTextAsync(file, ct));
@@ -61,9 +49,11 @@ public sealed class PostgresMigrationRunner(
 
                     if (existingChecksum is not null)
                     {
-                        if (IsKnownHistoricalChecksum(script.Name, existingChecksum))
+                        var knownHistorical = CompatibilityPlan.Find(script.Name, existingChecksum);
+                        if (knownHistorical is not null)
                         {
-                            logger.LogWarning("Migration {ScriptName} já executada com checksum histórico conhecido {Checksum}; preservando histórico e não reaplicando script corrigido", script.Name, existingChecksum);
+                            logger.LogWarning("Migration {ScriptName} já executada com checksum histórico conhecido {Checksum}; preservando histórico, não reaplicando script corrigido e aguardando migration corretiva {CorrectiveMigration}", script.Name, existingChecksum, knownHistorical.CorrectiveMigration);
+                            historicalMigrationsToValidate.Add(knownHistorical);
                             continue;
                         }
 
@@ -71,6 +61,12 @@ public sealed class PostgresMigrationRunner(
                     }
 
                     await ExecuteScriptAsync(connection, script, ct);
+                }
+
+                var postConditionValidator = new MigrationPostConditionValidator();
+                foreach (var knownHistorical in historicalMigrationsToValidate)
+                {
+                    await postConditionValidator.ValidateAsync(connection, knownHistorical);
                 }
             }
             finally
@@ -84,9 +80,6 @@ public sealed class PostgresMigrationRunner(
             throw;
         }
     }
-
-    private static bool IsKnownHistoricalChecksum(string scriptName, string checksum) =>
-        KnownHistoricalChecksums.TryGetValue(scriptName, out var checksums) && checksums.Contains(checksum);
 
     private async Task ExecuteScriptAsync(System.Data.IDbConnection connection, MigrationScript script, CancellationToken cancellationToken)
     {
