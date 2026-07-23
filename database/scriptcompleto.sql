@@ -1,12 +1,13 @@
 -- Produto: IntegraRP
--- Versão: v1.27
+-- Versão: v1.29
+-- Data UTC: 2026-07-23T23:38:44Z
 -- PostgreSQL: 16
 -- Schema: integrarp
--- checksum: 43238251e5a5250bcfbf881597201d7c2aed5f11a70f1a124d476f62f4b622b5
--- migrations: 33
--- data de geração: 2026-07-23T16:36:29Z
--- instrução de execução: psql "$INTEGRARP_CONNECTION_STRING" -v ON_ERROR_STOP=1 -f database/script_completop.sql
--- aviso: este script não cria senha fixa; credenciais iniciais devem ser provisionadas por configuração segura.
+-- Checksum SHA-256 do corpo transacional: efdbed36b392c97dd94563938d44e3cdcfebbe2dec8fd39c17b065bf5a4f0110
+-- Contrato: v1.29-script-completop
+-- Número de migrations: 35
+-- Instruções: executar no pgAdmin Query Tool ou via psql -X "$DATABASE_URL" --set ON_ERROR_STOP=1 --file database/script_completop.sql.
+-- Aviso: este script não cria usuário com senha nem armazena credenciais.
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE SCHEMA IF NOT EXISTS integrarp;
@@ -7351,17 +7352,10 @@ FROM integrarp.tenant t;
 
 -- <<< 0032_v126_jornada_comercial_ux_premium.sql
 
-COMMIT;
-
-
--- ============================================================================
--- Migration: 0033_v127_operacao_comercial_executavel.sql
--- ============================================================================
+-- >>> 0033_v127_operacao_comercial_executavel.sql
 -- IntegraRP v1.27 - Operacao Comercial Executavel, UX Premium e Release Homologada
 -- PostgreSQL 16; schema integrarp; migration aditiva e idempotente.
 
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-CREATE SCHEMA IF NOT EXISTS integrarp;
 
 ALTER TABLE IF EXISTS integrarp.auditoria_evento
     ADD COLUMN IF NOT EXISTS antes_json jsonb,
@@ -7431,19 +7425,19 @@ CREATE INDEX IF NOT EXISTS ix_estoque_reserva_tenant_status ON integrarp.estoque
 
 DO $$
 BEGIN
-    IF to_regclass('integrarp.v125_audit_evento') IS NOT NULL AND to_regclass('integrarp.auditoria_evento') IS NOT NULL THEN
+    IF to_regclass('integrarp.v125_audit_evento') IS NOT NULL AND to_regclass('integrarp.v125_audit_evento_legacy') IS NULL AND to_regclass('integrarp.auditoria_evento') IS NOT NULL THEN
         EXECUTE 'INSERT INTO integrarp.auditoria_evento (id, tenant_id, usuario_id, entidade, entidade_id, acao, detalhes, correlation_id, criado_em) SELECT id, tenant_id, usuario_id, entidade, entidade_id, acao, detalhes, correlation_id, criado_em FROM integrarp.v125_audit_evento ON CONFLICT (id) DO NOTHING';
         ALTER TABLE integrarp.v125_audit_evento RENAME TO v125_audit_evento_legacy;
     END IF;
-    IF to_regclass('integrarp.v125_outbox_evento') IS NOT NULL AND to_regclass('integrarp.outbox_evento') IS NOT NULL THEN
+    IF to_regclass('integrarp.v125_outbox_evento') IS NOT NULL AND to_regclass('integrarp.v125_outbox_evento_legacy') IS NULL AND to_regclass('integrarp.outbox_evento') IS NOT NULL THEN
         EXECUTE 'INSERT INTO integrarp.outbox_evento (id, tenant_id, tipo, tipo_evento, payload, payload_json, status, tentativas, proxima_tentativa_em, correlation_id, criado_em, processado_em) SELECT id, tenant_id, tipo, tipo, payload, payload, status, tentativas, proxima_tentativa_em, correlation_id, criado_em, processado_em FROM integrarp.v125_outbox_evento ON CONFLICT (id) DO NOTHING';
         ALTER TABLE integrarp.v125_outbox_evento RENAME TO v125_outbox_evento_legacy;
     END IF;
-    IF to_regclass('integrarp.v125_worker_lock') IS NOT NULL AND to_regclass('integrarp.worker_tenant_job_lock') IS NOT NULL THEN
+    IF to_regclass('integrarp.v125_worker_lock') IS NOT NULL AND to_regclass('integrarp.v125_worker_lock_legacy') IS NULL AND to_regclass('integrarp.worker_tenant_job_lock') IS NOT NULL THEN
         EXECUTE 'INSERT INTO integrarp.worker_tenant_job_lock (tenant_id, job_name, locked_until, correlation_id, atualizado_em) SELECT tenant_id, job_name, locked_until, correlation_id, updated_at FROM integrarp.v125_worker_lock ON CONFLICT (tenant_id, job_name) DO UPDATE SET locked_until = EXCLUDED.locked_until, correlation_id = EXCLUDED.correlation_id, atualizado_em = EXCLUDED.atualizado_em';
         ALTER TABLE integrarp.v125_worker_lock RENAME TO v125_worker_lock_legacy;
     END IF;
-    IF to_regclass('integrarp.v125_dashboard_agregado') IS NOT NULL THEN
+    IF to_regclass('integrarp.v125_dashboard_agregado') IS NOT NULL AND to_regclass('integrarp.v125_dashboard_agregado_legacy') IS NULL THEN
         ALTER TABLE integrarp.v125_dashboard_agregado RENAME TO v125_dashboard_agregado_legacy;
     END IF;
 END $$;
@@ -7460,6 +7454,10 @@ SELECT
     COALESCE((SELECT count(*) FROM integrarp.outbox_evento oe WHERE oe.tenant_id = t.id AND lower(COALESCE(oe.status, '')) IN ('erro','failed','falha')), 0)::integer AS outbox_com_erro,
     now() AS atualizado_em
 FROM integrarp.tenant t;
+
+-- <<< 0033_v127_operacao_comercial_executavel.sql
+
+-- >>> 0034_v128_core_comercial_producao.sql
 -- IntegraRP v1.28 - Core Comercial em Produção
 -- PostgreSQL 16 | schema integrarp | migration aditiva e idempotente
 
@@ -7545,3 +7543,103 @@ ALTER TABLE integrarp.outbox_evento ADD COLUMN IF NOT EXISTS proxima_tentativa_e
 ALTER TABLE integrarp.outbox_evento ADD COLUMN IF NOT EXISTS correlation_id uuid;
 CREATE INDEX IF NOT EXISTS ix_outbox_evento_tenant_status_proxima ON integrarp.outbox_evento (tenant_id, status, proxima_tentativa_em);
 CREATE UNIQUE INDEX IF NOT EXISTS ux_outbox_evento_tenant_idempotency ON integrarp.outbox_evento (tenant_id, idempotency_key) WHERE idempotency_key IS NOT NULL;
+
+-- <<< 0034_v128_core_comercial_producao.sql
+
+-- >>> 0035_v129_jornada_comercial_real.sql
+-- IntegraRP v1.29 - jornada comercial real
+-- PostgreSQL 16, schema integrarp, migration aditiva e idempotente.
+CREATE SCHEMA IF NOT EXISTS integrarp;
+
+CREATE TABLE IF NOT EXISTS integrarp.produto_categoria (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id uuid NOT NULL,
+    codigo text NOT NULL,
+    nome text NOT NULL,
+    status text NOT NULL DEFAULT 'ativo',
+    excluido_em timestamptz NULL,
+    row_version bigint NOT NULL DEFAULT 1,
+    criado_em timestamptz NOT NULL DEFAULT now(),
+    atualizado_em timestamptz NOT NULL DEFAULT now(),
+    CONSTRAINT uq_produto_categoria_tenant_codigo UNIQUE (tenant_id, codigo),
+    CONSTRAINT ck_produto_categoria_status CHECK (status IN ('ativo','inativo'))
+);
+
+CREATE TABLE IF NOT EXISTS integrarp.estoque_saldo (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id uuid NOT NULL,
+    produto_id uuid NOT NULL,
+    local_codigo text NOT NULL,
+    saldo_fisico numeric(18,4) NOT NULL DEFAULT 0,
+    saldo_reservado numeric(18,4) NOT NULL DEFAULT 0,
+    row_version bigint NOT NULL DEFAULT 1,
+    atualizado_em timestamptz NOT NULL DEFAULT now(),
+    CONSTRAINT uq_estoque_saldo_tenant_produto_local UNIQUE (tenant_id, produto_id, local_codigo),
+    CONSTRAINT ck_estoque_saldo_quantidades CHECK (saldo_fisico >= 0 AND saldo_reservado >= 0 AND saldo_fisico >= saldo_reservado)
+);
+
+CREATE TABLE IF NOT EXISTS integrarp.estoque_movimento (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id uuid NOT NULL,
+    produto_id uuid NOT NULL,
+    pedido_id uuid NULL,
+    tipo text NOT NULL,
+    quantidade numeric(18,4) NOT NULL,
+    local_codigo text NOT NULL,
+    motivo text NOT NULL,
+    usuario_id uuid NOT NULL,
+    idempotency_key text NOT NULL,
+    correlation_id text NULL,
+    criado_em timestamptz NOT NULL DEFAULT now(),
+    CONSTRAINT uq_estoque_movimento_idempotencia UNIQUE (tenant_id, idempotency_key),
+    CONSTRAINT ck_estoque_movimento_tipo CHECK (tipo IN ('entrada','saida','ajuste','reserva','liberacao','baixa','estorno')),
+    CONSTRAINT ck_estoque_movimento_quantidade CHECK (quantidade > 0)
+);
+
+CREATE TABLE IF NOT EXISTS integrarp.pedido_historico_status (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id uuid NOT NULL,
+    pedido_id uuid NOT NULL,
+    status_anterior text NULL,
+    status_novo text NOT NULL,
+    motivo text NULL,
+    usuario_id uuid NOT NULL,
+    correlation_id text NULL,
+    criado_em timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS integrarp.worker_tenant_job_lock (
+    tenant_id uuid NOT NULL,
+    job_name text NOT NULL,
+    locked_until timestamptz NOT NULL,
+    correlation_id text NULL,
+    updated_at timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY (tenant_id, job_name)
+);
+
+ALTER TABLE IF EXISTS integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS pedido_id uuid NULL;
+ALTER TABLE IF EXISTS integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS setor_id uuid NULL;
+ALTER TABLE IF EXISTS integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS checklist_resposta_json jsonb NOT NULL DEFAULT '{}'::jsonb;
+ALTER TABLE IF EXISTS integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS correlation_id text NULL;
+ALTER TABLE IF EXISTS integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS row_version bigint NOT NULL DEFAULT 1;
+ALTER TABLE IF EXISTS integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS vencimento_em timestamptz NULL;
+ALTER TABLE IF EXISTS integrarp.tarefa_operacional ALTER COLUMN prioridade TYPE text USING CASE prioridade::text WHEN '1' THEN 'baixa' WHEN '2' THEN 'normal' WHEN '3' THEN 'normal' WHEN '4' THEN 'alta' WHEN '5' THEN 'urgente' ELSE COALESCE(prioridade::text,'normal') END;
+ALTER TABLE IF EXISTS integrarp.tarefa_operacional ALTER COLUMN prioridade SET DEFAULT 'normal';
+ALTER TABLE IF EXISTS integrarp.tarefa_operacional ALTER COLUMN prioridade SET NOT NULL;
+DO $$ BEGIN
+  ALTER TABLE integrarp.tarefa_operacional ADD CONSTRAINT ck_tarefa_operacional_prioridade_v129 CHECK (prioridade IN ('baixa','normal','alta','urgente'));
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN ALTER TABLE integrarp.setor ADD CONSTRAINT uq_setor_tenant_id_v129 UNIQUE (tenant_id, id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN ALTER TABLE integrarp.pedido ADD CONSTRAINT uq_pedido_tenant_id_v129 UNIQUE (tenant_id, id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN ALTER TABLE integrarp.usuario ADD CONSTRAINT uq_usuario_tenant_id_v129 UNIQUE (tenant_id, id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN ALTER TABLE integrarp.produto ADD CONSTRAINT uq_produto_tenant_id_v129 UNIQUE (tenant_id, id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN ALTER TABLE integrarp.cliente ADD CONSTRAINT uq_cliente_tenant_id_v129 UNIQUE (tenant_id, id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+CREATE INDEX IF NOT EXISTS ix_pedido_historico_status_tenant_pedido ON integrarp.pedido_historico_status (tenant_id, pedido_id, criado_em DESC);
+CREATE INDEX IF NOT EXISTS ix_estoque_movimento_tenant_produto ON integrarp.estoque_movimento (tenant_id, produto_id, criado_em DESC);
+CREATE INDEX IF NOT EXISTS ix_worker_tenant_job_lock_until ON integrarp.worker_tenant_job_lock (locked_until);
+
+-- <<< 0035_v129_jornada_comercial_real.sql
+
+COMMIT;

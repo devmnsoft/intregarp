@@ -1,4 +1,4 @@
-name: IntegraRP CI v1.23
+name: IntegraRP CI v1.29
 
 on:
   push:
@@ -199,3 +199,12 @@ jobs:
           cp database/script_completop.sql artifacts/v123/script_completop.sql
       - uses: actions/upload-artifact@v4
         with: { name: v123-audit-${{ github.workflow }}, path: artifacts/v123, retention-days: 30 }
+
+  manifest-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate v129 database script
+        run: bash scripts/generate-script-completop.sh
+      - name: Compare canonical scripts
+        run: cmp database/script_completop.sql database/scriptcompleto.sql

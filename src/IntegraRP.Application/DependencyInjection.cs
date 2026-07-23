@@ -4,6 +4,7 @@ using IntegraRP.Application.OperationalTemplates;
 using IntegraRP.Application.Operations;
 using IntegraRP.Application.Runtime;
 using Microsoft.Extensions.DependencyInjection;
+using IntegraRP.Application.Commercial;
 
 namespace IntegraRP.Application;
 
@@ -68,6 +69,8 @@ public static class DependencyInjection
         services.AddScoped<GetDeliveryMonitoringDashboardUseCase>();
         services.AddScoped<ListPendingDeliveriesUseCase>();
         services.AddScoped<ListDeliveriesWithOccurrenceUseCase>();
+        services.AddScoped<ConfirmOrderUseCase>();
+        services.AddScoped<CompletePickingTaskUseCase>();
         return services;
     }
 }
