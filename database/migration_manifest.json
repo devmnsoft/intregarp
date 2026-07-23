@@ -1,7 +1,7 @@
 {
   "schema": "integrarp",
-  "gerado_para": "v1.27",
-  "contrato": "v1.27-script-completop",
+  "gerado_para": "v1.28",
+  "contrato": "v1.28-script-completop",
   "migrations": [
     {
       "ordem": 1,
@@ -332,6 +332,16 @@
       "presente_no_script_completop": true,
       "status": "versionada",
       "observacoes": "Migration corretiva aditiva para compatibilidade histórica, objetos canônicos e dashboard operacional."
+    },
+    {
+      "ordem": 34,
+      "arquivo": "0034_v128_core_comercial_producao.sql",
+      "versao": "0034_v128_core_comercial_producao",
+      "descricao": "v1.28 core comercial em produção",
+      "modulo": "Commercial",
+      "presente_no_script_completop": true,
+      "status": "versionada",
+      "observacoes": "Migration aditiva para reconciliação comercial v1.28."
     }
   ],
   "postgresql": "16",
