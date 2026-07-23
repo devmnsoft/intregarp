@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.Json;
 using Dapper;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -35,7 +36,7 @@ public sealed class PostgresMigrationRunner(
             {
                 var historicalMigrationsToValidate = new List<KnownHistoricalMigration>();
 
-                foreach (var file in Directory.GetFiles(directory, "*.sql").OrderBy(Path.GetFileName))
+                foreach (var file in LoadManifestOrderedMigrationFiles(directory))
                 {
                     var script = new MigrationScript(Path.GetFileName(file), file, await File.ReadAllTextAsync(file, ct));
                     var history = new MigrationHistoryRepository(connection);
@@ -66,6 +67,12 @@ public sealed class PostgresMigrationRunner(
                 var postConditionValidator = new MigrationPostConditionValidator();
                 foreach (var knownHistorical in historicalMigrationsToValidate)
                 {
+                    var correctiveChecksum = await new MigrationHistoryRepository(connection).GetChecksumAsync(knownHistorical.CorrectiveMigration);
+                    if (correctiveChecksum is null)
+                    {
+                        throw new InvalidOperationException($"A migration corretiva {knownHistorical.CorrectiveMigration} deve estar aplicada antes da pós-condição de {knownHistorical.ScriptName}.");
+                    }
+
                     await postConditionValidator.ValidateAsync(connection, knownHistorical);
                 }
             }
@@ -79,6 +86,47 @@ public sealed class PostgresMigrationRunner(
             logger.LogError(ex, "Falha no migration runner IntegraRP");
             throw;
         }
+    }
+
+
+    private static IReadOnlyList<string> LoadManifestOrderedMigrationFiles(string migrationsDirectory)
+    {
+        var databaseDirectory = Directory.GetParent(migrationsDirectory)?.FullName
+            ?? throw new InvalidOperationException($"Diretório de migrations inválido: {migrationsDirectory}.");
+        var manifestPath = Path.Combine(databaseDirectory, "migration_manifest.json");
+        if (!File.Exists(manifestPath))
+        {
+            throw new InvalidOperationException($"Manifesto de migrations não encontrado: {manifestPath}.");
+        }
+
+        using var document = JsonDocument.Parse(File.ReadAllText(manifestPath));
+        if (!document.RootElement.TryGetProperty("migrations", out var migrations) || migrations.ValueKind != JsonValueKind.Array)
+        {
+            throw new InvalidOperationException("Manifesto inválido: propriedade migrations ausente ou inválida.");
+        }
+
+        var entries = migrations.EnumerateArray().Select(item => new
+        {
+            Ordem = item.GetProperty("ordem").GetInt32(),
+            Arquivo = item.GetProperty("arquivo").GetString() ?? string.Empty,
+        }).ToList();
+
+        if (entries.Any(e => string.IsNullOrWhiteSpace(e.Arquivo))) throw new InvalidOperationException("Manifesto inválido: migration sem arquivo.");
+        var duplicatedOrder = entries.GroupBy(e => e.Ordem).FirstOrDefault(g => g.Count() > 1);
+        if (duplicatedOrder is not null) throw new InvalidOperationException($"Manifesto inválido: ordem duplicada {duplicatedOrder.Key}.");
+        var duplicatedName = entries.GroupBy(e => e.Arquivo, StringComparer.OrdinalIgnoreCase).FirstOrDefault(g => g.Count() > 1);
+        if (duplicatedName is not null) throw new InvalidOperationException($"Manifesto inválido: arquivo duplicado {duplicatedName.Key}.");
+        var duplicatedPrefix = entries.GroupBy(e => e.Arquivo.Length >= 4 ? e.Arquivo[..4] : e.Arquivo, StringComparer.OrdinalIgnoreCase).FirstOrDefault(g => g.Key.All(char.IsDigit) && g.Count() > 1);
+        if (duplicatedPrefix is not null) throw new InvalidOperationException($"Manifesto inválido: prefixo duplicado {duplicatedPrefix.Key}.");
+
+        var sqlFiles = Directory.GetFiles(migrationsDirectory, "*.sql").Select(Path.GetFileName).Where(f => f is not null).ToHashSet(StringComparer.OrdinalIgnoreCase)!;
+        var manifestFiles = entries.Select(e => e.Arquivo).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var missing = manifestFiles.Where(f => !sqlFiles.Contains(f)).ToList();
+        if (missing.Count > 0) throw new InvalidOperationException($"Manifesto inválido: arquivo ausente {string.Join(", ", missing)}.");
+        var extra = sqlFiles.Where(f => !manifestFiles.Contains(f)).ToList();
+        if (extra.Count > 0) throw new InvalidOperationException($"Manifesto inválido: migration não registrada {string.Join(", ", extra)}.");
+
+        return entries.OrderBy(e => e.Ordem).Select(e => Path.Combine(migrationsDirectory, e.Arquivo)).ToList();
     }
 
     private async Task ExecuteScriptAsync(System.Data.IDbConnection connection, MigrationScript script, CancellationToken cancellationToken)
