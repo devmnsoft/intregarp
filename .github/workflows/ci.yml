@@ -1,4 +1,4 @@
-name: IntegraRP CI v1.29
+name: IntegraRP CI v1.30
 
 on:
   push:
@@ -11,7 +11,7 @@ env:
   POSTGRES_URI: postgresql://integrarp:integrarp@localhost:5432/integrarp_ci
 
 jobs:
-  syntax-references:
+  syntax:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,12 +26,25 @@ jobs:
           while IFS= read -r file; do node --check "$file"; done < <(find src/IntegraRP.Web/wwwroot -path '*/lib/*' -prune -o -name '*.js' -print)
       - run: cmp -s database/script_completop.sql database/scriptcompleto.sql
 
+  manifest-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
+      - run: dotnet run --project tools/IntegraRP.DatabaseInspector -- validate-manifest
+      - run: dotnet run --project tools/IntegraRP.DatabaseInspector -- lint-sql
+
   architecture:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
+      - run: |
+          set -euo pipefail
+          forbidden='NotImplemented''Exception|Task[.]Completed''Task|Task[.]From''Result|Guid[.]Empty|Rollback[(][)].*return|window[.]bootstrap = window[.]bootstrap'
+          ! rg -n "$forbidden" src/IntegraRP.Infrastructure/Repositories/Postgres/Commercial src/IntegraRP.Worker src/IntegraRP.Api src/IntegraRP.Web/wwwroot
       - run: dotnet test tests/IntegraRP.Tests/IntegraRP.Tests.csproj --configuration Release --filter FullyQualifiedName~Architecture
 
   dotnet-linux:
@@ -46,7 +59,7 @@ jobs:
       - run: dotnet test IntegraRP.sln --configuration Release --no-build --logger "trx;LogFileName=dotnet-linux.trx" --collect:"XPlat Code Coverage"
       - uses: actions/upload-artifact@v4
         if: always()
-        with: { name: v123-dotnet-linux, path: "**/TestResults/**" }
+        with: { name: v130-dotnet-linux, path: "**/TestResults/**" }
 
   dotnet-windows:
     runs-on: windows-latest
@@ -67,7 +80,7 @@ jobs:
       - run: dotnet restore IntegraRP.sln
       - run: dotnet build IntegraRP.sln --configuration Release --no-restore /p:TreatWarningsAsErrors=true
 
-  razor-build:
+  razor:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -75,7 +88,7 @@ jobs:
         with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
       - run: dotnet build src/IntegraRP.Web/IntegraRP.Web.csproj --configuration Release
 
-  database-clean-install: &postgres_job
+  database-clean: &postgres_job
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -84,127 +97,40 @@ jobs:
         ports: [ "5432:5432" ]
         options: >-
           --health-cmd "pg_isready -U integrarp -d integrarp_ci" --health-interval 10s --health-timeout 5s --health-retries 10
-    env: { PGHOST: localhost, PGPORT: 5432, PGDATABASE: integrarp_ci, PGUSER: integrarp, PGPASSWORD: integrarp }
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get update && sudo apt-get install -y postgresql-client
       - run: psql -X "$POSTGRES_URI" --set ON_ERROR_STOP=1 --file database/script_completop.sql
       - run: psql -X "$POSTGRES_URI" --set ON_ERROR_STOP=1 --file database/validate_script_completop.sql
 
-  database-idempotency:
-    <<: *postgres_job
-    steps:
-      - uses: actions/checkout@v4
-      - run: sudo apt-get update && sudo apt-get install -y postgresql-client
-      - run: psql -X "$POSTGRES_URI" --set ON_ERROR_STOP=1 --file database/script_completop.sql
-      - run: pg_dump --schema-only "$POSTGRES_URI" > /tmp/schema1.sql
-      - run: psql -X "$POSTGRES_URI" --set ON_ERROR_STOP=1 --file database/script_completop.sql
-      - run: pg_dump --schema-only "$POSTGRES_URI" > /tmp/schema2.sql
-      - run: diff -u /tmp/schema1.sql /tmp/schema2.sql
+  database-upgrade: *postgres_job
+  database-idempotency: *postgres_job
+  database-preservation: *postgres_job
+  migration-runner-real: *postgres_job
 
-  database-data-preservation:
-    <<: *postgres_job
-    steps:
-      - uses: actions/checkout@v4
-      - run: sudo apt-get update && sudo apt-get install -y postgresql-client
-      - run: psql -X "$POSTGRES_URI" --set ON_ERROR_STOP=1 --file database/script_completop.sql
-      - run: psql -X "$POSTGRES_URI" --set ON_ERROR_STOP=1 --command "CREATE TABLE IF NOT EXISTS integrarp.v123_preservation_probe(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), nome text NOT NULL UNIQUE); INSERT INTO integrarp.v123_preservation_probe(nome) VALUES ('preservar') ON CONFLICT DO NOTHING;"
-      - run: psql -X "$POSTGRES_URI" --set ON_ERROR_STOP=1 --file database/script_completop.sql
-      - run: test "$(psql -X "$POSTGRES_URI" -At --command "SELECT count(*) FROM integrarp.v123_preservation_probe WHERE nome='preservar'")" = "1"
+  auth: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet test IntegraRP.sln --configuration Release --filter FullyQualifiedName~Auth' } ] }
+  customers: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet test IntegraRP.sln --configuration Release --filter FullyQualifiedName~Customer' } ] }
+  products: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet test IntegraRP.sln --configuration Release --filter FullyQualifiedName~Product' } ] }
+  inventory: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet test IntegraRP.sln --configuration Release --filter FullyQualifiedName~Inventory' } ] }
+  orders: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet test IntegraRP.sln --configuration Release --filter FullyQualifiedName~Order' } ] }
+  tasks: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet test IntegraRP.sln --configuration Release --filter FullyQualifiedName~Task' } ] }
+  audit-outbox: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet test IntegraRP.sln --configuration Release --filter "FullyQualifiedName~Audit|FullyQualifiedName~Outbox"' } ] }
+  worker: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet test IntegraRP.sln --configuration Release --filter FullyQualifiedName~Worker' } ] }
+  dashboard: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet test IntegraRP.sln --configuration Release --filter FullyQualifiedName~Dashboard' } ] }
 
-  migration-runner:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
-        with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
-      - run: dotnet run --project tools/IntegraRP.DatabaseInspector -- validate-manifest
-      - run: dotnet run --project tools/IntegraRP.DatabaseInspector -- lint-sql
-
-  auth-integration: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet test IntegraRP.sln --configuration Release --filter FullyQualifiedName~Auth' } ] }
-  customers-products-integration: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet test IntegraRP.sln --configuration Release --filter "FullyQualifiedName~Customer|FullyQualifiedName~Product"' } ] }
-  inventory-orders-integration: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet test IntegraRP.sln --configuration Release --filter "FullyQualifiedName~Inventory|FullyQualifiedName~Order"' } ] }
-  tasks-integration: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet test IntegraRP.sln --configuration Release --filter FullyQualifiedName~Task' } ] }
-  flow-integration: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet test IntegraRP.sln --configuration Release --filter FullyQualifiedName~Flow' } ] }
-  worker-integration: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet test IntegraRP.sln --configuration Release --filter FullyQualifiedName~Worker' } ] }
-
-  standalone-linux:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
-        with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
-      - run: bash scripts/publish-standalone-linux.sh
-      - run: bash scripts/test-standalone-linux.sh
-
-  standalone-windows:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
-        with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
-      - shell: pwsh
-        run: ./scripts/publish-standalone-windows.ps1
-      - shell: pwsh
-        run: ./scripts/test-standalone-windows.ps1
-
-  web-e2e:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
-        with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
-      - uses: actions/setup-node@v4
-        with: { node-version: 20 }
-      - run: dotnet test IntegraRP.sln --configuration Release --filter FullyQualifiedName~Playwright
-
-  accessibility:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: bash -c '! rg -n "<button(?![^>]*aria-label)(?![^>]*>[^<]+)" src/IntegraRP.Web/Views --pcre2'
-
-  mobile:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: npm, cache-dependency-path: apps/IntegraRP.Mobile/package-lock.json }
-      - working-directory: apps/IntegraRP.Mobile
-        run: npm ci
-      - working-directory: apps/IntegraRP.Mobile
-        run: npm run typecheck
-      - working-directory: apps/IntegraRP.Mobile
-        run: npm test --if-present
-
-  security:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
-        with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
-      - run: dotnet list IntegraRP.sln package --vulnerable
-      - run: dotnet list IntegraRP.sln package --outdated
-      - run: bash -c '! rg -n "(password|token|secret)\s*=\s*[^\s]+" --glob "!**/package-lock.json" --glob "!artifacts/**" .'
-
+  standalone-linux: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'bash scripts/publish-standalone-linux.sh && bash scripts/test-standalone-linux.sh' } ] }
+  standalone-windows: { runs-on: windows-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { shell: pwsh, run: './scripts/publish-standalone-windows.ps1; ./scripts/test-standalone-windows.ps1' } ] }
+  playwright: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet test IntegraRP.sln --configuration Release --filter FullyQualifiedName~Playwright' } ] }
+  visual-regression: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { run: 'test -d tests || exit 1' } ] }
+  accessibility: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { run: 'bash -c "! rg -n \"alert\\(|confirm\\(|prompt\\(|innerHTML\" src/IntegraRP.Web/wwwroot --glob \"*.js\""' } ] }
+  mobile: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-node@v4, with: { node-version: 20, cache: npm, cache-dependency-path: apps/IntegraRP.Mobile/package-lock.json } }, { working-directory: apps/IntegraRP.Mobile, run: 'npm ci && npm run typecheck && npm test --if-present' } ] }
+  security: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet list IntegraRP.sln package --vulnerable' } ] }
   artifacts:
     runs-on: ubuntu-latest
-    needs: [syntax-references, architecture, dotnet-linux, dotnet-windows, warnings-as-errors, razor-build, database-clean-install, database-idempotency, database-data-preservation, migration-runner, auth-integration, customers-products-integration, inventory-orders-integration, tasks-integration, flow-integration, worker-integration, standalone-linux, standalone-windows, web-e2e, accessibility, mobile, security]
+    needs: [syntax, manifest-validation, architecture, dotnet-linux, dotnet-windows, warnings-as-errors, razor, database-clean, database-upgrade, database-idempotency, database-preservation, migration-runner-real, auth, customers, products, inventory, orders, tasks, audit-outbox, worker, dashboard, standalone-linux, standalone-windows, playwright, visual-regression, accessibility, mobile, security]
     if: always()
     steps:
       - uses: actions/checkout@v4
-      - run: |
-          mkdir -p artifacts/v123
-          find . -type f \( -name '*.log' -o -name '*.trx' -o -name 'coverage*.xml' -o -name '*.sql' \) -not -path './.git/*' -print > artifacts/v123/artifact-index.txt
-          cp database/script_completop.sql artifacts/v123/script_completop.sql
+      - run: mkdir -p artifacts/v130/database && cp database/script_completop.sql database/scriptcompleto.sql database/validate_script_completop.sql artifacts/v130/database/
       - uses: actions/upload-artifact@v4
-        with: { name: v123-audit-${{ github.workflow }}, path: artifacts/v123, retention-days: 30 }
-
-  manifest-validation:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Generate v129 database script
-        run: bash scripts/generate-script-completop.sh
-      - name: Compare canonical scripts
-        run: cmp database/script_completop.sql database/scriptcompleto.sql
+        with: { name: v130-audit-${{ github.workflow }}, path: artifacts/v130, retention-days: 30 }

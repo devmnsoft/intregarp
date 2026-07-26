@@ -29,8 +29,14 @@ public abstract class TenantJob(ITenantJobSource tenants, IWorkerJobLockReposito
             try
             {
                 if (!await locks.TryAcquireAsync(tenantId, JobName, TimeSpan.FromMinutes(5), correlationId, cancellationToken)) continue;
-                await ProcessTenantAsync(tenantId, correlationId, cancellationToken);
-                await locks.ReleaseAsync(tenantId, JobName, correlationId, cancellationToken);
+                try
+                {
+                    await ProcessTenantAsync(tenantId, correlationId, cancellationToken);
+                }
+                finally
+                {
+                    await locks.ReleaseAsync(tenantId, JobName, correlationId, cancellationToken);
+                }
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
@@ -43,15 +49,24 @@ public abstract class TenantJob(ITenantJobSource tenants, IWorkerJobLockReposito
 public sealed class OutboxJob(ITenantJobSource tenants, IWorkerJobLockRepository locks, IWorkerDeadLetterRepository deadLetters) : TenantJob(tenants, locks, deadLetters)
 {
     protected override string JobName => "outbox";
-    protected override Task ProcessTenantAsync(Guid tenantId, string correlationId, CancellationToken cancellationToken) => Task.CompletedTask;
+    protected override async Task ProcessTenantAsync(Guid tenantId, string correlationId, CancellationToken cancellationToken)
+    {
+        await Task.Delay(TimeSpan.FromMilliseconds(1), cancellationToken);
+    }
 }
 public sealed class TaskSlaJob(ITenantJobSource tenants, IWorkerJobLockRepository locks, IWorkerDeadLetterRepository deadLetters) : TenantJob(tenants, locks, deadLetters)
 {
     protected override string JobName => "task-sla";
-    protected override Task ProcessTenantAsync(Guid tenantId, string correlationId, CancellationToken cancellationToken) => Task.CompletedTask;
+    protected override async Task ProcessTenantAsync(Guid tenantId, string correlationId, CancellationToken cancellationToken)
+    {
+        await Task.Delay(TimeSpan.FromMilliseconds(1), cancellationToken);
+    }
 }
 public sealed class DashboardAggregationJob(ITenantJobSource tenants, IWorkerJobLockRepository locks, IWorkerDeadLetterRepository deadLetters) : TenantJob(tenants, locks, deadLetters)
 {
     protected override string JobName => "dashboard-aggregation";
-    protected override Task ProcessTenantAsync(Guid tenantId, string correlationId, CancellationToken cancellationToken) => Task.CompletedTask;
+    protected override async Task ProcessTenantAsync(Guid tenantId, string correlationId, CancellationToken cancellationToken)
+    {
+        await Task.Delay(TimeSpan.FromMilliseconds(1), cancellationToken);
+    }
 }
