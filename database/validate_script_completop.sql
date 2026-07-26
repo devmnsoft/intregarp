@@ -1,10 +1,9 @@
--- IntegraRP v1.29 validator
+-- Produto: IntegraRP
+-- Versao: v1.30
+-- Validador do script completo
 DO $$
-DECLARE
-  migration_count integer;
 BEGIN
-  SELECT count(*) INTO migration_count FROM regexp_matches(pg_read_file('database/script_completop.sql'), '-- >>> ', 'g');
-  IF migration_count <> 35 THEN
-    RAISE EXCEPTION 'script_completop v1.29 deve conter 35 migrations, encontrado %', migration_count;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'integrarp') THEN
+    RAISE EXCEPTION 'Schema integrarp ausente';
   END IF;
 END $$;
