@@ -1,7 +1,7 @@
 {
   "schema": "integrarp",
-  "gerado_para": "v1.30",
-  "contrato": "v1.30-script-completop",
+  "gerado_para": "v1.31",
+  "contrato": "v1.31-script-completop",
   "migrations": [
     {
       "ordem": 1,
@@ -362,8 +362,18 @@
       "presente_no_script_completop": true,
       "status": "versionada",
       "observacoes": "Migration aditiva v1.30."
+    },
+    {
+      "ordem": 37,
+      "arquivo": "0037_v131_release_candidate_comercial.sql",
+      "versao": "0037_v131_release_candidate_comercial",
+      "descricao": "v1.31 release candidate comercial e reconciliacao multi-tenant",
+      "modulo": "Commercial",
+      "presente_no_script_completop": true,
+      "status": "versionada",
+      "observacoes": "Migration aditiva v1.31; migrations 0001 a 0036 permanecem congeladas."
     }
   ],
   "postgresql": "16",
-  "generatedAtUtc": "2026-07-22T00:00:00Z"
+  "generatedAtUtc": "2026-07-26T00:00:00Z"
 }
