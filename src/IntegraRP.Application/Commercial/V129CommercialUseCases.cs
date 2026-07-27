@@ -1,4 +1,6 @@
 using IntegraRP.Contracts.Commercial;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace IntegraRP.Application.Commercial;
 
@@ -34,7 +36,28 @@ public sealed class CompletePickingTaskUseCase(ICommercialJourneyRepository repo
 
 public sealed class AuditService
 {
-    public string MaskSensitive(string payload) => payload.Replace("password", "********", StringComparison.OrdinalIgnoreCase).Replace("token", "*****", StringComparison.OrdinalIgnoreCase).Replace("secret", "******", StringComparison.OrdinalIgnoreCase);
+    private static readonly string[] SensitiveFragments = ["password", "token", "secret", "authorization", "documento", "telefone", "email", "financial"];
+    public string MaskSensitive(string payload)
+    {
+        var root = JsonNode.Parse(payload) ?? throw new JsonException("Payload de auditoria inválido.");
+        Mask(root);
+        return root.ToJsonString();
+    }
+
+    private static void Mask(JsonNode node)
+    {
+        if (node is JsonObject obj)
+        {
+            foreach (var property in obj.ToList())
+            {
+                if (SensitiveFragments.Any(fragment => property.Key.Contains(fragment, StringComparison.OrdinalIgnoreCase)))
+                    obj[property.Key] = "***";
+                else if (property.Value is not null) Mask(property.Value);
+            }
+        }
+        else if (node is JsonArray array)
+            foreach (var item in array) if (item is not null) Mask(item);
+    }
 }
 
 public sealed class OutboxService

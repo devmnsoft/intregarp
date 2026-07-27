@@ -5,6 +5,31 @@ namespace IntegraRP.Domain.Commercial;
 public static partial class CustomerPolicy
 {
     public static string NormalizeDocument(string? value) => new((value ?? string.Empty).Where(char.IsDigit).ToArray());
+    public static bool IsValidBrazilianDocument(string? value)
+    {
+        var document = NormalizeDocument(value);
+        return document.Length switch
+        {
+            11 => HasValidCheckDigits(document, 9, [10, 9, 8, 7, 6, 5, 4, 3, 2], [11, 10, 9, 8, 7, 6, 5, 4, 3, 2]),
+            14 => HasValidCheckDigits(document, 12, [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2], [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]),
+            _ => false
+        };
+    }
+
+    private static bool HasValidCheckDigits(string value, int bodyLength, int[] firstWeights, int[] secondWeights)
+    {
+        if (value.Distinct().Count() == 1) return false;
+        static int Digit(ReadOnlySpan<char> digits, int[] weights)
+        {
+            var sum = 0;
+            for (var index = 0; index < weights.Length; index++) sum += (digits[index] - '0') * weights[index];
+            var remainder = sum % 11;
+            return remainder < 2 ? 0 : 11 - remainder;
+        }
+        var first = Digit(value.AsSpan(0, bodyLength), firstWeights);
+        if (first != value[bodyLength] - '0') return false;
+        return Digit(value.AsSpan(0, bodyLength + 1), secondWeights) == value[bodyLength + 1] - '0';
+    }
     public static string? Validate(string name, string? email, string? phone)
     {
         if (string.IsNullOrWhiteSpace(name)) return "Nome do cliente é obrigatório.";
@@ -53,9 +78,13 @@ public static class OrderStateMachine
     public const string Picking = "em_separacao";
     public const string Picked = "separado";
     public const string BillingPending = "faturamento_pendente";
+    public const string Billed = "faturado";
     public const string Cancelled = "cancelado";
     public static bool CanAddItem(string status) => status == Draft;
     public static bool CanConfirm(string status) => status is Draft or Confirmed;
+    public static bool CanTransition(string from, string to) => (from, to) is
+        (Draft, Confirmed) or (Confirmed, Picking) or (Picking, Picked) or
+        (Picked, BillingPending) or (BillingPending, Billed);
     public static bool CanCancel(string status) => status is Draft or Confirmed or Picking;
 }
 

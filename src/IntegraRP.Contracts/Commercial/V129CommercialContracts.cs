@@ -30,6 +30,8 @@ public sealed record OrderItemDto(Guid Id, Guid ProductId, string Sku, string Pr
 public sealed record CreateOrderRequest(Guid CustomerId, string? Notes, string IdempotencyKey);
 public sealed record AddOrderItemRequest(Guid ProductId, decimal Quantity, decimal UnitPrice, decimal Discount, string IdempotencyKey);
 public sealed record ConfirmOrderRequest(long RowVersion, string IdempotencyKey);
+public sealed record ConfirmedOrderResultDto(OrderDetailDto Order, Guid ProcessInstanceId, Guid PickingTaskId, IReadOnlyList<InventoryReservationDto> Reservations);
+public sealed record InventoryReservationDto(Guid Id, Guid ProductId, string LocationCode, decimal Quantity, string Status);
 public sealed record CancelOrderRequest(long RowVersion, string Reason, string IdempotencyKey);
 public sealed record TaskListItemDto(Guid Id, Guid? OrderId, string Title, string Status, string Priority, DateTimeOffset? DueAt, long RowVersion);
 public sealed record TaskDetailDto(Guid Id, Guid TenantId, Guid? OrderId, Guid? SectorId, Guid? AssigneeId, string Title, string Status, string Priority, DateTimeOffset? DueAt, TaskChecklistDto Checklist, long RowVersion, string? CorrelationId);

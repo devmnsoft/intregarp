@@ -21,8 +21,8 @@ public sealed class V129CommercialJourneyTests
     {
         var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
         var manifest = MigrationManifestLoader.Load(Path.Combine(root, "database", "migration_manifest.json"));
-        Assert.Equal("v1.29", manifest.GeneratedFor);
-        Assert.Equal(35, manifest.Migrations.Count);
+        Assert.Equal("v1.32", manifest.GeneratedFor);
+        Assert.Equal(38, manifest.Migrations.Count);
         var errors = new MigrationManifestValidator().Validate(manifest, Path.Combine(root, "database", "migrations"));
         Assert.DoesNotContain(errors, e => e.Contains("0035", StringComparison.OrdinalIgnoreCase));
     }
