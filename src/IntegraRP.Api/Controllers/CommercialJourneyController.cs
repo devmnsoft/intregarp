@@ -8,11 +8,14 @@ namespace IntegraRP.Api.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/v129/commercial")]
+[Route("api/commercial")]
 public sealed class CommercialJourneyController(ICommercialJourneyRepository repository, ConfirmOrderUseCase confirmOrderUseCase) : ControllerBase
 {
-    private Guid TenantId => Guid.TryParse(User.FindFirst("tenant_id")?.Value, out var id) ? id : Guid.Empty;
-    private Guid UserId => Guid.TryParse(User.FindFirst("sub")?.Value, out var id) ? id : Guid.Empty;
+    private Guid TenantId => ParseRequiredClaim("tenant_id");
+    private Guid UserId => ParseRequiredClaim("sub");
     private string CorrelationId => HttpContext.TraceIdentifier;
+    private Guid ParseRequiredClaim(string claim) => Guid.TryParse(User.FindFirst(claim)?.Value, out var id)
+        ? id : throw new UnauthorizedAccessException($"Claim obrigatória ausente: {claim}.");
 
     [HttpPost("customers")] public async Task<IActionResult> CreateCustomer(CreateCustomerRequest request, CancellationToken ct) => Created("", await repository.CreateCustomerAsync(TenantId, UserId, request, CorrelationId, ct));
     [HttpPost("categories")] public async Task<IActionResult> CreateCategory(CreateProductCategoryRequest request, CancellationToken ct) => Created("", await repository.CreateCategoryAsync(TenantId, UserId, request, CorrelationId, ct));

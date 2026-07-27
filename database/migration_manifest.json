@@ -1,7 +1,7 @@
 {
   "schema": "integrarp",
-  "gerado_para": "v1.31",
-  "contrato": "v1.31-script-completop",
+  "gerado_para": "v1.32",
+  "contrato": "v1.32-operacao-comercial-homologada",
   "migrations": [
     {
       "ordem": 1,
@@ -372,8 +372,18 @@
       "presente_no_script_completop": true,
       "status": "versionada",
       "observacoes": "Migration aditiva v1.31; migrations 0001 a 0036 permanecem congeladas."
+    },
+    {
+      "ordem": 38,
+      "arquivo": "0038_v132_operacao_comercial_homologada.sql",
+      "versao": "0038_v132_operacao_comercial_homologada",
+      "descricao": "v1.32 operacao comercial homologada, integridade e seguranca",
+      "modulo": "Commercial",
+      "presente_no_script_completop": true,
+      "status": "versionada",
+      "observacoes": "Migration corretiva aditiva; preserva o checksum da 0037 publicada."
     }
   ],
   "postgresql": "16",
-  "generatedAtUtc": "2026-07-26T00:00:00Z"
+  "generatedAtUtc": "2026-07-27T00:00:00Z"
 }

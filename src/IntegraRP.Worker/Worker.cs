@@ -1,7 +1,6 @@
 using IntegraRP.Application.Abstractions.Billing;
 using IntegraRP.Application.Abstractions.Connect;
 using IntegraRP.Application.Abstractions.Bi;
-using IntegraRP.Application.Abstractions.Operations;
 
 namespace IntegraRP.Worker;
 
@@ -23,22 +22,9 @@ public sealed class Worker(
                 var connectService = scope.ServiceProvider.GetRequiredService<IConnectService>();
                 var billingService = scope.ServiceProvider.GetRequiredService<IBillingService>();
                 var kpiAggregation = scope.ServiceProvider.GetRequiredService<IKpiAggregationService>();
-                var scoreService = scope.ServiceProvider.GetRequiredService<IOperationalScoreService>();
-                var deliveryKpis = scope.ServiceProvider.GetRequiredService<IDeliveryKpiService>();
-                var monitoring = scope.ServiceProvider.GetRequiredService<IDeliveryMonitoringService>();
-
                 var overdueCount = await billingService.MarkOverdueTitlesAsync(stoppingToken);
                 var outboxCount = await connectService.ProcessPendingOutboxAsync(stoppingToken);
                 await kpiAggregation.AggregateAsync(stoppingToken);
-                var operationalTenantId = Guid.Parse("11111111-1111-1111-1111-111111111111");
-                await scoreService.RecalculateAsync(operationalTenantId, stoppingToken);
-                await deliveryKpis.RecalculateAsync(operationalTenantId, stoppingToken);
-                var deliveryDashboard = await monitoring.GetDashboardAsync(operationalTenantId, stoppingToken);
-                if (deliveryDashboard.OcorrenciasAbertas > 0 || deliveryDashboard.EntregasPendentes > 0)
-                {
-                    logger.LogInformation("Monitoramento operacional: {Pendentes} PODs/entregas pendentes e {Ocorrencias} ocorrências abertas sem derrubar Connect.", deliveryDashboard.EntregasPendentes, deliveryDashboard.OcorrenciasAbertas);
-                }
-
                 logger.LogInformation(
                     "Worker concluiu ciclo: {OverdueCount} títulos vencidos, {OutboxCount} eventos outbox, automações, filas de integração, webhooks fake, fiscal fake em lote, conciliação, alertas, projeções, rotas pendentes, sync offline e notificações fake verificados.",
                     overdueCount,
