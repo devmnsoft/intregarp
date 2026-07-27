@@ -1,9 +1,7 @@
 name: Database Validation
 on:
-  push:
-    branches: [ main, work, feature/** ]
-  pull_request:
-    branches: [ main, work ]
+  workflow_dispatch:
+
 jobs:
   postgres-scriptcompleto:
     runs-on: ubuntu-latest

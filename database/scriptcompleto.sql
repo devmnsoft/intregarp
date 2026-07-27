@@ -1,12 +1,12 @@
 -- Produto: IntegraRP
--- Versão: v1.32
--- Data UTC: 2026-07-27T14:34:24Z
+-- Versão: v1.33
+-- Data UTC: 2026-07-27T00:00:00Z
 -- PostgreSQL: 16
 -- Schema: integrarp
--- Checksum SHA-256 do corpo transacional: 205dbfab3cd3afc17d66ac0efc4741006ae22fca581c61bc08d9cdcf93b05da3
--- Contrato: v1.32-operacao-comercial-homologada
--- Número de migrations: 38
--- Instruções: executar no pgAdmin Query Tool ou via psql -X "$DATABASE_URL" --set ON_ERROR_STOP=1 --file database/script_completop.sql.
+-- Checksum SHA-256 do corpo transacional: db885092a5788ac815cec895548e1dd550697f40967a3d9902ebc4d1d5f28c32
+-- Contrato: v1.33-convergencia-executavel
+-- Número de migrations: 39
+-- Instruções: executar via psql -X "$POSTGRES_URI" --set ON_ERROR_STOP=1 --file database/script_completop.sql.
 -- Aviso: este script não cria usuário com senha nem armazena credenciais.
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
@@ -7472,9 +7472,9 @@ ALTER TABLE integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS iniciado_em ti
 ALTER TABLE integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS concluido_em timestamptz;
 ALTER TABLE integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS cancelado_em timestamptz;
 ALTER TABLE integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS motivo_cancelamento text;
-ALTER TABLE integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS prioridade integer NOT NULL DEFAULT 3;
+ALTER TABLE integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS prioridade text NOT NULL DEFAULT 'normal';
 ALTER TABLE integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS sla_minutos integer;
-ALTER TABLE integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS correlation_id uuid;
+ALTER TABLE integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS correlation_id text;
 ALTER TABLE integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS row_version bigint NOT NULL DEFAULT 1;
 ALTER TABLE integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS pedido_id uuid;
 ALTER TABLE integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS legado_setor_text text;
@@ -7490,25 +7490,35 @@ BEGIN
     END IF;
 END $$;
 
+CREATE UNIQUE INDEX IF NOT EXISTS ux_setor_tenant_id ON integrarp.setor (tenant_id, id);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_usuario_tenant_id ON integrarp.usuario (tenant_id, id);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_pedido_tenant_id ON integrarp.pedido (tenant_id, id);
+
 DO $$
 BEGIN
-    IF to_regclass('integrarp.setor') IS NOT NULL THEN
+    IF to_regclass('integrarp.setor') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_tarefa_operacional_setor') THEN
         ALTER TABLE integrarp.tarefa_operacional
             ADD CONSTRAINT fk_tarefa_operacional_setor
             FOREIGN KEY (tenant_id, setor_id) REFERENCES integrarp.setor(tenant_id, id) NOT VALID;
     END IF;
-    IF to_regclass('integrarp.usuario') IS NOT NULL THEN
+END $$;
+
+DO $$
+BEGIN
+    IF to_regclass('integrarp.usuario') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_tarefa_operacional_responsavel') THEN
         ALTER TABLE integrarp.tarefa_operacional
             ADD CONSTRAINT fk_tarefa_operacional_responsavel
             FOREIGN KEY (tenant_id, responsavel_usuario_id) REFERENCES integrarp.usuario(tenant_id, id) NOT VALID;
     END IF;
-    IF to_regclass('integrarp.pedido') IS NOT NULL THEN
+END $$;
+
+DO $$
+BEGIN
+    IF to_regclass('integrarp.pedido') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_tarefa_operacional_pedido') THEN
         ALTER TABLE integrarp.tarefa_operacional
             ADD CONSTRAINT fk_tarefa_operacional_pedido
             FOREIGN KEY (tenant_id, pedido_id) REFERENCES integrarp.pedido(tenant_id, id) NOT VALID;
     END IF;
-EXCEPTION WHEN duplicate_object THEN
-    NULL;
 END $$;
 
 CREATE INDEX IF NOT EXISTS ix_tarefa_operacional_tenant_responsavel ON integrarp.tarefa_operacional (tenant_id, responsavel_usuario_id);
@@ -7520,18 +7530,18 @@ CREATE INDEX IF NOT EXISTS ix_tarefa_operacional_tenant_prioridade ON integrarp.
 ALTER TABLE integrarp.pedido_historico_status ADD COLUMN IF NOT EXISTS status_anterior text;
 ALTER TABLE integrarp.pedido_historico_status ADD COLUMN IF NOT EXISTS status_novo text;
 ALTER TABLE integrarp.pedido_historico_status ADD COLUMN IF NOT EXISTS motivo text;
-ALTER TABLE integrarp.pedido_historico_status ADD COLUMN IF NOT EXISTS correlation_id uuid;
+ALTER TABLE integrarp.pedido_historico_status ADD COLUMN IF NOT EXISTS correlation_id text;
 ALTER TABLE integrarp.pedido_historico_status ADD COLUMN IF NOT EXISTS usuario_id uuid;
 ALTER TABLE integrarp.pedido_historico_status ADD COLUMN IF NOT EXISTS row_version bigint NOT NULL DEFAULT 1;
 ALTER TABLE integrarp.pedido_historico_status ADD COLUMN IF NOT EXISTS excluido_em timestamptz;
 
 DO $$
 BEGIN
-    ALTER TABLE integrarp.pedido_historico_status
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_pedido_historico_status_pedido_tenant') THEN
+      ALTER TABLE integrarp.pedido_historico_status
         ADD CONSTRAINT fk_pedido_historico_status_pedido_tenant
         FOREIGN KEY (tenant_id, pedido_id) REFERENCES integrarp.pedido(tenant_id, id) NOT VALID;
-EXCEPTION WHEN duplicate_object THEN
-    NULL;
+    END IF;
 END $$;
 
 CREATE INDEX IF NOT EXISTS ix_pedido_historico_status_pedido_data ON integrarp.pedido_historico_status (tenant_id, pedido_id, criado_em DESC);
@@ -7540,7 +7550,7 @@ CREATE INDEX IF NOT EXISTS ix_pedido_historico_status_tenant_status ON integrarp
 ALTER TABLE integrarp.outbox_evento ADD COLUMN IF NOT EXISTS idempotency_key text;
 ALTER TABLE integrarp.outbox_evento ADD COLUMN IF NOT EXISTS max_tentativas integer NOT NULL DEFAULT 5;
 ALTER TABLE integrarp.outbox_evento ADD COLUMN IF NOT EXISTS proxima_tentativa_em timestamptz;
-ALTER TABLE integrarp.outbox_evento ADD COLUMN IF NOT EXISTS correlation_id uuid;
+ALTER TABLE integrarp.outbox_evento ADD COLUMN IF NOT EXISTS correlation_id text;
 CREATE INDEX IF NOT EXISTS ix_outbox_evento_tenant_status_proxima ON integrarp.outbox_evento (tenant_id, status, proxima_tentativa_em);
 CREATE UNIQUE INDEX IF NOT EXISTS ux_outbox_evento_tenant_idempotency ON integrarp.outbox_evento (tenant_id, idempotency_key) WHERE idempotency_key IS NOT NULL;
 
@@ -7732,17 +7742,22 @@ ALTER TABLE integrarp.produto_categoria
     ADD COLUMN IF NOT EXISTS excluido_em timestamptz;
 
 ALTER TABLE integrarp.produto
+    ADD COLUMN IF NOT EXISTS categoria_id uuid,
     ADD COLUMN IF NOT EXISTS correlation_id text,
     ADD COLUMN IF NOT EXISTS row_version bigint NOT NULL DEFAULT 1,
     ADD COLUMN IF NOT EXISTS excluido_em timestamptz;
 
 ALTER TABLE integrarp.pedido
+    ADD COLUMN IF NOT EXISTS numero text,
+    ADD COLUMN IF NOT EXISTS cliente_id uuid,
     ADD COLUMN IF NOT EXISTS observacoes text,
     ADD COLUMN IF NOT EXISTS idempotency_key text,
     ADD COLUMN IF NOT EXISTS correlation_id text,
     ADD COLUMN IF NOT EXISTS row_version bigint NOT NULL DEFAULT 1;
 
 ALTER TABLE integrarp.pedido_item
+    ADD COLUMN IF NOT EXISTS pedido_id uuid,
+    ADD COLUMN IF NOT EXISTS produto_id uuid,
     ADD COLUMN IF NOT EXISTS idempotency_key text,
     ADD COLUMN IF NOT EXISTS row_version bigint NOT NULL DEFAULT 1;
 
@@ -7867,5 +7882,78 @@ ALTER TABLE integrarp.estoque_saldo VALIDATE CONSTRAINT ck_estoque_saldo_disponi
 ALTER TABLE integrarp.tarefa_evidencia VALIDATE CONSTRAINT fk_evidencia_tarefa_tenant_v132;
 
 -- <<< 0038_v132_operacao_comercial_homologada.sql
+
+-- >>> 0039_v133_convergencia_executavel.sql
+-- IntegraRP v1.33 - convergencia executavel do schema comercial
+-- PostgreSQL 16. Migration aditiva, idempotente e restrita ao schema integrarp.
+
+-- Reconcilia bancos que aplicaram a versão publicada da 0034.
+ALTER TABLE integrarp.tarefa_operacional
+    ALTER COLUMN prioridade DROP DEFAULT,
+    ALTER COLUMN prioridade TYPE text USING CASE prioridade::text
+        WHEN '1' THEN 'baixa' WHEN '2' THEN 'normal' WHEN '3' THEN 'normal'
+        WHEN '4' THEN 'alta' WHEN '5' THEN 'urgente' ELSE COALESCE(prioridade::text, 'normal') END,
+    ALTER COLUMN prioridade SET DEFAULT 'normal',
+    ALTER COLUMN prioridade SET NOT NULL;
+
+ALTER TABLE integrarp.tarefa_operacional
+    ALTER COLUMN correlation_id TYPE text USING correlation_id::text;
+ALTER TABLE integrarp.pedido_historico_status
+    ALTER COLUMN correlation_id TYPE text USING correlation_id::text;
+ALTER TABLE integrarp.outbox_evento
+    ALTER COLUMN correlation_id TYPE text USING correlation_id::text;
+
+-- Reconcilia bancos nos quais a 0037 foi registrada sem todas as colunas canônicas.
+ALTER TABLE integrarp.produto ADD COLUMN IF NOT EXISTS categoria_id uuid;
+ALTER TABLE integrarp.pedido ADD COLUMN IF NOT EXISTS numero text;
+ALTER TABLE integrarp.pedido ADD COLUMN IF NOT EXISTS cliente_id uuid;
+ALTER TABLE integrarp.pedido_item ADD COLUMN IF NOT EXISTS pedido_id uuid;
+ALTER TABLE integrarp.pedido_item ADD COLUMN IF NOT EXISTS produto_id uuid;
+
+CREATE UNIQUE INDEX IF NOT EXISTS ux_cliente_tenant_id ON integrarp.cliente (tenant_id, id);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_produto_categoria_tenant_id ON integrarp.produto_categoria (tenant_id, id);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_produto_tenant_id ON integrarp.produto (tenant_id, id);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_pedido_tenant_id ON integrarp.pedido (tenant_id, id);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_pedido_item_tenant_id ON integrarp.pedido_item (tenant_id, id);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_usuario_tenant_id ON integrarp.usuario (tenant_id, id);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_setor_tenant_id ON integrarp.setor (tenant_id, id);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_tarefa_operacional_tenant_id ON integrarp.tarefa_operacional (tenant_id, id);
+
+DO $migration$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_produto_categoria_tenant_v133') THEN
+        ALTER TABLE integrarp.produto ADD CONSTRAINT fk_produto_categoria_tenant_v133
+            FOREIGN KEY (tenant_id, categoria_id) REFERENCES integrarp.produto_categoria (tenant_id, id) NOT VALID;
+    END IF;
+END $migration$;
+DO $migration$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_pedido_cliente_tenant_v133') THEN
+        ALTER TABLE integrarp.pedido ADD CONSTRAINT fk_pedido_cliente_tenant_v133
+            FOREIGN KEY (tenant_id, cliente_id) REFERENCES integrarp.cliente (tenant_id, id) NOT VALID;
+    END IF;
+END $migration$;
+DO $migration$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_pedido_item_pedido_tenant_v133') THEN
+        ALTER TABLE integrarp.pedido_item ADD CONSTRAINT fk_pedido_item_pedido_tenant_v133
+            FOREIGN KEY (tenant_id, pedido_id) REFERENCES integrarp.pedido (tenant_id, id) NOT VALID;
+    END IF;
+END $migration$;
+DO $migration$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_pedido_item_produto_tenant_v133') THEN
+        ALTER TABLE integrarp.pedido_item ADD CONSTRAINT fk_pedido_item_produto_tenant_v133
+            FOREIGN KEY (tenant_id, produto_id) REFERENCES integrarp.produto (tenant_id, id) NOT VALID;
+    END IF;
+END $migration$;
+
+-- VALIDATE é deliberado: dados órfãos interrompem o upgrade, sem exclusão automática.
+ALTER TABLE integrarp.produto VALIDATE CONSTRAINT fk_produto_categoria_tenant_v133;
+ALTER TABLE integrarp.pedido VALIDATE CONSTRAINT fk_pedido_cliente_tenant_v133;
+ALTER TABLE integrarp.pedido_item VALIDATE CONSTRAINT fk_pedido_item_pedido_tenant_v133;
+ALTER TABLE integrarp.pedido_item VALIDATE CONSTRAINT fk_pedido_item_produto_tenant_v133;
+
+-- <<< 0039_v133_convergencia_executavel.sql
 
 COMMIT;

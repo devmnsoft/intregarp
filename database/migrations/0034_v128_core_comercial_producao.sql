@@ -12,9 +12,9 @@ ALTER TABLE integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS iniciado_em ti
 ALTER TABLE integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS concluido_em timestamptz;
 ALTER TABLE integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS cancelado_em timestamptz;
 ALTER TABLE integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS motivo_cancelamento text;
-ALTER TABLE integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS prioridade integer NOT NULL DEFAULT 3;
+ALTER TABLE integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS prioridade text NOT NULL DEFAULT 'normal';
 ALTER TABLE integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS sla_minutos integer;
-ALTER TABLE integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS correlation_id uuid;
+ALTER TABLE integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS correlation_id text;
 ALTER TABLE integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS row_version bigint NOT NULL DEFAULT 1;
 ALTER TABLE integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS pedido_id uuid;
 ALTER TABLE integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS legado_setor_text text;
@@ -30,25 +30,35 @@ BEGIN
     END IF;
 END $$;
 
+CREATE UNIQUE INDEX IF NOT EXISTS ux_setor_tenant_id ON integrarp.setor (tenant_id, id);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_usuario_tenant_id ON integrarp.usuario (tenant_id, id);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_pedido_tenant_id ON integrarp.pedido (tenant_id, id);
+
 DO $$
 BEGIN
-    IF to_regclass('integrarp.setor') IS NOT NULL THEN
+    IF to_regclass('integrarp.setor') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_tarefa_operacional_setor') THEN
         ALTER TABLE integrarp.tarefa_operacional
             ADD CONSTRAINT fk_tarefa_operacional_setor
             FOREIGN KEY (tenant_id, setor_id) REFERENCES integrarp.setor(tenant_id, id) NOT VALID;
     END IF;
-    IF to_regclass('integrarp.usuario') IS NOT NULL THEN
+END $$;
+
+DO $$
+BEGIN
+    IF to_regclass('integrarp.usuario') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_tarefa_operacional_responsavel') THEN
         ALTER TABLE integrarp.tarefa_operacional
             ADD CONSTRAINT fk_tarefa_operacional_responsavel
             FOREIGN KEY (tenant_id, responsavel_usuario_id) REFERENCES integrarp.usuario(tenant_id, id) NOT VALID;
     END IF;
-    IF to_regclass('integrarp.pedido') IS NOT NULL THEN
+END $$;
+
+DO $$
+BEGIN
+    IF to_regclass('integrarp.pedido') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_tarefa_operacional_pedido') THEN
         ALTER TABLE integrarp.tarefa_operacional
             ADD CONSTRAINT fk_tarefa_operacional_pedido
             FOREIGN KEY (tenant_id, pedido_id) REFERENCES integrarp.pedido(tenant_id, id) NOT VALID;
     END IF;
-EXCEPTION WHEN duplicate_object THEN
-    NULL;
 END $$;
 
 CREATE INDEX IF NOT EXISTS ix_tarefa_operacional_tenant_responsavel ON integrarp.tarefa_operacional (tenant_id, responsavel_usuario_id);
@@ -60,18 +70,18 @@ CREATE INDEX IF NOT EXISTS ix_tarefa_operacional_tenant_prioridade ON integrarp.
 ALTER TABLE integrarp.pedido_historico_status ADD COLUMN IF NOT EXISTS status_anterior text;
 ALTER TABLE integrarp.pedido_historico_status ADD COLUMN IF NOT EXISTS status_novo text;
 ALTER TABLE integrarp.pedido_historico_status ADD COLUMN IF NOT EXISTS motivo text;
-ALTER TABLE integrarp.pedido_historico_status ADD COLUMN IF NOT EXISTS correlation_id uuid;
+ALTER TABLE integrarp.pedido_historico_status ADD COLUMN IF NOT EXISTS correlation_id text;
 ALTER TABLE integrarp.pedido_historico_status ADD COLUMN IF NOT EXISTS usuario_id uuid;
 ALTER TABLE integrarp.pedido_historico_status ADD COLUMN IF NOT EXISTS row_version bigint NOT NULL DEFAULT 1;
 ALTER TABLE integrarp.pedido_historico_status ADD COLUMN IF NOT EXISTS excluido_em timestamptz;
 
 DO $$
 BEGIN
-    ALTER TABLE integrarp.pedido_historico_status
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_pedido_historico_status_pedido_tenant') THEN
+      ALTER TABLE integrarp.pedido_historico_status
         ADD CONSTRAINT fk_pedido_historico_status_pedido_tenant
         FOREIGN KEY (tenant_id, pedido_id) REFERENCES integrarp.pedido(tenant_id, id) NOT VALID;
-EXCEPTION WHEN duplicate_object THEN
-    NULL;
+    END IF;
 END $$;
 
 CREATE INDEX IF NOT EXISTS ix_pedido_historico_status_pedido_data ON integrarp.pedido_historico_status (tenant_id, pedido_id, criado_em DESC);
@@ -80,6 +90,6 @@ CREATE INDEX IF NOT EXISTS ix_pedido_historico_status_tenant_status ON integrarp
 ALTER TABLE integrarp.outbox_evento ADD COLUMN IF NOT EXISTS idempotency_key text;
 ALTER TABLE integrarp.outbox_evento ADD COLUMN IF NOT EXISTS max_tentativas integer NOT NULL DEFAULT 5;
 ALTER TABLE integrarp.outbox_evento ADD COLUMN IF NOT EXISTS proxima_tentativa_em timestamptz;
-ALTER TABLE integrarp.outbox_evento ADD COLUMN IF NOT EXISTS correlation_id uuid;
+ALTER TABLE integrarp.outbox_evento ADD COLUMN IF NOT EXISTS correlation_id text;
 CREATE INDEX IF NOT EXISTS ix_outbox_evento_tenant_status_proxima ON integrarp.outbox_evento (tenant_id, status, proxima_tentativa_em);
 CREATE UNIQUE INDEX IF NOT EXISTS ux_outbox_evento_tenant_idempotency ON integrarp.outbox_evento (tenant_id, idempotency_key) WHERE idempotency_key IS NOT NULL;
