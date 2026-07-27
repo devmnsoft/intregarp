@@ -18,17 +18,22 @@ ALTER TABLE integrarp.produto_categoria
     ADD COLUMN IF NOT EXISTS excluido_em timestamptz;
 
 ALTER TABLE integrarp.produto
+    ADD COLUMN IF NOT EXISTS categoria_id uuid,
     ADD COLUMN IF NOT EXISTS correlation_id text,
     ADD COLUMN IF NOT EXISTS row_version bigint NOT NULL DEFAULT 1,
     ADD COLUMN IF NOT EXISTS excluido_em timestamptz;
 
 ALTER TABLE integrarp.pedido
+    ADD COLUMN IF NOT EXISTS numero text,
+    ADD COLUMN IF NOT EXISTS cliente_id uuid,
     ADD COLUMN IF NOT EXISTS observacoes text,
     ADD COLUMN IF NOT EXISTS idempotency_key text,
     ADD COLUMN IF NOT EXISTS correlation_id text,
     ADD COLUMN IF NOT EXISTS row_version bigint NOT NULL DEFAULT 1;
 
 ALTER TABLE integrarp.pedido_item
+    ADD COLUMN IF NOT EXISTS pedido_id uuid,
+    ADD COLUMN IF NOT EXISTS produto_id uuid,
     ADD COLUMN IF NOT EXISTS idempotency_key text,
     ADD COLUMN IF NOT EXISTS row_version bigint NOT NULL DEFAULT 1;
 

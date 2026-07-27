@@ -1,4 +1,4 @@
-name: IntegraRP CI v1.32
+name: IntegraRP CI v1.33
 
 on:
   push:
@@ -24,7 +24,14 @@ jobs:
       - run: |
           set -euo pipefail
           while IFS= read -r file; do node --check "$file"; done < <(find src/IntegraRP.Web/wwwroot -path '*/lib/*' -prune -o -name '*.js' -print)
-      - run: cmp -s database/script_completop.sql database/scriptcompleto.sql
+      - name: Verify deterministic Bash and PowerShell generation
+        shell: bash
+        run: |
+          scripts/generate-script-completop.sh
+          cp database/script_completop.sql /tmp/script-completop-bash.sql
+          pwsh -NoProfile -File scripts/generate-script-completop.ps1
+          cmp /tmp/script-completop-bash.sql database/script_completop.sql
+          cmp database/script_completop.sql database/scriptcompleto.sql
 
   manifest-validation:
     runs-on: ubuntu-latest
@@ -59,7 +66,7 @@ jobs:
       - run: dotnet test IntegraRP.sln --configuration Release --no-build --logger "trx;LogFileName=dotnet-linux.trx" --collect:"XPlat Code Coverage"
       - uses: actions/upload-artifact@v4
         if: always()
-        with: { name: v132-dotnet-linux, path: "**/TestResults/**" }
+        with: { name: v133-dotnet-linux, path: "**/TestResults/**" }
 
   dotnet-windows:
     runs-on: windows-latest
@@ -131,6 +138,6 @@ jobs:
     if: always()
     steps:
       - uses: actions/checkout@v4
-      - run: mkdir -p artifacts/v132/database && cp database/script_completop.sql database/scriptcompleto.sql database/validate_script_completop.sql artifacts/v132/database/
+      - run: mkdir -p artifacts/v133/database && cp database/script_completop.sql database/scriptcompleto.sql database/validate_script_completop.sql artifacts/v133/database/
       - uses: actions/upload-artifact@v4
-        with: { name: v132-audit-${{ github.workflow }}, path: artifacts/v132, retention-days: 30 }
+        with: { name: v133-audit-${{ github.workflow }}, path: artifacts/v133, retention-days: 30 }

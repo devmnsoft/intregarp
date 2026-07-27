@@ -1,7 +1,7 @@
 {
   "schema": "integrarp",
-  "gerado_para": "v1.32",
-  "contrato": "v1.32-operacao-comercial-homologada",
+  "gerado_para": "v1.33",
+  "contrato": "v1.33-convergencia-executavel",
   "migrations": [
     {
       "ordem": 1,
@@ -341,7 +341,7 @@
       "modulo": "Commercial",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Migration aditiva para reconciliação comercial v1.28."
+      "observacoes": "Checksum publicado c9ec5ad960880d7ecc05e0c7c212ec270bc9511e87c7bf88a628b3169081f2e7; corrigido 9d8ab0d6e7c3f7fb079e6fef9b618ad84b793d345985e0eb40796fa2a851b33c."
     },
     {
       "ordem": 35,
@@ -371,7 +371,7 @@
       "modulo": "Commercial",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Migration aditiva v1.31; migrations 0001 a 0036 permanecem congeladas."
+      "observacoes": "Checksum publicado 611999a1cb41ac8c70227dfa98e6ab44d00b0808cd6fbf7c65fc475a68f4545c; corrigido eb5f146ef9acc19d901d3ebd84ad31481f4f007c33af5a7591a9bd498d8e45ee."
     },
     {
       "ordem": 38,
@@ -382,6 +382,16 @@
       "presente_no_script_completop": true,
       "status": "versionada",
       "observacoes": "Migration corretiva aditiva; preserva o checksum da 0037 publicada."
+    },
+    {
+      "ordem": 39,
+      "arquivo": "0039_v133_convergencia_executavel.sql",
+      "versao": "0039_v133_convergencia_executavel",
+      "descricao": "v1.33 convergência executável e reconciliação de migrations históricas",
+      "modulo": "Commercial",
+      "presente_no_script_completop": true,
+      "status": "versionada",
+      "observacoes": "Corrige bancos com as versões históricas publicadas da 0034 e 0037 sem apagar dados."
     }
   ],
   "postgresql": "16",
