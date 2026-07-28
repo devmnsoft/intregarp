@@ -1,17 +1,29 @@
 -- Produto: IntegraRP
--- Versão: v1.39
--- Data UTC: 2026-07-28T00:00:00Z
+-- Versão: v1.40
 -- PostgreSQL: 16
 -- Schema: integrarp
--- Checksum SHA-256 do corpo transacional: 32bc06aef1585b36c066c273a16233b992866442acb266930404a0b402aa850d
--- Contrato: IntegraRP v1.39
--- Número de migrations: 45
--- Instruções: executar via psql -X "$POSTGRES_URI" --set ON_ERROR_STOP=1 --file database/script_completop.sql.
--- Aviso: este script não cria usuário com senha nem armazena credenciais.
+-- Arquivo principal: database/scriptcompleto.sql
+-- Quantidade de migrations: 46
+-- Data UTC determinística: 2026-07-28T00:00:00Z
+-- Checksum SHA-256: 5573cc0854b967e20238668001cd9f9ea5bda2b93570bd88581776bf60f8de16
+-- Contrato: Banco Canônico Integrarp v1.40
+-- Execução:
+-- psql -X "$POSTGRES_URI" --set ON_ERROR_STOP=1 --file database/scriptcompleto.sql
+-- Gerado automaticamente; não editar os arquivos de saída.
+\set ON_ERROR_STOP on
+
+DO $version_check$
+BEGIN
+  IF current_setting('server_version_num')::integer < 160000
+     OR current_setting('server_version_num')::integer >= 170000 THEN
+    RAISE EXCEPTION 'IntegraRP v1.40 requer PostgreSQL 16; encontrado %', current_setting('server_version');
+  END IF;
+END
+$version_check$;
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE SCHEMA IF NOT EXISTS integrarp;
-
+SELECT pg_advisory_lock(14020260728);
 BEGIN;
 
 -- >>> 0001_initial_integrarp.sql
@@ -8234,4 +8246,44 @@ CREATE INDEX IF NOT EXISTS ix_outbox_execucao_retry
 
 -- <<< 0045_v139_release_candidate_piloto.sql
 
+-- >>> 0046_v140_scriptcompleto_integrarp.sql
+-- IntegraRP v1.40: metadados do contrato canônico, sem transação de topo.
+CREATE TABLE IF NOT EXISTS integrarp.schema_contract (
+    contract_name text PRIMARY KEY,
+    product_version text NOT NULL,
+    postgresql_major integer NOT NULL,
+    schema_name text NOT NULL,
+    migration_count integer NOT NULL,
+    manifest_generated_at_utc timestamptz NOT NULL,
+    installed_at timestamptz NOT NULL DEFAULT now(),
+    CONSTRAINT ck_schema_contract_postgresql CHECK (postgresql_major = 16),
+    CONSTRAINT ck_schema_contract_schema CHECK (schema_name = 'integrarp')
+);
+
+INSERT INTO integrarp.schema_contract (
+    contract_name, product_version, postgresql_major, schema_name,
+    migration_count, manifest_generated_at_utc
+)
+VALUES ('Banco Canônico Integrarp v1.40', 'v1.40', 16, 'integrarp', 46, '2026-07-28T00:00:00Z'::timestamptz)
+ON CONFLICT (contract_name) DO UPDATE
+SET product_version = EXCLUDED.product_version,
+    postgresql_major = EXCLUDED.postgresql_major,
+    schema_name = EXCLUDED.schema_name,
+    migration_count = EXCLUDED.migration_count,
+    manifest_generated_at_utc = EXCLUDED.manifest_generated_at_utc;
+
+COMMENT ON TABLE integrarp.schema_contract IS 'Contrato canônico e versão instalada do banco IntegraRP.';
+
+-- <<< 0046_v140_scriptcompleto_integrarp.sql
+
+DO $final_validation$
+BEGIN
+  IF to_regnamespace('integrarp') IS NULL THEN RAISE EXCEPTION 'Schema integrarp ausente'; END IF;
+  IF to_regclass('integrarp.schema_contract') IS NULL THEN RAISE EXCEPTION 'Contrato v1.40 ausente'; END IF;
+  IF EXISTS (SELECT 1 FROM pg_catalog.pg_constraint c JOIN pg_catalog.pg_class r ON r.oid=c.conrelid JOIN pg_catalog.pg_namespace n ON n.oid=r.relnamespace WHERE n.nspname='integrarp' AND NOT c.convalidated) THEN
+    RAISE EXCEPTION 'Existem constraints não validadas no schema integrarp';
+  END IF;
+END
+$final_validation$;
 COMMIT;
+SELECT pg_advisory_unlock(14020260728);
