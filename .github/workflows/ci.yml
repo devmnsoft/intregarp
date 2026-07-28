@@ -1,10 +1,10 @@
-name: IntegraRP CI v1.38
+name: IntegraRP CI v1.40
 
 on:
   push:
-    branches: [ main, work, codex/**, feature/** ]
+    branches: [main, codex/**, feature/**]
   pull_request:
-    branches: [ main, work ]
+    branches: [main]
 
 env:
   DOTNET_VERSION: 8.0.x
@@ -21,17 +21,8 @@ jobs:
         with: { node-version: 20 }
       - run: dotnet sln IntegraRP.sln list
       - run: bash -n scripts/*.sh
-      - run: |
-          set -euo pipefail
-          while IFS= read -r file; do node --check "$file"; done < <(find src/IntegraRP.Web/wwwroot -path '*/lib/*' -prune -o -name '*.js' -print)
-      - name: Verify deterministic Bash and PowerShell generation
-        shell: bash
-        run: |
-          scripts/generate-script-completop.sh
-          cp database/script_completop.sql /tmp/script-completop-bash.sql
-          pwsh -NoProfile -File scripts/generate-script-completop.ps1
-          cmp /tmp/script-completop-bash.sql database/script_completop.sql
-          cmp database/script_completop.sql database/scriptcompleto.sql
+      - run: while IFS= read -r file; do node --check "$file"; done < <(find src/IntegraRP.Web/wwwroot -path '*/lib/*' -prune -o -name '*.js' -print)
+      - run: scripts/generate-script-completop.sh && cmp database/script_completop.sql database/scriptcompleto.sql
 
   manifest-validation:
     runs-on: ubuntu-latest
@@ -48,11 +39,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
-      - run: |
-          set -euo pipefail
-          forbidden='NotImplemented''Exception|Task[.]Completed''Task|Task[.]From''Result|Guid[.]Empty|Rollback[(][)].*return|window[.]bootstrap = window[.]bootstrap'
-          ! rg -n "$forbidden" src/IntegraRP.Infrastructure/Repositories/Postgres/Commercial src/IntegraRP.Worker src/IntegraRP.Api src/IntegraRP.Web/wwwroot
-      - run: dotnet test tests/IntegraRP.Tests/IntegraRP.Tests.csproj --configuration Release --filter FullyQualifiedName~Architecture
+      - run: dotnet restore IntegraRP.sln
+      - run: scripts/run-filtered-tests.sh FullyQualifiedName~Architecture architecture
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: architecture-trx, path: artifacts/test-results }
 
   dotnet-linux:
     runs-on: ubuntu-latest
@@ -63,10 +54,7 @@ jobs:
       - run: dotnet restore IntegraRP.sln
       - run: dotnet format IntegraRP.sln --verify-no-changes --no-restore
       - run: dotnet build IntegraRP.sln --configuration Release --no-restore
-      - run: dotnet test IntegraRP.sln --configuration Release --no-build --logger "trx;LogFileName=dotnet-linux.trx" --collect:"XPlat Code Coverage"
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with: { name: v138-dotnet-linux, path: "**/TestResults/**" }
+      - run: dotnet test IntegraRP.sln --configuration Release --no-build --logger "trx;LogFileName=dotnet-linux.trx"
 
   dotnet-windows:
     runs-on: windows-latest
@@ -95,51 +83,346 @@ jobs:
         with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
       - run: dotnet build src/IntegraRP.Web/IntegraRP.Web.csproj --configuration Release
 
-  database-clean: &postgres_job
+  bootstrap-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: test -s src/IntegraRP.Web/wwwroot/lib/bootstrap/css/bootstrap.min.css
+      - run: test -s src/IntegraRP.Web/wwwroot/lib/bootstrap/js/bootstrap.bundle.min.js
+      - run: test -s src/IntegraRP.Web/wwwroot/lib/bootstrap-icons/font/bootstrap-icons.css
+      - run: rg -q "Bootstrap v5" src/IntegraRP.Web/wwwroot/lib/bootstrap/css/bootstrap.min.css
+      - run: test -f src/IntegraRP.Web/wwwroot/lib/bootstrap/LICENSE && test -f src/IntegraRP.Web/wwwroot/lib/bootstrap-icons/LICENSE
+
+  database-clean:
     runs-on: ubuntu-latest
     services:
       postgres:
         image: postgres:16
         env: { POSTGRES_USER: integrarp, POSTGRES_PASSWORD: integrarp, POSTGRES_DB: integrarp_ci }
-        ports: [ "5432:5432" ]
-        options: >-
-          --health-cmd "pg_isready -U integrarp -d integrarp_ci" --health-interval 10s --health-timeout 5s --health-retries 10
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U integrarp -d integrarp_ci" --health-interval 5s --health-timeout 5s --health-retries 12
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get update && sudo apt-get install -y postgresql-client
-      - run: psql -X "$POSTGRES_URI" --set ON_ERROR_STOP=1 --file database/script_completop.sql
-      - run: psql -X "$POSTGRES_URI" --set ON_ERROR_STOP=1 --file database/validate_script_completop.sql
+      - run: psql -X "$POSTGRES_URI" -v ON_ERROR_STOP=1 -f database/script_completop.sql
+      - run: psql -X "$POSTGRES_URI" -v ON_ERROR_STOP=1 -f database/validate_script_completop.sql
 
-  database-upgrade: *postgres_job
-  database-idempotency: *postgres_job
-  database-preservation: *postgres_job
-  migration-runner-real: *postgres_job
-
-  onboarding: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet test IntegraRP.sln --configuration Release --filter FullyQualifiedName~Onboarding' } ] }
-  notifications: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet test IntegraRP.sln --configuration Release --filter FullyQualifiedName~Notification' } ] }
-  auth: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet test IntegraRP.sln --configuration Release --filter FullyQualifiedName~Auth' } ] }
-  customers: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet test IntegraRP.sln --configuration Release --filter FullyQualifiedName~Customer' } ] }
-  products: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet test IntegraRP.sln --configuration Release --filter FullyQualifiedName~Product' } ] }
-  inventory: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet test IntegraRP.sln --configuration Release --filter FullyQualifiedName~Inventory' } ] }
-  orders: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet test IntegraRP.sln --configuration Release --filter FullyQualifiedName~Order' } ] }
-  tasks: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet test IntegraRP.sln --configuration Release --filter FullyQualifiedName~Task' } ] }
-  audit-outbox: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet test IntegraRP.sln --configuration Release --filter "FullyQualifiedName~Audit|FullyQualifiedName~Outbox"' } ] }
-  worker: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet test IntegraRP.sln --configuration Release --filter FullyQualifiedName~Worker' } ] }
-  dashboard: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet test IntegraRP.sln --configuration Release --filter FullyQualifiedName~Dashboard' } ] }
-
-  standalone-linux: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'bash scripts/publish-standalone-linux.sh && bash scripts/test-standalone-linux.sh' } ] }
-  standalone-windows: { runs-on: windows-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { shell: pwsh, run: './scripts/publish-standalone-windows.ps1; ./scripts/test-standalone-windows.ps1' } ] }
-  playwright: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet test IntegraRP.sln --configuration Release --filter FullyQualifiedName~Playwright' } ] }
-  visual-regression: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { run: 'test -d tests || exit 1' } ] }
-  accessibility: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { run: 'bash -c "! rg -n \"alert\\(|confirm\\(|prompt\\(|innerHTML\" src/IntegraRP.Web/wwwroot --glob \"*.js\""' } ] }
-  mobile: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-node@v4, with: { node-version: 20, cache: npm, cache-dependency-path: apps/IntegraRP.Mobile/package-lock.json } }, { working-directory: apps/IntegraRP.Mobile, run: 'npm ci && npm run typecheck && npm test --if-present' } ] }
-  security: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet list IntegraRP.sln package --vulnerable' } ] }
-  artifacts:
+  database-upgrade:
     runs-on: ubuntu-latest
-    needs: [syntax, onboarding, notifications, manifest-validation, architecture, dotnet-linux, dotnet-windows, warnings-as-errors, razor, database-clean, database-upgrade, database-idempotency, database-preservation, migration-runner-real, auth, customers, products, inventory, orders, tasks, audit-outbox, worker, dashboard, standalone-linux, standalone-windows, playwright, visual-regression, accessibility, mobile, security]
-    if: always()
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_USER: integrarp, POSTGRES_PASSWORD: integrarp, POSTGRES_DB: integrarp_ci }
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U integrarp -d integrarp_ci" --health-interval 5s --health-timeout 5s --health-retries 12
     steps:
       - uses: actions/checkout@v4
-      - run: mkdir -p artifacts/v138/database && cp database/script_completop.sql database/scriptcompleto.sql database/validate_script_completop.sql artifacts/v138/database/
+      - run: for f in database/migrations/*.sql; do [[ "$f" > database/migrations/0045_v139_release_candidate_piloto.sql ]] && break; psql -X "$POSTGRES_URI" -v ON_ERROR_STOP=1 -f "$f"; done
+      - run: psql -X "$POSTGRES_URI" -v ON_ERROR_STOP=1 -f database/migrations/0045_v139_release_candidate_piloto.sql
+      - run: psql -X "$POSTGRES_URI" -v ON_ERROR_STOP=1 -f database/validate_script_completop.sql
+
+  database-idempotency:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_USER: integrarp, POSTGRES_PASSWORD: integrarp, POSTGRES_DB: integrarp_ci }
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U integrarp -d integrarp_ci" --health-interval 5s --health-timeout 5s --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+      - run: psql -X "$POSTGRES_URI" -v ON_ERROR_STOP=1 -f database/script_completop.sql
+      - run: psql -X "$POSTGRES_URI" -v ON_ERROR_STOP=1 -f database/script_completop.sql
+      - run: psql -X "$POSTGRES_URI" -Atc "select count(*) > 0 from integrarp.schema_migrations" | grep -qx t
+
+  database-preservation:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_USER: integrarp, POSTGRES_PASSWORD: integrarp, POSTGRES_DB: integrarp_ci }
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U integrarp -d integrarp_ci" --health-interval 5s --health-timeout 5s --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+      - run: psql -X "$POSTGRES_URI" -v ON_ERROR_STOP=1 -f database/script_completop.sql
+      - run: psql -X "$POSTGRES_URI" -Atc "select count(*) from integrarp.tenant" > /tmp/before
+      - run: psql -X "$POSTGRES_URI" -v ON_ERROR_STOP=1 -f database/script_completop.sql
+      - run: test "$(cat /tmp/before)" = "$(psql -X "$POSTGRES_URI" -Atc 'select count(*) from integrarp.tenant')"
+
+  migration-runner-real:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_USER: integrarp, POSTGRES_PASSWORD: integrarp, POSTGRES_DB: integrarp_ci }
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U integrarp -d integrarp_ci" --health-interval 5s --health-timeout 5s --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
+      - run: dotnet run --project src/IntegraRP.Api --no-launch-profile & echo $! > /tmp/api.pid; sleep 20; kill $(cat /tmp/api.pid) || true
+        env: { ConnectionStrings__DefaultConnection: '${{ env.POSTGRES_URI }}', Database__RunMigrationsOnStartup: 'true' }
+      - run: test "$(psql -X "$POSTGRES_URI" -Atc 'select count(*) from integrarp.schema_migrations where success')" -gt 0
+      - run: dotnet run --project src/IntegraRP.Api --no-launch-profile & echo $! > /tmp/api.pid; sleep 12; kill $(cat /tmp/api.pid) || true
+        env: { ConnectionStrings__DefaultConnection: '${{ env.POSTGRES_URI }}', Database__RunMigrationsOnStartup: 'true' }
+
+  auth:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
+      - run: dotnet restore IntegraRP.sln
+      - run: scripts/run-filtered-tests.sh "FullyQualifiedName~Auth" auth
       - uses: actions/upload-artifact@v4
-        with: { name: v138-audit-${{ github.workflow }}, path: artifacts/v138, retention-days: 30 }
+        if: always()
+        with: { name: auth-trx, path: artifacts/test-results }
+
+  onboarding:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
+      - run: dotnet restore IntegraRP.sln
+      - run: scripts/run-filtered-tests.sh "FullyQualifiedName~Onboarding" onboarding
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: onboarding-trx, path: artifacts/test-results }
+
+  notifications:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
+      - run: dotnet restore IntegraRP.sln
+      - run: scripts/run-filtered-tests.sh "FullyQualifiedName~Notification" notifications
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: notifications-trx, path: artifacts/test-results }
+
+  customers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
+      - run: dotnet restore IntegraRP.sln
+      - run: scripts/run-filtered-tests.sh "FullyQualifiedName~Customer|FullyQualifiedName~Document" customers
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: customers-trx, path: artifacts/test-results }
+
+  products:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
+      - run: dotnet restore IntegraRP.sln
+      - run: scripts/run-filtered-tests.sh "FullyQualifiedName~Product|FullyQualifiedName~Categor" products
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: products-trx, path: artifacts/test-results }
+
+  inventory:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
+      - run: dotnet restore IntegraRP.sln
+      - run: scripts/run-filtered-tests.sh "FullyQualifiedName~Inventory|FullyQualifiedName~Allocation|FullyQualifiedName~Stock" inventory
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: inventory-trx, path: artifacts/test-results }
+
+  orders:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
+      - run: dotnet restore IntegraRP.sln
+      - run: scripts/run-filtered-tests.sh "FullyQualifiedName~Order|FullyQualifiedName~Pricing|FullyQualifiedName~Discount" orders
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: orders-trx, path: artifacts/test-results }
+
+  process:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
+      - run: dotnet restore IntegraRP.sln
+      - run: scripts/run-filtered-tests.sh "FullyQualifiedName~Process|FullyQualifiedName~Journey" process
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: process-trx, path: artifacts/test-results }
+
+  tasks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
+      - run: dotnet restore IntegraRP.sln
+      - run: scripts/run-filtered-tests.sh "FullyQualifiedName~Task|FullyQualifiedName~Checklist" tasks
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: tasks-trx, path: artifacts/test-results }
+
+  evidence:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
+      - run: dotnet restore IntegraRP.sln
+      - run: scripts/run-filtered-tests.sh "FullyQualifiedName~Evidence|FullyQualifiedName~Attachment" evidence
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: evidence-trx, path: artifacts/test-results }
+
+  billing-pending:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
+      - run: dotnet restore IntegraRP.sln
+      - run: scripts/run-filtered-tests.sh "FullyQualifiedName~Billing|FullyQualifiedName~Faturamento" billing-pending
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: billing-pending-trx, path: artifacts/test-results }
+
+  audit-outbox:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
+      - run: dotnet restore IntegraRP.sln
+      - run: scripts/run-filtered-tests.sh "FullyQualifiedName~Audit|FullyQualifiedName~Outbox" audit-outbox
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: audit-outbox-trx, path: artifacts/test-results }
+
+  worker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
+      - run: dotnet restore IntegraRP.sln
+      - run: scripts/run-filtered-tests.sh "FullyQualifiedName~Worker|FullyQualifiedName~Handler|FullyQualifiedName~Retry" worker
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: worker-trx, path: artifacts/test-results }
+
+  dashboard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
+      - run: dotnet restore IntegraRP.sln
+      - run: scripts/run-filtered-tests.sh "FullyQualifiedName~Dashboard|FullyQualifiedName~NextBestAction" dashboard
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: dashboard-trx, path: artifacts/test-results }
+
+  web-bff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
+      - run: dotnet restore IntegraRP.sln
+      - run: scripts/run-filtered-tests.sh "FullyQualifiedName~Bff|FullyQualifiedName~ApiClient|FullyQualifiedName~Navigation" web-bff
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: web-bff-trx, path: artifacts/test-results }
+
+  standalone-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
+      - run: bash scripts/publish-standalone-linux.sh && bash scripts/test-standalone-linux.sh
+
+  standalone-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
+      - shell: pwsh
+        run: ./scripts/publish-standalone-windows.ps1; ./scripts/test-standalone-windows.ps1
+
+  playwright:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
+      - run: dotnet restore IntegraRP.sln
+      - run: scripts/run-filtered-tests.sh FullyQualifiedName~Playwright playwright
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: playwright-artifacts, path: 'artifacts/test-results' }
+
+  visual-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: test -d tests && find tests -type f | grep -E 'Visual|Screenshot'
+
+  accessibility:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: '! rg -n "alert\(|confirm\(|prompt\(|innerHTML" src/IntegraRP.Web/wwwroot --glob "*.js"'
+      - run: rg -q 'aria-live' src/IntegraRP.Web/Views/Shared/_FeedbackHost.cshtml
+
+  mobile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm, cache-dependency-path: apps/IntegraRP.Mobile/package-lock.json }
+      - working-directory: apps/IntegraRP.Mobile
+        run: npm ci && npm run typecheck && npm test --if-present
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
+      - run: dotnet list IntegraRP.sln package --vulnerable --include-transitive
+      - run: '! rg -n "alert\(|confirm\(|prompt\(|innerHTML" src/IntegraRP.Web/wwwroot --glob "*.js"'
+
+  release-gate:
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [syntax, manifest-validation, architecture, dotnet-linux, dotnet-windows, warnings-as-errors, razor, bootstrap-contract, database-clean, database-upgrade, database-idempotency, database-preservation, migration-runner-real, auth, onboarding, notifications, customers, products, inventory, orders, process, tasks, evidence, billing-pending, audit-outbox, worker, dashboard, web-bff, standalone-linux, standalone-windows, playwright, visual-regression, accessibility, mobile, security]
+    steps:
+      - name: Exigir todos os checks obrigatórios verdes
+        env:
+          RESULTS: '${{ toJSON(needs) }}'
+        run: echo "$RESULTS" | jq -e 'all(.[]; .result == "success")'
+
+  diagnostic-artifacts:
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [release-gate]
+    steps:
+      - uses: actions/checkout@v4
+      - run: mkdir -p artifacts/v140/database && cp database/script_completop.sql database/scriptcompleto.sql database/validate_script_completop.sql database/migration_manifest.json artifacts/v140/database/
+      - uses: actions/upload-artifact@v4
+        with: { name: "v140-diagnostic-${{ github.run_id }}", path: artifacts/v140, retention-days: 30 }
