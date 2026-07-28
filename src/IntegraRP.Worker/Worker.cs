@@ -33,12 +33,20 @@ public sealed class Worker(
                     """, transaction: transaction, cancellationToken: stoppingToken));
                 var outbox = await connection.ExecuteAsync(new CommandDefinition("""
                     with batch as (
-                      select id from integrarp.outbox_evento
+                      select id,tenant_id,tipo,payload_json,correlation_id from integrarp.outbox_evento
                        where status='pendente' and coalesce(proxima_tentativa_em,now()) <= now()
+                         and tipo in ('pedido.confirmado','tarefa.criada','tarefa.concluida','estoque.movimentado')
                        order by criado_em for update skip locked limit 100
+                    ), handled as (
+                      insert into integrarp.auditoria_evento
+                        (id,tenant_id,entidade,entidade_id,acao,depois_json,correlation_id,criado_em,origem)
+                      select gen_random_uuid(),tenant_id,'outbox',id,'evento_despachado',
+                             jsonb_build_object('tipo',tipo,'payload',payload_json),correlation_id,now(),'worker'
+                        from batch
+                      returning entidade_id
                     )
                     update integrarp.outbox_evento o set status='processado',processado_em=now(),atualizado_em=now()
-                      from batch where o.id=batch.id
+                      from handled where o.id=handled.entidade_id
                     """, transaction: transaction, cancellationToken: stoppingToken));
                 transaction.Commit();
                 logger.LogInformation("Ciclo persistido concluído: {ExpiredTasks} tarefas sinalizadas e {OutboxEvents} eventos processados.", expired, outbox);

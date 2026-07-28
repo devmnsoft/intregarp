@@ -11,12 +11,17 @@ public sealed class V135OnboardingTests
         Assert.Equal(25, OnboardingProgress.Percentage([1, 1, 2, 99]));
     }
 
-    [Theory]
-    [InlineData(0, 1)]
-    [InlineData(4, 4)]
-    [InlineData(9, 8)]
-    public void NormalizeStepKeepsProgressInsideJourney(int input, int expected)
+    [Fact]
+    public void RequireValidStepKeepsValidProgressInsideJourney()
     {
-        Assert.Equal(expected, OnboardingProgress.NormalizeStep(input));
+        Assert.Equal(4, OnboardingProgress.RequireValidStep(4));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(9)]
+    public void RequireValidStepRejectsValuesOutsideJourney(int input)
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => OnboardingProgress.RequireValidStep(input));
     }
 }

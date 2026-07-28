@@ -75,6 +75,7 @@ public static class DependencyInjection
         services.AddScoped<GetOnboardingStateUseCase>();
         services.AddScoped<UpdateOnboardingStepUseCase>();
         services.AddScoped<DismissOnboardingUseCase>();
+        services.AddScoped<ReconcileOnboardingProgressUseCase>();
         return services;
     }
 }

@@ -46,7 +46,7 @@ public sealed class MigrationManifestValidator
         foreach (var prefixGroup in manifest.Migrations.GroupBy(x => x.File.Length >= 4 ? x.File[..4] : x.File, StringComparer.OrdinalIgnoreCase).Where(x => x.Count() > 1))
         {
             var prefix = prefixGroup.Key;
-            var allMarked = prefixGroup.All(x => x.Status.Equals("versionada-duplicidade-historica", StringComparison.OrdinalIgnoreCase) || HistoricalDuplicatePrefixes.Contains(prefix));
+            var allMarked = prefixGroup.All(x => x.Status.Equals("versionada-duplicidade-historica", StringComparison.OrdinalIgnoreCase));
             if (!HistoricalDuplicatePrefixes.Contains(prefix) || !allMarked) errors.Add($"prefixo duplicado não permitido: {prefix}");
         }
         return errors;
