@@ -1,6 +1,6 @@
-using System.Data;
 using System.Text.Json;
 using Dapper;
+using IntegraRP.Application.Common;
 using IntegraRP.Application.Onboarding;
 using IntegraRP.Contracts.Onboarding;
 using IntegraRP.Domain.Onboarding;
@@ -54,18 +54,20 @@ public sealed class PostgresUserPreferenceRepository(IDbConnectionFactory connec
         var row = await connection.QuerySingleOrDefaultAsync<Row>(new CommandDefinition(
             "select valor::text Value, atualizado_em UpdatedAt, row_version RowVersion from integrarp.usuario_preferencia where tenant_id=@tenantId and usuario_id=@userId and chave=@Key for update",
             new { tenantId, userId, Key }, transaction, cancellationToken: cancellationToken));
-        if (row is not null && row.RowVersion != expectedVersion) throw new DBConcurrencyException("O onboarding foi atualizado em outra sessão.");
-        if (row is null && expectedVersion != 0) throw new DBConcurrencyException("A versão inicial do onboarding deve ser zero.");
+        if (row is not null && row.RowVersion != expectedVersion) throw new ConcurrencyException("O onboarding foi atualizado em outra sessão.");
+        if (row is null && expectedVersion != 0) throw new ConcurrencyException("A versão inicial do onboarding deve ser zero.");
         var state = row is null ? new State() : JsonSerializer.Deserialize<State>(row.Value) ?? new State();
         mutate(state);
         var value = JsonSerializer.Serialize(state);
-        var updated = await connection.QuerySingleAsync<Row>(new CommandDefinition("""
+        var updated = await connection.QuerySingleOrDefaultAsync<Row>(new CommandDefinition("""
             insert into integrarp.usuario_preferencia(id,tenant_id,usuario_id,chave,valor,criado_em,atualizado_em,row_version)
             values(gen_random_uuid(),@tenantId,@userId,@Key,@value::jsonb,now(),now(),1)
             on conflict(tenant_id,usuario_id,chave) do update set valor=excluded.valor,atualizado_em=now(),row_version=integrarp.usuario_preferencia.row_version+1
             where integrarp.usuario_preferencia.row_version=@expectedVersion
             returning valor::text Value, atualizado_em UpdatedAt, row_version RowVersion
             """, new { tenantId, userId, Key, value, expectedVersion }, transaction, cancellationToken: cancellationToken));
+        if (updated is null)
+            throw new ConcurrencyException("O onboarding foi atualizado durante a gravação. Recarregue os dados e tente novamente.");
         transaction.Commit();
         return Map(updated);
     }

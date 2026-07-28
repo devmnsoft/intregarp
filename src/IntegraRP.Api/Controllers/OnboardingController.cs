@@ -13,7 +13,7 @@ public sealed class OnboardingController(
     UpdateOnboardingStepUseCase updateStep,
     DismissOnboardingUseCase dismiss,
     ReconcileOnboardingProgressUseCase reconcile,
-    IUserPreferenceRepository preferences) : ControllerBase
+    ReopenOnboardingUseCase reopen) : ControllerBase
 {
     private Guid RequiredClaim(string name) => Guid.TryParse(User.FindFirst(name)?.Value, out var value)
         ? value : throw new UnauthorizedAccessException($"Claim obrigatória ausente: {name}.");
@@ -36,5 +36,5 @@ public sealed class OnboardingController(
 
     [HttpPost("reopen")]
     public Task<OnboardingStateDto> Reopen(ReopenOnboardingRequest request, CancellationToken cancellationToken) =>
-        preferences.ReopenOnboardingAsync(RequiredClaim("tenant_id"), RequiredClaim("sub"), request, cancellationToken);
+        reopen.ExecuteAsync(RequiredClaim("tenant_id"), RequiredClaim("sub"), request, cancellationToken);
 }

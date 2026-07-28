@@ -42,3 +42,6 @@ public sealed record DashboardSummaryDto(int OrdersInProgress, int OrdersAwaitin
 public sealed record DashboardAttentionItemDto(string Type, string Title, string Severity, string? Url);
 public sealed record DashboardRecentOrderDto(Guid Id, string Number, string CustomerName, string Status, decimal Total, DateTimeOffset UpdatedAt);
 public sealed record DashboardStockAlertDto(Guid ProductId, string Sku, string ProductName, decimal Available, decimal MinimumStock);
+public sealed record NotificationDto(Guid Id, string Type, string Title, string Message, string? Icon, string? DeepLink, string Priority, bool IsRead, DateTimeOffset CreatedAt, long RowVersion);
+public sealed record NotificationPageDto(IReadOnlyList<NotificationDto> Items, int UnreadCount, bool HasMore);
+public sealed record CreateNotificationRequest(Guid? UserId, string Type, string Title, string Message, string? Icon, string? DeepLink, string Priority, string IdempotencyKey);

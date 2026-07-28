@@ -35,7 +35,7 @@ public sealed class Worker(
                     with batch as (
                       select id,tenant_id,tipo,payload_json,correlation_id from integrarp.outbox_evento
                        where status='pendente' and coalesce(proxima_tentativa_em,now()) <= now()
-                         and tipo in ('pedido.confirmado','tarefa.criada','tarefa.concluida','estoque.movimentado')
+                         and tipo in ('pedido.confirmado','pedido.separado','tarefa.criada','tarefa.concluida','estoque.movimentado')
                        order by criado_em for update skip locked limit 100
                     ), handled as (
                       insert into integrarp.auditoria_evento
