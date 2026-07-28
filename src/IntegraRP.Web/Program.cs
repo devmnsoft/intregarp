@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.DataProtection;
 using IntegraRP.Web.Services.Navigation;
 using IntegraRP.Web.Services.Identity;
 using Microsoft.AspNetCore.Authorization;
+using IntegraRP.Web.Services.Onboarding;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,7 @@ builder.Services.AddSingleton<IIdentitySessionStore, ProtectedIdentitySessionSto
 builder.Services.AddScoped<IdentityClaimsFactory>();
 builder.Services.AddScoped<ICurrentWebUserService, CurrentWebUserService>();
 builder.Services.AddHttpClient("IntegraRP.Api", client => { client.BaseAddress = new Uri(builder.Configuration["IntegraRP:ApiBaseUrl"] ?? "http://localhost:7001"); client.Timeout = TimeSpan.FromSeconds(15); });
+builder.Services.AddHttpClient<IOnboardingApiClient, OnboardingApiClient>(client => { client.BaseAddress = new Uri(builder.Configuration["IntegraRP:ApiBaseUrl"] ?? "http://localhost:7001"); client.Timeout = TimeSpan.FromSeconds(15); });
 builder.Services.AddHttpClient<IIdentityApiClient, IdentityApiClient>(client => { client.BaseAddress = new Uri(builder.Configuration["IntegraRP:ApiBaseUrl"] ?? "http://localhost:7001"); client.Timeout = TimeSpan.FromSeconds(15); });
 
 var app = builder.Build();
