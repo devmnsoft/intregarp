@@ -75,7 +75,13 @@ public static class DependencyInjection
         services.AddScoped<GetOnboardingStateUseCase>();
         services.AddScoped<UpdateOnboardingStepUseCase>();
         services.AddScoped<DismissOnboardingUseCase>();
+        services.AddScoped<ReopenOnboardingUseCase>();
         services.AddScoped<ReconcileOnboardingProgressUseCase>();
+        services.AddScoped<ListNotificationsUseCase>();
+        services.AddScoped<GetUnreadNotificationCountUseCase>();
+        services.AddScoped<MarkNotificationReadUseCase>();
+        services.AddScoped<MarkAllNotificationsReadUseCase>();
+        services.AddScoped<CreateNotificationUseCase>();
         return services;
     }
 }

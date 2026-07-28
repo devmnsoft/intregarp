@@ -1,5 +1,15 @@
-@{ ViewData["Title"] = "Onboarding Guiado"; }
-<section class="onboarding-page">
-  <h1>Onboarding Guiado</h1><p>Complete os primeiros passos para deixar o IntegraRP pronto para operar.</p>
-  <ol><li><a href="/onboarding/company">Confirmar dados da empresa</a></li><li><a href="/onboarding/sectors">Criar setores</a></li><li><a href="/onboarding/users">Criar usuários</a></li><li><a href="/onboarding/templates">Instalar templates</a></li><li><a href="/onboarding/first-order">Criar primeiro pedido</a></li></ol>
+@{ ViewData["Title"] = "Primeiros passos"; }
+<section class="onboarding-page" aria-labelledby="onboarding-title">
+  <header><span class="eyebrow">CONFIGURAÇÃO GUIADA</span><h1 id="onboarding-title">Prepare sua operação</h1><p>Conclua cada etapa com dados reais. O progresso é atualizado automaticamente.</p></header>
+  <div class="progress" role="progressbar" aria-label="Progresso da configuração" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-bar" style="width:0%">0%</div></div>
+  <ol class="onboarding-steps">
+    <li><a href="/onboarding/step/1"><strong>Organização</strong><span>Confirme os dados da empresa</span><small>2 min</small></a></li>
+    <li><a href="/onboarding/step/2"><strong>Setores</strong><span>Revise a estrutura responsável pela operação</span><small>3 min</small></a></li>
+    <li><a href="/customers/new"><strong>Cliente</strong><span>Cadastre o primeiro cliente ativo</span><small>3 min</small></a></li>
+    <li><a href="/products/categories/new"><strong>Categoria</strong><span>Organize o catálogo de produtos</span><small>2 min</small></a></li>
+    <li><a href="/products/new"><strong>Produto</strong><span>Cadastre um produto em uma categoria</span><small>3 min</small></a></li>
+    <li><a href="/inventory/entries/new"><strong>Estoque</strong><span>Registre uma entrada física</span><small>3 min</small></a></li>
+    <li><a href="/orders/new"><strong>Pedido</strong><span>Crie e confirme o primeiro pedido</span><small>5 min</small></a></li>
+    <li><a href="/tasks/my"><strong>Separação</strong><span>Conclua sua tarefa com checklist e evidência</span><small>5 min</small></a></li>
+  </ol>
 </section>

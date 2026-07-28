@@ -1,7 +1,7 @@
 {
   "schema": "integrarp",
-  "gerado_para": "v136",
-  "contrato": "v1.36-experiencia-premium-funcional",
+  "gerado_para": "v137",
+  "contrato": "IntegraRP v1.37",
   "migrations": [
     {
       "ordem": 1,
@@ -422,6 +422,16 @@
       "presente_no_script_completop": true,
       "status": "versionada",
       "observacoes": "Migration aditiva v1.36; migrations 0001 a 0041 permanecem congeladas."
+    },
+    {
+      "ordem": 43,
+      "arquivo": "0043_v137_produto_navegavel.sql",
+      "versao": "0043_v137_produto_navegavel",
+      "descricao": "v1.37 jornada navegável, notificações e despacho confiável da outbox",
+      "modulo": "Commercial",
+      "presente_no_script_completop": true,
+      "status": "versionada",
+      "observacoes": "Migration aditiva v1.37; migrations 0001 a 0042 permanecem congeladas."
     }
   ],
   "postgresql": "16",

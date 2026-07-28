@@ -38,6 +38,12 @@ public sealed class DismissOnboardingUseCase(IUserPreferenceRepository repositor
         repository.DismissOnboardingAsync(tenantId, userId, request, cancellationToken);
 }
 
+public sealed class ReopenOnboardingUseCase(IUserPreferenceRepository repository)
+{
+    public Task<OnboardingStateDto> ExecuteAsync(Guid tenantId, Guid userId, ReopenOnboardingRequest request, CancellationToken cancellationToken) =>
+        repository.ReopenOnboardingAsync(tenantId, userId, request, cancellationToken);
+}
+
 public sealed class ReconcileOnboardingProgressUseCase(IOnboardingProgressQuery query, IUserPreferenceRepository repository)
 {
     public async Task<OnboardingStateDto> ExecuteAsync(Guid tenantId, Guid userId, CancellationToken cancellationToken)

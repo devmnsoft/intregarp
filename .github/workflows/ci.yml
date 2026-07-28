@@ -1,4 +1,4 @@
-name: IntegraRP CI v1.36
+name: IntegraRP CI v1.37
 
 on:
   push:
@@ -66,7 +66,7 @@ jobs:
       - run: dotnet test IntegraRP.sln --configuration Release --no-build --logger "trx;LogFileName=dotnet-linux.trx" --collect:"XPlat Code Coverage"
       - uses: actions/upload-artifact@v4
         if: always()
-        with: { name: v133-dotnet-linux, path: "**/TestResults/**" }
+        with: { name: v137-dotnet-linux, path: "**/TestResults/**" }
 
   dotnet-windows:
     runs-on: windows-latest
@@ -115,6 +115,8 @@ jobs:
   database-preservation: *postgres_job
   migration-runner-real: *postgres_job
 
+  onboarding: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet test IntegraRP.sln --configuration Release --filter FullyQualifiedName~Onboarding' } ] }
+  notifications: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet test IntegraRP.sln --configuration Release --filter FullyQualifiedName~Notification' } ] }
   auth: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet test IntegraRP.sln --configuration Release --filter FullyQualifiedName~Auth' } ] }
   customers: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet test IntegraRP.sln --configuration Release --filter FullyQualifiedName~Customer' } ] }
   products: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet test IntegraRP.sln --configuration Release --filter FullyQualifiedName~Product' } ] }
@@ -134,10 +136,10 @@ jobs:
   security: { runs-on: ubuntu-latest, steps: [ { uses: actions/checkout@v4 }, { uses: actions/setup-dotnet@v4, with: { dotnet-version: '${{ env.DOTNET_VERSION }}' } }, { run: 'dotnet list IntegraRP.sln package --vulnerable' } ] }
   artifacts:
     runs-on: ubuntu-latest
-    needs: [syntax, manifest-validation, architecture, dotnet-linux, dotnet-windows, warnings-as-errors, razor, database-clean, database-upgrade, database-idempotency, database-preservation, migration-runner-real, auth, customers, products, inventory, orders, tasks, audit-outbox, worker, dashboard, standalone-linux, standalone-windows, playwright, visual-regression, accessibility, mobile, security]
+    needs: [syntax, onboarding, notifications, manifest-validation, architecture, dotnet-linux, dotnet-windows, warnings-as-errors, razor, database-clean, database-upgrade, database-idempotency, database-preservation, migration-runner-real, auth, customers, products, inventory, orders, tasks, audit-outbox, worker, dashboard, standalone-linux, standalone-windows, playwright, visual-regression, accessibility, mobile, security]
     if: always()
     steps:
       - uses: actions/checkout@v4
-      - run: mkdir -p artifacts/v133/database && cp database/script_completop.sql database/scriptcompleto.sql database/validate_script_completop.sql artifacts/v133/database/
+      - run: mkdir -p artifacts/v137/database && cp database/script_completop.sql database/scriptcompleto.sql database/validate_script_completop.sql artifacts/v137/database/
       - uses: actions/upload-artifact@v4
-        with: { name: v133-audit-${{ github.workflow }}, path: artifacts/v133, retention-days: 30 }
+        with: { name: v137-audit-${{ github.workflow }}, path: artifacts/v137, retention-days: 30 }
