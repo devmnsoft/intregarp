@@ -1,7 +1,7 @@
 {
   "schema": "integrarp",
-  "gerado_para": "v1.34",
-  "contrato": "v1.34-experiencia-guiada-core-comercial",
+  "gerado_para": "v1.35",
+  "contrato": "v1.35-experiencia-guiada-funcional",
   "migrations": [
     {
       "ordem": 1,
@@ -402,6 +402,16 @@
       "presente_no_script_completop": true,
       "status": "versionada",
       "observacoes": "Migration aditiva e idempotente v1.34; não altera migrations históricas."
+    },
+    {
+      "ordem": 41,
+      "arquivo": "0041_v135_experiencia_guiada_funcional.sql",
+      "versao": "0041_v135_experiencia_guiada_funcional",
+      "descricao": "v1.35 integridade referencial, onboarding, notificacoes e numeracao",
+      "modulo": "Commercial",
+      "presente_no_script_completop": true,
+      "status": "versionada",
+      "observacoes": "Migration aditiva v1.35; migrations 0001 a 0040 permanecem congeladas."
     }
   ],
   "postgresql": "16",

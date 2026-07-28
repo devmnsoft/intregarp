@@ -1,11 +1,11 @@
 -- Produto: IntegraRP
--- Versão: v1.34
+-- Versão: v1.35
 -- Data UTC: 2026-07-28T00:00:00Z
 -- PostgreSQL: 16
 -- Schema: integrarp
--- Checksum SHA-256 do corpo transacional: f7ecd674d65d1622718e9a4515d9484e3e46ec13ce18ce040ffddbd4bc1e9701
--- Contrato: v1.34-experiencia-guiada-core-comercial
--- Número de migrations: 40
+-- Checksum SHA-256 do corpo transacional: 390bc0f92e39f5c663f05ac3926bebfe68d902c1272e857a50ea537eaf7b0d04
+-- Contrato: v1.35-experiencia-guiada-funcional
+-- Número de migrations: 41
 -- Instruções: executar via psql -X "$POSTGRES_URI" --set ON_ERROR_STOP=1 --file database/script_completop.sql.
 -- Aviso: este script não cria usuário com senha nem armazena credenciais.
 
@@ -8022,5 +8022,50 @@ COMMENT ON TABLE integrarp.usuario_preferencia IS 'Preferencias persistentes, in
 COMMENT ON TABLE integrarp.notificacao_usuario IS 'Notificacoes internas persistentes e enderecadas por tenant e usuario.';
 
 -- <<< 0040_v134_experiencia_guiada_core_comercial.sql
+
+-- >>> 0041_v135_experiencia_guiada_funcional.sql
+-- IntegraRP v1.35 - integridade da experiencia guiada funcional
+-- PostgreSQL 16. Migration aditiva e idempotente; migrations 0001 a 0040 permanecem congeladas.
+
+DO $migration$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_pedido_numeracao_tenant') THEN
+        ALTER TABLE integrarp.pedido_numeracao
+            ADD CONSTRAINT fk_pedido_numeracao_tenant FOREIGN KEY (tenant_id)
+            REFERENCES integrarp.tenant(id) ON DELETE CASCADE;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_usuario_preferencia_tenant') THEN
+        ALTER TABLE integrarp.usuario_preferencia
+            ADD CONSTRAINT fk_usuario_preferencia_tenant FOREIGN KEY (tenant_id)
+            REFERENCES integrarp.tenant(id) ON DELETE CASCADE;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_usuario_preferencia_usuario') THEN
+        ALTER TABLE integrarp.usuario_preferencia
+            ADD CONSTRAINT fk_usuario_preferencia_usuario FOREIGN KEY (usuario_id)
+            REFERENCES integrarp.usuario(id) ON DELETE CASCADE;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_notificacao_usuario_tenant') THEN
+        ALTER TABLE integrarp.notificacao_usuario
+            ADD CONSTRAINT fk_notificacao_usuario_tenant FOREIGN KEY (tenant_id)
+            REFERENCES integrarp.tenant(id) ON DELETE CASCADE;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_notificacao_usuario_usuario') THEN
+        ALTER TABLE integrarp.notificacao_usuario
+            ADD CONSTRAINT fk_notificacao_usuario_usuario FOREIGN KEY (usuario_id)
+            REFERENCES integrarp.usuario(id) ON DELETE CASCADE;
+    END IF;
+END
+$migration$;
+
+CREATE INDEX IF NOT EXISTS ix_usuario_preferencia_onboarding
+    ON integrarp.usuario_preferencia (tenant_id, usuario_id, atualizado_em DESC)
+    WHERE chave = 'onboarding.v135';
+CREATE INDEX IF NOT EXISTS ix_notificacao_usuario_prioridade
+    ON integrarp.notificacao_usuario (tenant_id, usuario_id, prioridade, criado_em DESC)
+    WHERE lida_em IS NULL;
+CREATE INDEX IF NOT EXISTS ix_pedido_numeracao_atualizacao
+    ON integrarp.pedido_numeracao (tenant_id, atualizado_em DESC);
+
+-- <<< 0041_v135_experiencia_guiada_funcional.sql
 
 COMMIT;

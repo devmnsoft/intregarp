@@ -1,8 +1,8 @@
 -- Produto: IntegraRP
--- Versao: v1.32
+-- Versao: v1.35
 -- PostgreSQL: 16
 -- Schema: integrarp
--- Validador executavel do contrato comercial v1.32.
+-- Validador executavel do contrato comercial v1.35.
 \set ON_ERROR_STOP on
 
 DO $validation$
@@ -20,7 +20,8 @@ BEGIN
         ('cliente'), ('produto_categoria'), ('produto'), ('pedido'), ('pedido_item'),
         ('estoque_saldo'), ('estoque_movimento'), ('estoque_reserva'),
         ('tarefa_operacional'), ('auditoria_evento'), ('outbox_evento'),
-        ('worker_tenant_job_lock'), ('worker_dead_letter'), ('processo_instancia')
+        ('worker_tenant_job_lock'), ('worker_dead_letter'), ('processo_instancia'),
+        ('pedido_numeracao'), ('usuario_preferencia'), ('notificacao_usuario')
       ) AS required(object_name)
      WHERE to_regclass('integrarp.' || required.object_name) IS NULL;
     IF missing IS NOT NULL THEN
