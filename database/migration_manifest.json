@@ -1,7 +1,7 @@
 {
   "schema": "integrarp",
-  "gerado_para": "v1.35",
-  "contrato": "v1.35-experiencia-guiada-funcional",
+  "gerado_para": "v136",
+  "contrato": "v1.36-experiencia-premium-funcional",
   "migrations": [
     {
       "ordem": 1,
@@ -412,6 +412,16 @@
       "presente_no_script_completop": true,
       "status": "versionada",
       "observacoes": "Migration aditiva v1.35; migrations 0001 a 0040 permanecem congeladas."
+    },
+    {
+      "ordem": 42,
+      "arquivo": "0042_v136_experiencia_premium_funcional.sql",
+      "versao": "0042_v136_experiencia_premium_funcional",
+      "descricao": "v1.36 integridade multi-tenant, onboarding automático e notificações operacionais",
+      "modulo": "Commercial",
+      "presente_no_script_completop": true,
+      "status": "versionada",
+      "observacoes": "Migration aditiva v1.36; migrations 0001 a 0041 permanecem congeladas."
     }
   ],
   "postgresql": "16",

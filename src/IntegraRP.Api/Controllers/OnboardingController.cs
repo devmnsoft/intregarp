@@ -11,7 +11,9 @@ namespace IntegraRP.Api.Controllers;
 public sealed class OnboardingController(
     GetOnboardingStateUseCase getState,
     UpdateOnboardingStepUseCase updateStep,
-    DismissOnboardingUseCase dismiss) : ControllerBase
+    DismissOnboardingUseCase dismiss,
+    ReconcileOnboardingProgressUseCase reconcile,
+    IUserPreferenceRepository preferences) : ControllerBase
 {
     private Guid RequiredClaim(string name) => Guid.TryParse(User.FindFirst(name)?.Value, out var value)
         ? value : throw new UnauthorizedAccessException($"Claim obrigatória ausente: {name}.");
@@ -27,4 +29,12 @@ public sealed class OnboardingController(
     [HttpPost("dismiss")]
     public Task<OnboardingStateDto> Dismiss(DismissOnboardingRequest request, CancellationToken cancellationToken) =>
         dismiss.ExecuteAsync(RequiredClaim("tenant_id"), RequiredClaim("sub"), request, cancellationToken);
+
+    [HttpPost("reconcile")]
+    public Task<OnboardingStateDto> Reconcile(CancellationToken cancellationToken) =>
+        reconcile.ExecuteAsync(RequiredClaim("tenant_id"), RequiredClaim("sub"), cancellationToken);
+
+    [HttpPost("reopen")]
+    public Task<OnboardingStateDto> Reopen(ReopenOnboardingRequest request, CancellationToken cancellationToken) =>
+        preferences.ReopenOnboardingAsync(RequiredClaim("tenant_id"), RequiredClaim("sub"), request, cancellationToken);
 }
