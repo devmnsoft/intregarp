@@ -38,15 +38,20 @@ public sealed class Worker(
                          and tipo in ('pedido.confirmado','pedido.separado','tarefa.criada','tarefa.concluida','estoque.movimentado')
                        order by criado_em for update skip locked limit 100
                     ), handled as (
-                      insert into integrarp.auditoria_evento
-                        (id,tenant_id,entidade,entidade_id,acao,depois_json,correlation_id,criado_em,origem)
-                      select gen_random_uuid(),tenant_id,'outbox',id,'evento_despachado',
-                             jsonb_build_object('tipo',tipo,'payload',payload_json),correlation_id,now(),'worker'
+                      insert into integrarp.outbox_execucao_handler
+                        (tenant_id,evento_id,handler,correlation_id,executado_em)
+                      select tenant_id,id,case tipo
+                        when 'pedido.confirmado' then 'PedidoConfirmadoHandler'
+                        when 'pedido.separado' then 'PedidoSeparadoHandler'
+                        when 'tarefa.criada' then 'TarefaCriadaHandler'
+                        when 'tarefa.concluida' then 'TarefaConcluidaHandler'
+                        when 'estoque.movimentado' then 'EstoqueMovimentadoHandler' end,correlation_id,now()
                         from batch
-                      returning entidade_id
+                      on conflict (tenant_id,evento_id) do nothing
+                      returning evento_id
                     )
                     update integrarp.outbox_evento o set status='processado',processado_em=now(),atualizado_em=now()
-                      from handled where o.id=handled.entidade_id
+                      from handled where o.id=handled.evento_id
                     """, transaction: transaction, cancellationToken: stoppingToken));
                 transaction.Commit();
                 logger.LogInformation("Ciclo persistido concluído: {ExpiredTasks} tarefas sinalizadas e {OutboxEvents} eventos processados.", expired, outbox);

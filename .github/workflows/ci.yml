@@ -1,4 +1,4 @@
-name: IntegraRP CI v1.37
+name: IntegraRP CI v1.38
 
 on:
   push:
@@ -66,7 +66,7 @@ jobs:
       - run: dotnet test IntegraRP.sln --configuration Release --no-build --logger "trx;LogFileName=dotnet-linux.trx" --collect:"XPlat Code Coverage"
       - uses: actions/upload-artifact@v4
         if: always()
-        with: { name: v137-dotnet-linux, path: "**/TestResults/**" }
+        with: { name: v138-dotnet-linux, path: "**/TestResults/**" }
 
   dotnet-windows:
     runs-on: windows-latest
@@ -140,6 +140,6 @@ jobs:
     if: always()
     steps:
       - uses: actions/checkout@v4
-      - run: mkdir -p artifacts/v137/database && cp database/script_completop.sql database/scriptcompleto.sql database/validate_script_completop.sql artifacts/v137/database/
+      - run: mkdir -p artifacts/v138/database && cp database/script_completop.sql database/scriptcompleto.sql database/validate_script_completop.sql artifacts/v138/database/
       - uses: actions/upload-artifact@v4
-        with: { name: v137-audit-${{ github.workflow }}, path: artifacts/v137, retention-days: 30 }
+        with: { name: v138-audit-${{ github.workflow }}, path: artifacts/v138, retention-days: 30 }

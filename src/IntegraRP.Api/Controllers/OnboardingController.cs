@@ -7,6 +7,7 @@ namespace IntegraRP.Api.Controllers;
 
 [ApiController]
 [Authorize]
+[ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 [Route("api/onboarding")]
 public sealed class OnboardingController(
     GetOnboardingStateUseCase getState,

@@ -1,15 +1,17 @@
+@model IntegraRP.Web.ViewModels.Onboarding.OnboardingPageViewModel
 @{ ViewData["Title"] = "Primeiros passos"; }
 <section class="onboarding-page" aria-labelledby="onboarding-title">
-  <header><span class="eyebrow">CONFIGURAÇÃO GUIADA</span><h1 id="onboarding-title">Prepare sua operação</h1><p>Conclua cada etapa com dados reais. O progresso é atualizado automaticamente.</p></header>
-  <div class="progress" role="progressbar" aria-label="Progresso da configuração" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-bar" style="width:0%">0%</div></div>
-  <ol class="onboarding-steps">
-    <li><a href="/onboarding/step/1"><strong>Organização</strong><span>Confirme os dados da empresa</span><small>2 min</small></a></li>
-    <li><a href="/onboarding/step/2"><strong>Setores</strong><span>Revise a estrutura responsável pela operação</span><small>3 min</small></a></li>
-    <li><a href="/customers/new"><strong>Cliente</strong><span>Cadastre o primeiro cliente ativo</span><small>3 min</small></a></li>
-    <li><a href="/products/categories/new"><strong>Categoria</strong><span>Organize o catálogo de produtos</span><small>2 min</small></a></li>
-    <li><a href="/products/new"><strong>Produto</strong><span>Cadastre um produto em uma categoria</span><small>3 min</small></a></li>
-    <li><a href="/inventory/entries/new"><strong>Estoque</strong><span>Registre uma entrada física</span><small>3 min</small></a></li>
-    <li><a href="/orders/new"><strong>Pedido</strong><span>Crie e confirme o primeiro pedido</span><small>5 min</small></a></li>
-    <li><a href="/tasks/my"><strong>Separação</strong><span>Conclua sua tarefa com checklist e evidência</span><small>5 min</small></a></li>
-  </ol>
+  <header><span class="eyebrow">CONFIGURAÇÃO GUIADA</span><h1 id="onboarding-title">Prepare sua operação</h1><p>Conclua cada etapa com dados reais. O progresso é reconciliado com a operação.</p></header>
+  @if (Model is null) {
+    <div class="alert alert-danger" role="alert"><strong>Não foi possível carregar o progresso.</strong><p>@ViewData["LoadError"]</p><a class="btn btn-outline-danger" href="/onboarding">Tentar novamente</a><small> Referência: @ViewData["CorrelationId"]</small></div>
+  } else {
+    <div class="progress" role="progressbar" aria-label="Progresso da configuração" aria-valuemin="0" aria-valuemax="100" aria-valuenow="@Model.Percentage"><div class="progress-bar" style="width:@(Model.Percentage)%">@Model.Percentage%</div></div>
+    <p class="text-secondary mt-2">Atualizado em <time datetime="@Model.LastInteractionAt.ToString("O")">@Model.LastInteractionAt.ToLocalTime().ToString("g")</time></p>
+    <ol class="onboarding-steps">
+    @foreach (var step in Model.Steps) {
+      <li class="@(step.Completed ? "is-complete" : step.Blocked ? "is-blocked" : "")"><a href="@(step.Blocked ? "#" : step.Route)" aria-disabled="@step.Blocked.ToString().ToLowerInvariant()"><strong>@step.Number. @step.Title</strong><span>@step.Description</span><span class="badge text-bg-@(step.Completed ? "success" : step.Blocked ? "secondary" : "primary")">@step.Status</span><small>@step.Estimate</small></a></li>
+    }
+    </ol>
+    <form method="post" action="@(Model.Dismissed ? "/onboarding/reopen" : "/onboarding/dismiss")"><input type="hidden" name="rowVersion" value="@Model.RowVersion" /><button class="btn btn-link" type="submit">@(Model.Dismissed ? "Reabrir orientação" : "Lembrar depois")</button></form>
+  }
 </section>

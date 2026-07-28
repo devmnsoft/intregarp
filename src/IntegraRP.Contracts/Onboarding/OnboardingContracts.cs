@@ -15,3 +15,6 @@ public sealed record ReopenOnboardingRequest(long RowVersion);
 public sealed record OnboardingFactsDto(
     bool OrganizationConfirmed, bool SectorsReviewed, bool FirstCustomer, bool FirstCategory,
     bool FirstProduct, bool FirstInventory, bool FirstOrder, bool FirstTask);
+
+public enum OnboardingStepStatus { Pending, InProgress, Completed, Blocked, TemporarilyDismissed }
+public sealed record OnboardingStepStatusDto(int Step, OnboardingStepStatus Status, string? BlockingReason);

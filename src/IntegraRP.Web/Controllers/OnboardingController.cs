@@ -1,17 +1,29 @@
+using IntegraRP.Web.Services.Onboarding;
+using IntegraRP.Web.ViewModels.Onboarding;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IntegraRP.Web.Controllers;
 
-public sealed class OnboardingController : Controller
+public sealed class OnboardingController(IOnboardingApiClient api) : Controller
 {
-    [HttpGet("onboarding")] public IActionResult Index() => View();
+    [HttpGet("onboarding")]
+    public async Task<IActionResult> Index(CancellationToken ct)
+    {
+        try { return View(OnboardingPageViewModel.From(await api.ReconcileAsync(ct))); }
+        catch (OnboardingApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized) { return RedirectToAction("SessionExpired", "Account"); }
+        catch (OnboardingApiException ex) { ViewData["CorrelationId"] = ex.CorrelationId; ViewData["LoadError"] = ex.Message; return View(); }
+    }
+    [HttpPost("onboarding/dismiss")]
+    public async Task<IActionResult> Dismiss(long rowVersion, CancellationToken ct) { await api.DismissAsync(rowVersion, ct); return RedirectToAction(nameof(Index)); }
+    [HttpPost("onboarding/reopen")]
+    public async Task<IActionResult> Reopen(long rowVersion, CancellationToken ct) { await api.ReopenAsync(rowVersion, ct); return RedirectToAction(nameof(Index)); }
     [HttpGet("onboarding/company")] public IActionResult Company() => Step("Confirmar dados da empresa", "Revise razão social, documento e contatos.");
-    [HttpGet("onboarding/sectors")] public IActionResult Sectors() => Step("Revisar setores", "Confirme ao menos um setor ativo para distribuir responsabilidades.");
-    [HttpGet("onboarding/first-customer")] public IActionResult FirstCustomer() => Step("Cadastrar primeiro cliente", "Cadastre o cliente que fará parte do primeiro pedido.");
-    [HttpGet("onboarding/first-category")] public IActionResult FirstCategory() => Step("Cadastrar primeira categoria", "Organize o catálogo antes de incluir produtos.");
-    [HttpGet("onboarding/first-product")] public IActionResult FirstProduct() => Step("Cadastrar primeiro produto", "Associe um produto ativo à categoria criada.");
-    [HttpGet("onboarding/first-inventory")] public IActionResult FirstInventory() => Step("Registrar primeiro estoque", "Registre uma entrada em um local para disponibilizar o produto.");
-    [HttpGet("onboarding/first-order")] public IActionResult FirstOrder() => Step("Criar primeiro pedido", "Valide cliente, produto, estoque e faturamento.");
-    [HttpGet("onboarding/first-task")] public IActionResult FirstTask() => Step("Concluir primeira tarefa", "Execute a separação com checklist e evidência.");
+    [HttpGet("onboarding/sectors")] public IActionResult Sectors() => Step("Revisar setores", "Confirme ao menos um setor ativo.");
+    [HttpGet("onboarding/first-customer")] public IActionResult FirstCustomer() => RedirectToAction("Index", "Customers");
+    [HttpGet("onboarding/first-category")] public IActionResult FirstCategory() => RedirectToAction("Categories", "Products");
+    [HttpGet("onboarding/first-product")] public IActionResult FirstProduct() => RedirectToAction("Index", "Products");
+    [HttpGet("onboarding/first-inventory")] public IActionResult FirstInventory() => RedirectToAction("Index", "Inventory");
+    [HttpGet("onboarding/first-order")] public IActionResult FirstOrder() => RedirectToAction("Index", "Orders");
+    [HttpGet("onboarding/first-task")] public IActionResult FirstTask() => RedirectToAction("My", "Tasks");
     private IActionResult Step(string title, string description) { ViewData["StepTitle"] = title; ViewData["StepDescription"] = description; return View("Step"); }
 }
