@@ -1,7 +1,7 @@
 {
   "schema": "integrarp",
-  "gerado_para": "v1.33",
-  "contrato": "v1.33-convergencia-executavel",
+  "gerado_para": "v1.34",
+  "contrato": "v1.34-experiencia-guiada-core-comercial",
   "migrations": [
     {
       "ordem": 1,
@@ -392,8 +392,18 @@
       "presente_no_script_completop": true,
       "status": "versionada",
       "observacoes": "Corrige bancos com as versões históricas publicadas da 0034 e 0037 sem apagar dados."
+    },
+    {
+      "ordem": 40,
+      "arquivo": "0040_v134_experiencia_guiada_core_comercial.sql",
+      "versao": "0040_v134_experiencia_guiada_core_comercial",
+      "descricao": "v1.34 experiencia guiada, numeracao de pedidos, preferencias e notificacoes",
+      "modulo": "Commercial",
+      "presente_no_script_completop": true,
+      "status": "versionada",
+      "observacoes": "Migration aditiva e idempotente v1.34; não altera migrations históricas."
     }
   ],
   "postgresql": "16",
-  "generatedAtUtc": "2026-07-27T00:00:00Z"
+  "generatedAtUtc": "2026-07-28T00:00:00Z"
 }

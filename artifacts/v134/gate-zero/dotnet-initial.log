@@ -1,0 +1,16 @@
+=== dotnet info ===
+/bin/bash: line 4: dotnet: command not found
+=== solution list ===
+/bin/bash: line 5: dotnet: command not found
+=== clean ===
+/bin/bash: line 6: dotnet: command not found
+=== restore ===
+/bin/bash: line 7: dotnet: command not found
+=== format ===
+/bin/bash: line 8: dotnet: command not found
+=== build ===
+/bin/bash: line 9: dotnet: command not found
+=== test ===
+/bin/bash: line 10: dotnet: command not found
+=== warnings ===
+/bin/bash: line 11: dotnet: command not found

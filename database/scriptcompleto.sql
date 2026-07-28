@@ -1,11 +1,11 @@
 -- Produto: IntegraRP
--- Versão: v1.33
--- Data UTC: 2026-07-27T00:00:00Z
+-- Versão: v1.34
+-- Data UTC: 2026-07-28T00:00:00Z
 -- PostgreSQL: 16
 -- Schema: integrarp
--- Checksum SHA-256 do corpo transacional: db885092a5788ac815cec895548e1dd550697f40967a3d9902ebc4d1d5f28c32
--- Contrato: v1.33-convergencia-executavel
--- Número de migrations: 39
+-- Checksum SHA-256 do corpo transacional: f7ecd674d65d1622718e9a4515d9484e3e46ec13ce18ce040ffddbd4bc1e9701
+-- Contrato: v1.34-experiencia-guiada-core-comercial
+-- Número de migrations: 40
 -- Instruções: executar via psql -X "$POSTGRES_URI" --set ON_ERROR_STOP=1 --file database/script_completop.sql.
 -- Aviso: este script não cria usuário com senha nem armazena credenciais.
 
@@ -7955,5 +7955,72 @@ ALTER TABLE integrarp.pedido_item VALIDATE CONSTRAINT fk_pedido_item_pedido_tena
 ALTER TABLE integrarp.pedido_item VALIDATE CONSTRAINT fk_pedido_item_produto_tenant_v133;
 
 -- <<< 0039_v133_convergencia_executavel.sql
+
+-- >>> 0040_v134_experiencia_guiada_core_comercial.sql
+-- IntegraRP v1.34 - experiencia guiada e operacao comercial
+-- PostgreSQL 16. Migration aditiva, idempotente e restrita ao schema integrarp.
+
+CREATE TABLE IF NOT EXISTS integrarp.pedido_numeracao (
+    tenant_id uuid NOT NULL,
+    ano smallint NOT NULL,
+    proximo_numero bigint NOT NULL DEFAULT 1,
+    atualizado_em timestamptz NOT NULL DEFAULT now(),
+    row_version bigint NOT NULL DEFAULT 1,
+    CONSTRAINT pk_pedido_numeracao PRIMARY KEY (tenant_id, ano),
+    CONSTRAINT ck_pedido_numeracao_ano CHECK (ano BETWEEN 2000 AND 9999),
+    CONSTRAINT ck_pedido_numeracao_proximo CHECK (proximo_numero > 0),
+    CONSTRAINT ck_pedido_numeracao_row_version CHECK (row_version > 0)
+);
+
+CREATE TABLE IF NOT EXISTS integrarp.usuario_preferencia (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id uuid NOT NULL,
+    usuario_id uuid NOT NULL,
+    chave text NOT NULL,
+    valor jsonb NOT NULL DEFAULT '{}'::jsonb,
+    criado_em timestamptz NOT NULL DEFAULT now(),
+    atualizado_em timestamptz NOT NULL DEFAULT now(),
+    row_version bigint NOT NULL DEFAULT 1,
+    CONSTRAINT ck_usuario_preferencia_chave CHECK (length(btrim(chave)) BETWEEN 1 AND 120),
+    CONSTRAINT ck_usuario_preferencia_valor CHECK (jsonb_typeof(valor) = 'object'),
+    CONSTRAINT ck_usuario_preferencia_row_version CHECK (row_version > 0),
+    CONSTRAINT ux_usuario_preferencia_tenant_usuario_chave UNIQUE (tenant_id, usuario_id, chave)
+);
+
+CREATE TABLE IF NOT EXISTS integrarp.notificacao_usuario (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id uuid NOT NULL,
+    usuario_id uuid NOT NULL,
+    tipo text NOT NULL,
+    titulo text NOT NULL,
+    mensagem text NOT NULL,
+    icone text,
+    url text,
+    prioridade text NOT NULL DEFAULT 'normal',
+    lida_em timestamptz,
+    criado_em timestamptz NOT NULL DEFAULT now(),
+    correlation_id text NOT NULL,
+    row_version bigint NOT NULL DEFAULT 1,
+    CONSTRAINT ck_notificacao_usuario_tipo CHECK (length(btrim(tipo)) BETWEEN 1 AND 80),
+    CONSTRAINT ck_notificacao_usuario_titulo CHECK (length(btrim(titulo)) BETWEEN 1 AND 180),
+    CONSTRAINT ck_notificacao_usuario_mensagem CHECK (length(btrim(mensagem)) BETWEEN 1 AND 2000),
+    CONSTRAINT ck_notificacao_usuario_prioridade CHECK (prioridade IN ('baixa', 'normal', 'alta', 'urgente')),
+    CONSTRAINT ck_notificacao_usuario_correlation CHECK (length(btrim(correlation_id)) BETWEEN 1 AND 160),
+    CONSTRAINT ck_notificacao_usuario_row_version CHECK (row_version > 0)
+);
+
+CREATE INDEX IF NOT EXISTS ix_usuario_preferencia_tenant_usuario
+    ON integrarp.usuario_preferencia (tenant_id, usuario_id);
+CREATE INDEX IF NOT EXISTS ix_notificacao_usuario_pendentes
+    ON integrarp.notificacao_usuario (tenant_id, usuario_id, criado_em DESC)
+    WHERE lida_em IS NULL;
+CREATE INDEX IF NOT EXISTS ix_notificacao_usuario_correlation
+    ON integrarp.notificacao_usuario (tenant_id, correlation_id);
+
+COMMENT ON TABLE integrarp.pedido_numeracao IS 'Sequencia anual de pedidos isolada por tenant.';
+COMMENT ON TABLE integrarp.usuario_preferencia IS 'Preferencias persistentes, incluindo progresso do onboarding, por tenant e usuario.';
+COMMENT ON TABLE integrarp.notificacao_usuario IS 'Notificacoes internas persistentes e enderecadas por tenant e usuario.';
+
+-- <<< 0040_v134_experiencia_guiada_core_comercial.sql
 
 COMMIT;
