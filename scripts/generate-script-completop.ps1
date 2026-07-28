@@ -1,4 +1,3 @@
-$ErrorActionPreference = "Stop"
-$root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
-& python3 (Join-Path $root "scripts/generate-script-completop.py")
+$ErrorActionPreference = 'Stop'
+python (Join-Path $PSScriptRoot 'generate-scriptcompleto.py') @args
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 var command = args.FirstOrDefault() ?? "help";
@@ -5,6 +6,7 @@ var root = FindRepositoryRoot(Directory.GetCurrentDirectory());
 return command switch
 {
     "lint-sql" => LintSql(root),
+    "lint-schema-qualification" => LintSql(root),
     "validate-manifest" => ValidateManifest(root),
     "validate-schema" => ValidateSchema(root),
     "compare-model-code" => CompareModelCode(root),
@@ -13,7 +15,7 @@ return command switch
 
 static int Help()
 {
-    Console.WriteLine("IntegraRP.DatabaseInspector commands: lint-sql, validate-manifest, validate-schema, compare-model-code");
+    Console.WriteLine("IntegraRP.DatabaseInspector commands: lint-schema-qualification, lint-sql, validate-manifest, validate-schema, compare-model-code");
     return 1;
 }
 
@@ -67,7 +69,19 @@ static int LintSql(string root)
             }
         }
     }
+    var reportPath = Path.Combine(root, "artifacts", "database", "schema-qualification-report.json");
+    Directory.CreateDirectory(Path.GetDirectoryName(reportPath)!);
+    var issues = failures.Select(failure => new
+    {
+        file = failure.Split(':', 3)[0].Replace(root + Path.DirectorySeparatorChar, string.Empty),
+        line = int.TryParse(failure.Split(':', 3).ElementAtOrDefault(1), out var lineNumber) ? lineNumber : 0,
+        snippet = failure.Split(':', 3).ElementAtOrDefault(2)?.Trim() ?? failure,
+        @object = Regex.Match(failure, @"(?:proibido:\s*|proibido\s+)(?<name>[\w.]+)$").Groups["name"].Value,
+        expectedCorrection = "Qualificar a relação de negócio como integrarp.nome_do_objeto."
+    }).ToArray();
+    File.WriteAllText(reportPath, JsonSerializer.Serialize(new { contract = "Banco Canônico Integrarp v1.40", issueCount = issues.Length, issues }, new JsonSerializerOptions { WriteIndented = true }) + Environment.NewLine);
     foreach (var failure in failures) Console.Error.WriteLine(failure);
+    Console.WriteLine($"Relatório: {reportPath} ({failures.Count} problema(s)).");
     return failures.Count == 0 ? 0 : 2;
 }
 

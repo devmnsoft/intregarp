@@ -1,4 +1,4 @@
-name: IntegraRP CI v1.40
+name: IntegraRP CI v1.40 — Database Canonical
 
 on:
   push:
@@ -22,7 +22,7 @@ jobs:
       - run: dotnet sln IntegraRP.sln list
       - run: bash -n scripts/*.sh
       - run: while IFS= read -r file; do node --check "$file"; done < <(find src/IntegraRP.Web/wwwroot -path '*/lib/*' -prune -o -name '*.js' -print)
-      - run: scripts/generate-script-completop.sh && cmp database/script_completop.sql database/scriptcompleto.sql
+      - run: python3 scripts/generate-scriptcompleto.py && cmp database/scriptcompleto.sql database/script_completop.sql
 
   manifest-validation:
     runs-on: ubuntu-latest
@@ -31,7 +31,7 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
       - run: dotnet run --project tools/IntegraRP.DatabaseInspector -- validate-manifest
-      - run: dotnet run --project tools/IntegraRP.DatabaseInspector -- lint-sql
+      - run: dotnet run --project tools/IntegraRP.DatabaseInspector -- lint-schema-qualification
 
   architecture:
     runs-on: ubuntu-latest
@@ -103,8 +103,8 @@ jobs:
         options: --health-cmd "pg_isready -U integrarp -d integrarp_ci" --health-interval 5s --health-timeout 5s --health-retries 12
     steps:
       - uses: actions/checkout@v4
-      - run: psql -X "$POSTGRES_URI" -v ON_ERROR_STOP=1 -f database/script_completop.sql
-      - run: psql -X "$POSTGRES_URI" -v ON_ERROR_STOP=1 -f database/validate_script_completop.sql
+      - run: psql -X "$POSTGRES_URI" -v ON_ERROR_STOP=1 -f database/scriptcompleto.sql
+      - run: psql -X "$POSTGRES_URI" -v ON_ERROR_STOP=1 -f database/validate_scriptcompleto.sql
 
   database-upgrade:
     runs-on: ubuntu-latest
@@ -118,7 +118,8 @@ jobs:
       - uses: actions/checkout@v4
       - run: for f in database/migrations/*.sql; do [[ "$f" > database/migrations/0045_v139_release_candidate_piloto.sql ]] && break; psql -X "$POSTGRES_URI" -v ON_ERROR_STOP=1 -f "$f"; done
       - run: psql -X "$POSTGRES_URI" -v ON_ERROR_STOP=1 -f database/migrations/0045_v139_release_candidate_piloto.sql
-      - run: psql -X "$POSTGRES_URI" -v ON_ERROR_STOP=1 -f database/validate_script_completop.sql
+      - run: psql -X "$POSTGRES_URI" -v ON_ERROR_STOP=1 -f database/scriptcompleto.sql
+      - run: psql -X "$POSTGRES_URI" -v ON_ERROR_STOP=1 -f database/validate_scriptcompleto.sql
 
   database-idempotency:
     runs-on: ubuntu-latest
@@ -130,9 +131,12 @@ jobs:
         options: --health-cmd "pg_isready -U integrarp -d integrarp_ci" --health-interval 5s --health-timeout 5s --health-retries 12
     steps:
       - uses: actions/checkout@v4
-      - run: psql -X "$POSTGRES_URI" -v ON_ERROR_STOP=1 -f database/script_completop.sql
-      - run: psql -X "$POSTGRES_URI" -v ON_ERROR_STOP=1 -f database/script_completop.sql
-      - run: psql -X "$POSTGRES_URI" -Atc "select count(*) > 0 from integrarp.schema_migrations" | grep -qx t
+      - run: psql -X "$POSTGRES_URI" -v ON_ERROR_STOP=1 -f database/scriptcompleto.sql
+      - run: pg_dump "$POSTGRES_URI" --schema-only --no-owner --no-privileges > /tmp/schema-1.sql
+      - run: psql -X "$POSTGRES_URI" -v ON_ERROR_STOP=1 -f database/scriptcompleto.sql
+      - run: pg_dump "$POSTGRES_URI" --schema-only --no-owner --no-privileges > /tmp/schema-2.sql && cmp /tmp/schema-1.sql /tmp/schema-2.sql
+      - run: psql -X "$POSTGRES_URI" -v ON_ERROR_STOP=1 -f database/scriptcompleto.sql
+      - run: psql -X "$POSTGRES_URI" -v ON_ERROR_STOP=1 -f database/validate_scriptcompleto.sql
 
   database-preservation:
     runs-on: ubuntu-latest
@@ -144,10 +148,13 @@ jobs:
         options: --health-cmd "pg_isready -U integrarp -d integrarp_ci" --health-interval 5s --health-timeout 5s --health-retries 12
     steps:
       - uses: actions/checkout@v4
-      - run: psql -X "$POSTGRES_URI" -v ON_ERROR_STOP=1 -f database/script_completop.sql
-      - run: psql -X "$POSTGRES_URI" -Atc "select count(*) from integrarp.tenant" > /tmp/before
-      - run: psql -X "$POSTGRES_URI" -v ON_ERROR_STOP=1 -f database/script_completop.sql
-      - run: test "$(cat /tmp/before)" = "$(psql -X "$POSTGRES_URI" -Atc 'select count(*) from integrarp.tenant')"
+      - run: psql -X "$POSTGRES_URI" -v ON_ERROR_STOP=1 -f database/scriptcompleto.sql
+      - run: psql -X "$POSTGRES_URI" -v ON_ERROR_STOP=1 -c "insert into integrarp.tenant(id,nome,codigo,status) values('14000000-0000-0000-0000-000000000001','Tenant preservação v1.40','preservation-v140','ativo')"
+      - run: psql -X "$POSTGRES_URI" -Atc "select count(*) || ':' || md5(string_agg(row_to_json(t)::text, '' order by id)) from integrarp.tenant t" > /tmp/before
+      - run: psql -X "$POSTGRES_URI" -v ON_ERROR_STOP=1 -f database/scriptcompleto.sql
+      - run: psql -X "$POSTGRES_URI" -Atc "select count(*) || ':' || md5(string_agg(row_to_json(t)::text, '' order by id)) from integrarp.tenant t" > /tmp/after
+      - run: cmp /tmp/before /tmp/after
+      - run: psql -X "$POSTGRES_URI" -v ON_ERROR_STOP=1 -f database/validate_scriptcompleto.sql
 
   migration-runner-real:
     runs-on: ubuntu-latest
@@ -407,10 +414,53 @@ jobs:
       - run: dotnet list IntegraRP.sln package --vulnerable --include-transitive
       - run: '! rg -n "alert\(|confirm\(|prompt\(|innerHTML" src/IntegraRP.Web/wwwroot --glob "*.js"'
 
+  schema-inventory:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/generate-scriptcompleto.py
+      - run: python3 -m json.tool database/schema_inventory.json > /dev/null
+
+  schema-qualification:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
+      - run: dotnet run --project tools/IntegraRP.DatabaseInspector -- lint-schema-qualification
+
+  generator-determinism:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/generate-scriptcompleto.py && sha256sum database/scriptcompleto.sql > /tmp/first
+      - run: python3 scripts/generate-scriptcompleto.py && sha256sum database/scriptcompleto.sql > /tmp/second
+      - run: cmp /tmp/first /tmp/second && cmp database/scriptcompleto.sql database/script_completop.sql
+
+  database-object-validation:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_USER: integrarp, POSTGRES_PASSWORD: integrarp, POSTGRES_DB: integrarp_ci }
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U integrarp -d integrarp_ci" --health-interval 5s --health-timeout 5s --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+      - run: psql -X "$POSTGRES_URI" --set ON_ERROR_STOP=1 --file database/scriptcompleto.sql
+      - run: psql -X "$POSTGRES_URI" --set ON_ERROR_STOP=1 --file database/validate_scriptcompleto.sql
+
+  database-security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/generate-scriptcompleto.py
+      - run: '! rg -n "CREATE[[:space:]]+INDEX[[:space:]]+CONCURRENTLY|DROP[[:space:]]+CASCADE|EXCEPTION[[:space:]]+WHEN[[:space:]]+OTHERS" database/scriptcompleto.sql database/migrations/0046_v140_scriptcompleto_integrarp.sql'
+
   release-gate:
     runs-on: ubuntu-latest
     if: always()
-    needs: [syntax, manifest-validation, architecture, dotnet-linux, dotnet-windows, warnings-as-errors, razor, bootstrap-contract, database-clean, database-upgrade, database-idempotency, database-preservation, migration-runner-real, auth, onboarding, notifications, customers, products, inventory, orders, process, tasks, evidence, billing-pending, audit-outbox, worker, dashboard, web-bff, standalone-linux, standalone-windows, playwright, visual-regression, accessibility, mobile, security]
+    needs: [syntax, manifest-validation, schema-inventory, schema-qualification, generator-determinism, database-object-validation, database-security, architecture, dotnet-linux, dotnet-windows, warnings-as-errors, razor, bootstrap-contract, database-clean, database-upgrade, database-idempotency, database-preservation, migration-runner-real, auth, onboarding, notifications, customers, products, inventory, orders, process, tasks, evidence, billing-pending, audit-outbox, worker, dashboard, web-bff, standalone-linux, standalone-windows, playwright, visual-regression, accessibility, mobile, security]
     steps:
       - name: Exigir todos os checks obrigatórios verdes
         env:
@@ -423,6 +473,6 @@ jobs:
     needs: [release-gate]
     steps:
       - uses: actions/checkout@v4
-      - run: mkdir -p artifacts/v140/database && cp database/script_completop.sql database/scriptcompleto.sql database/validate_script_completop.sql database/migration_manifest.json artifacts/v140/database/
+      - run: mkdir -p artifacts/v140/database && cp database/scriptcompleto.sql database/script_completop.sql database/validate_scriptcompleto.sql database/validate_script_completop.sql database/schema_inventory.json database/migration_manifest.json artifacts/v140/database/
       - uses: actions/upload-artifact@v4
         with: { name: "v140-diagnostic-${{ github.run_id }}", path: artifacts/v140, retention-days: 30 }

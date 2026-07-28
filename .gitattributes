@@ -8,3 +8,9 @@
 *.ps1 text eol=crlf
 *.cmd text eol=crlf
 *.sh text eol=lf
+# Canonical generated database artifacts are cross-platform byte-identical.
+database/scriptcompleto.sql text eol=lf
+database/script_completop.sql text eol=lf
+database/validate_scriptcompleto.sql text eol=lf
+database/validate_script_completop.sql text eol=lf
+database/schema_inventory.json text eol=lf

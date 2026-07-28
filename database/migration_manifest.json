@@ -1,7 +1,7 @@
 {
   "schema": "integrarp",
   "gerado_para": "v1.40",
-  "contrato": "IntegraRP v1.40",
+  "contrato": "Banco Canônico Integrarp v1.40",
   "migrations": [
     {
       "ordem": 1,
@@ -11,7 +11,8 @@
       "modulo": "Database",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Incluída no script_completop v1.19."
+      "observacoes": "Incluída no script_completop v1.19.",
+      "checksum_sha256": "73746cf999bd1d63f6a40911a1cea295b71ee6bf5d2aadfaff2a25f296cfdd5d"
     },
     {
       "ordem": 2,
@@ -21,7 +22,8 @@
       "modulo": "Flow",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Incluída no script_completop v1.19."
+      "observacoes": "Incluída no script_completop v1.19.",
+      "checksum_sha256": "3bd50f48e1a78c49049e515ff96aa371fb83f9513b15b54414f3cbba3890be57"
     },
     {
       "ordem": 3,
@@ -31,7 +33,8 @@
       "modulo": "Flow",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Incluída no script_completop v1.19."
+      "observacoes": "Incluída no script_completop v1.19.",
+      "checksum_sha256": "f3dfc417095bfd55084dd29f8fddedfd475404b809df5d1a5264a0fd489de723"
     },
     {
       "ordem": 4,
@@ -41,7 +44,8 @@
       "modulo": "Database",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Incluída no script_completop v1.19."
+      "observacoes": "Incluída no script_completop v1.19.",
+      "checksum_sha256": "9b03e408bb4b3cb6c9595d7e0557ad96d2fdd59a15a05b2b9294373d97bbb758"
     },
     {
       "ordem": 5,
@@ -51,7 +55,8 @@
       "modulo": "Database",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Incluída no script_completop v1.19."
+      "observacoes": "Incluída no script_completop v1.19.",
+      "checksum_sha256": "cdaecde59c922fcb993d644ddbfab4f50e20deb6e9f019802b24e5ceef62ddfe"
     },
     {
       "ordem": 6,
@@ -61,7 +66,8 @@
       "modulo": "Database",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Incluída no script_completop v1.19."
+      "observacoes": "Incluída no script_completop v1.19.",
+      "checksum_sha256": "0b8170e168d4689bcf507280b9f1ee128ebbf093e75c744ee783093e862b594f"
     },
     {
       "ordem": 7,
@@ -71,7 +77,8 @@
       "modulo": "Database",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Incluída no script_completop v1.19."
+      "observacoes": "Incluída no script_completop v1.19.",
+      "checksum_sha256": "37dd50628eb0e2c1f98ae4109f71318ec01c1062da46d4143433cb82ac7053c9"
     },
     {
       "ordem": 8,
@@ -81,7 +88,8 @@
       "modulo": "Database",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Incluída no script_completop v1.19."
+      "observacoes": "Incluída no script_completop v1.19.",
+      "checksum_sha256": "349bab2caac2cc376a67b5cc3b4936faf7bc3b82e112f4f79f2fed3beabe4f7c"
     },
     {
       "ordem": 9,
@@ -91,7 +99,8 @@
       "modulo": "Database",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Incluída no script_completop v1.19."
+      "observacoes": "Incluída no script_completop v1.19.",
+      "checksum_sha256": "37bfd053cad8354a3d94251b4da17cd3e787bf219b5e65cadf478b0c06373ea3"
     },
     {
       "ordem": 10,
@@ -101,7 +110,8 @@
       "modulo": "Database",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Incluída no script_completop v1.19."
+      "observacoes": "Incluída no script_completop v1.19.",
+      "checksum_sha256": "ffff425e10d16ed1957bed62012094333af2dd2fd901eb01b92cc86eb78441f7"
     },
     {
       "ordem": 11,
@@ -111,7 +121,8 @@
       "modulo": "Database",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Incluída no script_completop v1.19."
+      "observacoes": "Incluída no script_completop v1.19.",
+      "checksum_sha256": "7184d98df895bdf65cdb5a2ef903155ca60ad7260ad0f4694574fc144538c556"
     },
     {
       "ordem": 12,
@@ -121,7 +132,8 @@
       "modulo": "Database",
       "presente_no_script_completop": true,
       "status": "versionada-duplicidade-historica",
-      "observacoes": "Prefixo historicamente duplicado preservado para compatibilidade."
+      "observacoes": "Prefixo historicamente duplicado preservado para compatibilidade.",
+      "checksum_sha256": "533de68c85a3124cb0e1d9dafe129aa96d92d5224fbf7ae115cea90c5dc71e6b"
     },
     {
       "ordem": 13,
@@ -131,7 +143,8 @@
       "modulo": "Database",
       "presente_no_script_completop": true,
       "status": "versionada-duplicidade-historica",
-      "observacoes": "Prefixo historicamente duplicado preservado para compatibilidade."
+      "observacoes": "Prefixo historicamente duplicado preservado para compatibilidade.",
+      "checksum_sha256": "34ee29ddf50a3eae3b6ab64a2696c67fbc4e2fab346d7324aea6cf0553190f2d"
     },
     {
       "ordem": 14,
@@ -141,7 +154,8 @@
       "modulo": "Database",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Incluída no script_completop v1.19."
+      "observacoes": "Incluída no script_completop v1.19.",
+      "checksum_sha256": "86e9e22148c73b075fe939ebb81f60f54d822aa8f6a6adcb9fd37a9a1f36e20c"
     },
     {
       "ordem": 15,
@@ -151,7 +165,8 @@
       "modulo": "Database",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Incluída no script_completop v1.19."
+      "observacoes": "Incluída no script_completop v1.19.",
+      "checksum_sha256": "d50997772dc0af608dfa32fd5d97075e5e4a26b296328b1a6e2afaa20e1d1c50"
     },
     {
       "ordem": 16,
@@ -161,7 +176,8 @@
       "modulo": "Database",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Incluída no script_completop v1.19."
+      "observacoes": "Incluída no script_completop v1.19.",
+      "checksum_sha256": "2e1e4bbf438409da06987e15440cc4654adba982d52f86840c68164f975d43bb"
     },
     {
       "ordem": 17,
@@ -171,7 +187,8 @@
       "modulo": "Database",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Incluída no script_completop v1.19."
+      "observacoes": "Incluída no script_completop v1.19.",
+      "checksum_sha256": "5d1ef06902cbd7d5e0c89710c3dda7462586ff1650267b49d34b88954a61dde8"
     },
     {
       "ordem": 18,
@@ -181,7 +198,8 @@
       "modulo": "Database",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Incluída no script_completop v1.19."
+      "observacoes": "Incluída no script_completop v1.19.",
+      "checksum_sha256": "f4e55f2c5c2577defdf111982714422669d3020597dc63dbf74f91b18593f6a2"
     },
     {
       "ordem": 19,
@@ -191,7 +209,8 @@
       "modulo": "Database",
       "presente_no_script_completop": true,
       "status": "versionada-duplicidade-historica",
-      "observacoes": "Prefixo historicamente duplicado preservado para compatibilidade."
+      "observacoes": "Prefixo historicamente duplicado preservado para compatibilidade.",
+      "checksum_sha256": "e4e255979fa9dca8e728e9002506b8dde09557e25c7eb02cbffa5b40c51b581f"
     },
     {
       "ordem": 20,
@@ -201,7 +220,8 @@
       "modulo": "Database",
       "presente_no_script_completop": true,
       "status": "versionada-duplicidade-historica",
-      "observacoes": "Prefixo historicamente duplicado preservado para compatibilidade."
+      "observacoes": "Prefixo historicamente duplicado preservado para compatibilidade.",
+      "checksum_sha256": "9948216f4eaaa01380a7554b79870269b9a6096be70c288c49e3916ed82ef8a4"
     },
     {
       "ordem": 21,
@@ -211,7 +231,8 @@
       "modulo": "Database",
       "presente_no_script_completop": true,
       "status": "versionada-duplicidade-historica",
-      "observacoes": "Prefixo historicamente duplicado preservado para compatibilidade."
+      "observacoes": "Prefixo historicamente duplicado preservado para compatibilidade.",
+      "checksum_sha256": "94e32d331c090d9396e1bf732b49bf585bc36d8ef39171c7fcd67e77c1b1111a"
     },
     {
       "ordem": 22,
@@ -221,7 +242,8 @@
       "modulo": "Database",
       "presente_no_script_completop": true,
       "status": "versionada-duplicidade-historica",
-      "observacoes": "Prefixo historicamente duplicado preservado para compatibilidade."
+      "observacoes": "Prefixo historicamente duplicado preservado para compatibilidade.",
+      "checksum_sha256": "94e32d331c090d9396e1bf732b49bf585bc36d8ef39171c7fcd67e77c1b1111a"
     },
     {
       "ordem": 23,
@@ -231,7 +253,8 @@
       "modulo": "Database",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Incluída no script_completop v1.19."
+      "observacoes": "Incluída no script_completop v1.19.",
+      "checksum_sha256": "a0e0af529e92a5c1071f773068ed634b42401862b22afd4f83d96ae935138779"
     },
     {
       "ordem": 24,
@@ -241,7 +264,8 @@
       "modulo": "Database",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Incluída no script_completop v1.19."
+      "observacoes": "Incluída no script_completop v1.19.",
+      "checksum_sha256": "5c2630b70bc9de7c620904554e66a16c92f006b197cbcb4d988aa72b71d722b6"
     },
     {
       "ordem": 25,
@@ -251,7 +275,8 @@
       "modulo": "Auth",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Incluída no script_completop v1.19."
+      "observacoes": "Incluída no script_completop v1.19.",
+      "checksum_sha256": "7d95bbf1ddbdaeaa96af7f14d813be471e40986a406172765fc2b8279614e916"
     },
     {
       "ordem": 26,
@@ -261,7 +286,8 @@
       "modulo": "Auth",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Incluída no script_completop v1.19."
+      "observacoes": "Incluída no script_completop v1.19.",
+      "checksum_sha256": "bf73d8261693d39c8ff4eb258b92c9e8e625a9e5cee90fadd698963b11cec9c3"
     },
     {
       "ordem": 27,
@@ -271,7 +297,8 @@
       "modulo": "Flow",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Incluída no script_completop v1.19."
+      "observacoes": "Incluída no script_completop v1.19.",
+      "checksum_sha256": "27ccb7bf9af9ed2df8bc51c000c66a8504fd0a2b33ebf6850a3e95d89a7552bc"
     },
     {
       "ordem": 28,
@@ -281,7 +308,8 @@
       "modulo": "ReleaseCandidate",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Checksum histórico reconciliado localmente; BEGIN/COMMIT removidos porque não há registro local de aplicação e a migration é aditiva/idempotente."
+      "observacoes": "Checksum histórico reconciliado localmente; BEGIN/COMMIT removidos porque não há registro local de aplicação e a migration é aditiva/idempotente.",
+      "checksum_sha256": "a844a9f7db7c9d407542269275c9f8bea3c7dfbe38cc28c0fa374fb6c29c5c43"
     },
     {
       "ordem": 29,
@@ -291,7 +319,8 @@
       "modulo": "Core",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Hardening operacional aditivo para autenticação, auditoria, worker e dashboard real."
+      "observacoes": "Hardening operacional aditivo para autenticação, auditoria, worker e dashboard real.",
+      "checksum_sha256": "dcfd5043778b4278baade8d049a95ae62a54e60683bb45cb432a33c44b8d9808"
     },
     {
       "ordem": 30,
@@ -301,7 +330,8 @@
       "modulo": "Auth",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Incluída no script_completop v1.24."
+      "observacoes": "Incluída no script_completop v1.24.",
+      "checksum_sha256": "fe6ba13c72222fb41e31c0a62fa89a37f182cb1d794d34e622fbbf037ebd2d6d"
     },
     {
       "ordem": 31,
@@ -311,7 +341,8 @@
       "modulo": "Core",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Migration aditiva v1.25; 0030 corrigida do checksum defeituoso 622e78b2156dde781f87eae95691d62ef53e8e3d7cbf69c0974ef5aeb298bf2e para a35cbcaf3af9e63b36234f862f3f477f97b340200355ce7ca05a566bf6ea6cf2."
+      "observacoes": "Migration aditiva v1.25; 0030 corrigida do checksum defeituoso 622e78b2156dde781f87eae95691d62ef53e8e3d7cbf69c0974ef5aeb298bf2e para a35cbcaf3af9e63b36234f862f3f477f97b340200355ce7ca05a566bf6ea6cf2.",
+      "checksum_sha256": "a4ad115bbc33c0e1b326b79e3f7d5048600d1c31246b97b3dfa07718fab8a187"
     },
     {
       "ordem": 32,
@@ -321,7 +352,8 @@
       "modulo": "Core",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Migration aditiva para consolidar contrato canônico de login, idempotência de estoque/reserva, histórico de pedidos e dashboard operacional v1.26."
+      "observacoes": "Migration aditiva para consolidar contrato canônico de login, idempotência de estoque/reserva, histórico de pedidos e dashboard operacional v1.26.",
+      "checksum_sha256": "d11bc64c6c243fa769f830bee60e39c28b407162470c89f40ed5a3ce7677023b"
     },
     {
       "ordem": 33,
@@ -331,7 +363,8 @@
       "modulo": "Database",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Migration corretiva aditiva para compatibilidade histórica, objetos canônicos e dashboard operacional."
+      "observacoes": "Migration corretiva aditiva para compatibilidade histórica, objetos canônicos e dashboard operacional.",
+      "checksum_sha256": "d7e5d56e50e32daadc6c7416835864c32b1e8a146ad99538ead36c59835a6d93"
     },
     {
       "ordem": 34,
@@ -341,7 +374,8 @@
       "modulo": "Commercial",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Checksum publicado c9ec5ad960880d7ecc05e0c7c212ec270bc9511e87c7bf88a628b3169081f2e7; corrigido 9d8ab0d6e7c3f7fb079e6fef9b618ad84b793d345985e0eb40796fa2a851b33c."
+      "observacoes": "Checksum publicado c9ec5ad960880d7ecc05e0c7c212ec270bc9511e87c7bf88a628b3169081f2e7; corrigido 9d8ab0d6e7c3f7fb079e6fef9b618ad84b793d345985e0eb40796fa2a851b33c.",
+      "checksum_sha256": "2859ddc802eaf9168e190a27d5adafacde579951ce1214fa384a35df33d12e58"
     },
     {
       "ordem": 35,
@@ -351,7 +385,8 @@
       "modulo": "Commercial",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Entrega v1.29."
+      "observacoes": "Entrega v1.29.",
+      "checksum_sha256": "426d65a5b5d6ca3bef38f6517c2e3c1e1a82b78dffd5c0187fcca52b2182d22d"
     },
     {
       "ordem": 36,
@@ -361,7 +396,8 @@
       "modulo": "Commercial",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Migration aditiva v1.30."
+      "observacoes": "Migration aditiva v1.30.",
+      "checksum_sha256": "2d5f1dcaa531868ed418ccd56aae8922b590c7667d4314b78021c8e332650f49"
     },
     {
       "ordem": 37,
@@ -371,7 +407,8 @@
       "modulo": "Commercial",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Checksum publicado 611999a1cb41ac8c70227dfa98e6ab44d00b0808cd6fbf7c65fc475a68f4545c; corrigido eb5f146ef9acc19d901d3ebd84ad31481f4f007c33af5a7591a9bd498d8e45ee."
+      "observacoes": "Checksum publicado 611999a1cb41ac8c70227dfa98e6ab44d00b0808cd6fbf7c65fc475a68f4545c; corrigido eb5f146ef9acc19d901d3ebd84ad31481f4f007c33af5a7591a9bd498d8e45ee.",
+      "checksum_sha256": "b8f740f7b57fda22b649722339ddb150e8b18bdc6961101cf26169b640314a94"
     },
     {
       "ordem": 38,
@@ -381,7 +418,8 @@
       "modulo": "Commercial",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Migration corretiva aditiva; preserva o checksum da 0037 publicada."
+      "observacoes": "Migration corretiva aditiva; preserva o checksum da 0037 publicada.",
+      "checksum_sha256": "758f5f52746497a73d208e10073e35816f3636abaf56f05960d970a2ba219307"
     },
     {
       "ordem": 39,
@@ -391,7 +429,8 @@
       "modulo": "Commercial",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Corrige bancos com as versões históricas publicadas da 0034 e 0037 sem apagar dados."
+      "observacoes": "Corrige bancos com as versões históricas publicadas da 0034 e 0037 sem apagar dados.",
+      "checksum_sha256": "975563742249dc8bbf086438299ca3874de13426a3a1a0448a65b441ff58b661"
     },
     {
       "ordem": 40,
@@ -401,7 +440,8 @@
       "modulo": "Commercial",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Migration aditiva e idempotente v1.34; não altera migrations históricas."
+      "observacoes": "Migration aditiva e idempotente v1.34; não altera migrations históricas.",
+      "checksum_sha256": "3184261c36e8de47dd509ef110c7a6f95029b827a86126a15db761fdff8748d4"
     },
     {
       "ordem": 41,
@@ -411,7 +451,8 @@
       "modulo": "Commercial",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Migration aditiva v1.35; migrations 0001 a 0040 permanecem congeladas."
+      "observacoes": "Migration aditiva v1.35; migrations 0001 a 0040 permanecem congeladas.",
+      "checksum_sha256": "062dd9ac3af1380e520b03ed480e59f561bc41551705a412354543e559d478ae"
     },
     {
       "ordem": 42,
@@ -421,7 +462,8 @@
       "modulo": "Commercial",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Migration aditiva v1.36; migrations 0001 a 0041 permanecem congeladas."
+      "observacoes": "Migration aditiva v1.36; migrations 0001 a 0041 permanecem congeladas.",
+      "checksum_sha256": "c04bb58accfaebc9e8a2a4ae6c4dfbde8670a6dc0dab46d3a28bd51ef6b619e2"
     },
     {
       "ordem": 43,
@@ -431,7 +473,8 @@
       "modulo": "Commercial",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Migration aditiva v1.37; migrations 0001 a 0042 permanecem congeladas."
+      "observacoes": "Migration aditiva v1.37; migrations 0001 a 0042 permanecem congeladas.",
+      "checksum_sha256": "43aab875e5b9d333ff668b3b5a7e36a8e7eb333fe1600e2cfb1f9adacee2248f"
     },
     {
       "ordem": 44,
@@ -441,7 +484,8 @@
       "modulo": "Commercial",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Migration aditiva v1.38; migrations 0001 a 0043 permanecem congeladas."
+      "observacoes": "Migration aditiva v1.38; migrations 0001 a 0043 permanecem congeladas.",
+      "checksum_sha256": "639b71dbb8737661429c70219eac79109b5449ecfe3c6df0e8495a5f61a85d53"
     },
     {
       "ordem": 45,
@@ -451,7 +495,19 @@
       "modulo": "Commercial",
       "presente_no_script_completop": true,
       "status": "versionada",
-      "observacoes": "Migration aditiva v1.39; migrations 0001 a 0044 permanecem congeladas."
+      "observacoes": "Migration aditiva v1.39; migrations 0001 a 0044 permanecem congeladas.",
+      "checksum_sha256": "c626f86a17800f486d712562c64289c1d3d221f9245c423144b0c33cd27b5ff5"
+    },
+    {
+      "ordem": 46,
+      "arquivo": "0046_v140_scriptcompleto_integrarp.sql",
+      "versao": "0046_v140_scriptcompleto_integrarp",
+      "descricao": "v1.40 contrato canônico Integrarp e geração idempotente",
+      "modulo": "Database",
+      "presente_no_script_completop": true,
+      "status": "versionada",
+      "observacoes": "Migration aditiva v1.40; migrations 0001 a 0045 permanecem congeladas.",
+      "checksum_sha256": "6fb125341903216df7e4a5931dfa4508f6482422a064fe34438667364b25403b"
     }
   ],
   "postgresql": "16",
