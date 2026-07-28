@@ -5,6 +5,7 @@ using IntegraRP.Application.Operations;
 using IntegraRP.Application.Runtime;
 using Microsoft.Extensions.DependencyInjection;
 using IntegraRP.Application.Commercial;
+using IntegraRP.Application.Onboarding;
 
 namespace IntegraRP.Application;
 
@@ -71,6 +72,9 @@ public static class DependencyInjection
         services.AddScoped<ListDeliveriesWithOccurrenceUseCase>();
         services.AddScoped<ConfirmOrderUseCase>();
         services.AddScoped<CompletePickingTaskUseCase>();
+        services.AddScoped<GetOnboardingStateUseCase>();
+        services.AddScoped<UpdateOnboardingStepUseCase>();
+        services.AddScoped<DismissOnboardingUseCase>();
         return services;
     }
 }

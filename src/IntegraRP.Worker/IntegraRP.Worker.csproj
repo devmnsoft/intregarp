@@ -3,6 +3,7 @@
     <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.1.66" />
     <ProjectReference Include="..\IntegraRP.Application\IntegraRP.Application.csproj" />
     <ProjectReference Include="..\IntegraRP.Infrastructure\IntegraRP.Infrastructure.csproj" />
     <ProjectReference Include="..\IntegraRP.Contracts\IntegraRP.Contracts.csproj" />

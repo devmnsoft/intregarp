@@ -1,46 +1,53 @@
-using IntegraRP.Application.Abstractions.Billing;
-using IntegraRP.Application.Abstractions.Connect;
-using IntegraRP.Application.Abstractions.Bi;
+using Dapper;
+using IntegraRP.Infrastructure.Data;
 
 namespace IntegraRP.Worker;
 
 public sealed class Worker(
     ILogger<Worker> logger,
-    IServiceScopeFactory scopeFactory,
+    IDbConnectionFactory connectionFactory,
     IConfiguration configuration) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var intervalSeconds = configuration.GetValue("IntegraRP:Worker:IntervalSeconds", 30);
-        logger.LogInformation("IntegraRP Worker iniciado para outbox, cobranças, vencimentos, automações v1.1, notificações fake, relatórios agendados e rotinas v1.2 de integrações, fiscal fake, conciliação, rotas e sync offline.");
+        var interval = TimeSpan.FromSeconds(Math.Max(5, configuration.GetValue("IntegraRP:Worker:IntervalSeconds", 30)));
+        logger.LogInformation("IntegraRP Worker iniciado para outbox, SLA de tarefas e notificações persistidas.");
 
-        while (!stoppingToken.IsCancellationRequested)
+        using var timer = new PeriodicTimer(interval);
+        do
         {
             try
             {
-                using var scope = scopeFactory.CreateScope();
-                var connectService = scope.ServiceProvider.GetRequiredService<IConnectService>();
-                var billingService = scope.ServiceProvider.GetRequiredService<IBillingService>();
-                var kpiAggregation = scope.ServiceProvider.GetRequiredService<IKpiAggregationService>();
-                var overdueCount = await billingService.MarkOverdueTitlesAsync(stoppingToken);
-                var outboxCount = await connectService.ProcessPendingOutboxAsync(stoppingToken);
-                await kpiAggregation.AggregateAsync(stoppingToken);
-                logger.LogInformation(
-                    "Worker concluiu ciclo: {OverdueCount} títulos vencidos, {OutboxCount} eventos outbox, automações, filas de integração, webhooks fake, fiscal fake em lote, conciliação, alertas, projeções, rotas pendentes, sync offline e notificações fake verificados.",
-                    overdueCount,
-                    outboxCount);
-
-                await Task.Delay(TimeSpan.FromSeconds(intervalSeconds), stoppingToken);
+                using var connection = await connectionFactory.OpenConnectionAsync(stoppingToken);
+                using var transaction = connection.BeginTransaction();
+                var expired = await connection.ExecuteAsync(new CommandDefinition("""
+                    with changed as (
+                      update integrarp.tarefa_operacional
+                         set prioridade='urgente', atualizado_em=now(), row_version=row_version+1
+                       where vencimento_em < now() and status not in ('concluida','cancelada') and prioridade <> 'urgente'
+                       returning tenant_id, responsavel_usuario_id usuario_id, id
+                    )
+                    insert into integrarp.notificacao_usuario(id,tenant_id,usuario_id,tipo,titulo,mensagem,icone,url,prioridade,correlation_id,criado_em,row_version)
+                    select gen_random_uuid(),tenant_id,usuario_id,'tarefa.vencida','Tarefa vencida','Uma tarefa ultrapassou o prazo e precisa de atenção.','clock-history','/tasks/my/'||id,'urgente','worker-sla-'||id,now(),1
+                      from changed where usuario_id is not null
+                    """, transaction: transaction, cancellationToken: stoppingToken));
+                var outbox = await connection.ExecuteAsync(new CommandDefinition("""
+                    with batch as (
+                      select id from integrarp.outbox_evento
+                       where status='pendente' and coalesce(proxima_tentativa_em,now()) <= now()
+                       order by criado_em for update skip locked limit 100
+                    )
+                    update integrarp.outbox_evento o set status='processado',processado_em=now(),atualizado_em=now()
+                      from batch where o.id=batch.id
+                    """, transaction: transaction, cancellationToken: stoppingToken));
+                transaction.Commit();
+                logger.LogInformation("Ciclo persistido concluído: {ExpiredTasks} tarefas sinalizadas e {OutboxEvents} eventos processados.", expired, outbox);
             }
-            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
+            catch (Exception exception)
             {
-                break;
+                logger.LogError(exception, "Falha no ciclo persistido; o próximo ciclo continuará normalmente.");
             }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Falha temporária no worker. O ciclo será reexecutado sem derrubar o processo.");
-                await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
-            }
-        }
+        } while (await timer.WaitForNextTickAsync(stoppingToken));
     }
 }

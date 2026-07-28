@@ -24,6 +24,7 @@ using IntegraRP.Infrastructure.Auth;
 using IntegraRP.Infrastructure.Repositories.Postgres;
 using IntegraRP.Application.Commercial;
 using IntegraRP.Infrastructure.Repositories.Postgres.Commercial;
+using IntegraRP.Application.Onboarding;
 
 namespace IntegraRP.Infrastructure.DependencyInjection;
 
@@ -49,6 +50,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IMigrationRunner, PostgresMigrationRunner>();
         services.AddScoped<ICommercialJourneyRepository, PostgresOrderConfirmationRepository>();
         services.AddScoped<IOrderConfirmationService, PostgresOrderConfirmationRepository>();
+        services.AddScoped<IUserPreferenceRepository, PostgresUserPreferenceRepository>();
         services.AddSingleton<IDataMaskingService, DataMaskingService>();
         services.AddSingleton<ILgpdAuditService, InMemoryLgpdAuditService>();
         services.AddSingleton<ISprint7BiProjectService, InMemoryBiProjectService>();
