@@ -1,8 +1,8 @@
 -- Produto: IntegraRP
--- Versao: v1.35
+-- Versao: v1.39
 -- PostgreSQL: 16
 -- Schema: integrarp
--- Validador executavel do contrato comercial v1.35.
+-- Validador executavel do contrato comercial v1.39.
 \set ON_ERROR_STOP on
 
 DO $validation$
