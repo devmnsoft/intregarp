@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Gera deterministicamente o script completo, seu alias e o inventário v1.40."""
+"""Gera deterministicamente o script completo, seu alias e os contratos v1.43."""
 from __future__ import annotations
 import hashlib, json, re
 from pathlib import Path
@@ -37,19 +37,23 @@ for entry in entries:
     text='\n'.join(line for line in text.splitlines() if line.strip().upper() not in {'BEGIN;','COMMIT;'}) .strip()+'\n'
     if re.search(r'\b(?:SET\s+(?:LOCAL\s+)?search_path|set_config\s*\(\s*[\'\"]search_path)',text,re.I): raise SystemExit(f"search_path proibido: {entry['arquivo']}")
     if re.search(r'(?<![\w])(?:public|integra|dbo)\.',text,re.I): raise SystemExit(f"Schema proibido: {entry['arquivo']}")
-    parts.append(f"-- >>> {entry['arquivo']}\n{text}\n-- <<< {entry['arquivo']}\n")
-body='\n'.join(parts)
+    parts.append((entry['arquivo'], f"-- >>> {entry['arquivo']}\n{text}\n-- <<< {entry['arquivo']}\n"))
+# A reconciliação 0047 precisa preceder 0003 em instalações limpas porque 0001 já
+# contém as tabelas legadas. Ela permanece também na posição 0047 para rastreabilidade.
+first, rest = parts[0], parts[1:]
+convergence = next(part for name, part in rest if name == '0047_v143_convergencia_executavel.sql')
+body='\n'.join([first[1], convergence] + [part for _, part in rest])
 body_checksum=sha(body.encode())
-lock_key=140_2026_0728
+lock_key=143_2026_0729
 header=f'''-- Produto: IntegraRP
--- Versão: v1.40
+-- Versão: v1.43
 -- PostgreSQL: 16
 -- Schema: integrarp
 -- Arquivo principal: database/scriptcompleto.sql
 -- Quantidade de migrations: {len(entries)}
 -- Data UTC determinística: {manifest['generatedAtUtc']}
 -- Checksum SHA-256: {body_checksum}
--- Contrato: Banco Canônico Integrarp v1.40
+-- Contrato: Banco Canônico Integrarp v1.43
 -- Execução:
 -- psql -X "$POSTGRES_URI" --set ON_ERROR_STOP=1 --file database/scriptcompleto.sql
 -- Gerado automaticamente; não editar os arquivos de saída.
@@ -59,7 +63,7 @@ DO $version_check$
 BEGIN
   IF current_setting('server_version_num')::integer < 160000
      OR current_setting('server_version_num')::integer >= 170000 THEN
-    RAISE EXCEPTION 'IntegraRP v1.40 requer PostgreSQL 16; encontrado %', current_setting('server_version');
+    RAISE EXCEPTION 'IntegraRP v1.43 requer PostgreSQL 16; encontrado %', current_setting('server_version');
   END IF;
 END
 $version_check$;
@@ -73,7 +77,7 @@ BEGIN;
 footer=f'''\nDO $final_validation$
 BEGIN
   IF to_regnamespace('integrarp') IS NULL THEN RAISE EXCEPTION 'Schema integrarp ausente'; END IF;
-  IF to_regclass('integrarp.schema_contract') IS NULL THEN RAISE EXCEPTION 'Contrato v1.40 ausente'; END IF;
+  IF to_regclass('integrarp.schema_contract') IS NULL THEN RAISE EXCEPTION 'Contrato v1.43 ausente'; END IF;
   IF EXISTS (SELECT 1 FROM pg_catalog.pg_constraint c JOIN pg_catalog.pg_class r ON r.oid=c.conrelid JOIN pg_catalog.pg_namespace n ON n.oid=r.relnamespace WHERE n.nspname='integrarp' AND NOT c.convalidated) THEN
     RAISE EXCEPTION 'Existem constraints não validadas no schema integrarp';
   END IF;
@@ -99,9 +103,9 @@ for entry in entries:
 # Keep the last canonical definition for repeated idempotent declarations.
 dedup={(o['type'],o['name']):o for o in objects}; objects=sorted(dedup.values(),key=lambda o:(o['type'],o['name']))
 counts={k:sum(o['type']==k for o in objects) for k in sorted({o['type'] for o in objects})}
-inventory={'contract':'Banco Canônico Integrarp v1.40','generatedAtUtc':manifest['generatedAtUtc'],'sourceManifest':'database/migration_manifest.json','schema':'integrarp','extensions':['pgcrypto'],'migrations':len(entries),'counts':counts,'objects':objects}
+inventory={'contract':'Banco Canônico Integrarp v1.43','generatedAtUtc':manifest['generatedAtUtc'],'sourceManifest':'database/migration_manifest.json','schema':'integrarp','extensions':['pgcrypto'],'migrations':len(entries),'counts':counts,'objects':objects}
 (DB/'schema_inventory.json').write_text(json.dumps(inventory,ensure_ascii=False,indent=2)+'\n',encoding='utf-8',newline='\n')
-artifact=ROOT/'artifacts/v140/database'; artifact.mkdir(parents=True,exist_ok=True)
+artifact=ROOT/'artifacts/v143/database'; artifact.mkdir(parents=True,exist_ok=True)
 log=f"generator=generate-scriptcompleto.py\nmigrations={len(entries)}\nbody_sha256={body_checksum}\nfile_sha256={sha(content)}\nalias_identical=true\nobjects={len(objects)}\ncounts={json.dumps(counts,sort_keys=True)}\n"
 (artifact/'generation.log').write_text(log,encoding='utf-8',newline='\n')
 (artifact/'scriptcompleto.sha256').write_text(f"{sha(content)}  database/scriptcompleto.sql\n{sha(content)}  database/script_completop.sql\n",encoding='utf-8',newline='\n')

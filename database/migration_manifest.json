@@ -508,8 +508,19 @@
       "status": "versionada",
       "observacoes": "Migration aditiva v1.40; migrations 0001 a 0045 permanecem congeladas.",
       "checksum_sha256": "6fb125341903216df7e4a5931dfa4508f6482422a064fe34438667364b25403b"
+    },
+    {
+      "ordem": 47,
+      "arquivo": "0047_v143_convergencia_executavel.sql",
+      "versao": "0047_v143_convergencia_executavel",
+      "descricao": "v1.43 convergência executável do contrato canônico de processos",
+      "modulo": "Database",
+      "presente_no_script_completop": true,
+      "status": "versionada",
+      "observacoes": "Migration aditiva v1.43; migrations 0001 a 0046 permanecem congeladas.",
+      "checksum_sha256": "6b841b5ecc345ddcf6cc61a03b3aded3891e8168ad8f96ce7b7c84437a283748"
     }
   ],
   "postgresql": "16",
-  "generatedAtUtc": "2026-07-28T00:00:00Z"
+  "generatedAtUtc": "2026-07-29T00:00:00Z"
 }

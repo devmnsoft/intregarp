@@ -1,4 +1,4 @@
-name: IntegraRP CI v1.42 — Recovery Técnica
+name: IntegraRP CI v1.43 — Convergência Executável
 
 on:
   push:
@@ -457,10 +457,71 @@ jobs:
       - run: python3 scripts/generate-scriptcompleto.py
       - run: '! rg -n "CREATE[[:space:]]+INDEX[[:space:]]+CONCURRENTLY|DROP[[:space:]]+CASCADE|EXCEPTION[[:space:]]+WHEN[[:space:]]+OTHERS" database/scriptcompleto.sql database/migrations/0046_v140_scriptcompleto_integrarp.sql'
 
+
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
+      - run: dotnet restore IntegraRP.sln
+      - run: dotnet format IntegraRP.sln --verify-no-changes --no-restore
+
+  schema-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -m json.tool database/schema_contract.json > /dev/null
+      - run: python3 -m json.tool database/schema_inventory.json > /dev/null
+
+  commercial-domain:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
+      - run: dotnet restore IntegraRP.sln
+      - run: scripts/run-filtered-tests.sh "FullyQualifiedName~Customer|FullyQualifiedName~Product|FullyQualifiedName~Inventory|FullyQualifiedName~Order" commercial-domain
+
+  commercial-api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
+      - run: dotnet restore IntegraRP.sln
+      - run: scripts/run-filtered-tests.sh "FullyQualifiedName~CommercialJourney|FullyQualifiedName~ApiContract" commercial-api
+
+  outbox-worker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
+      - run: dotnet restore IntegraRP.sln
+      - run: scripts/run-filtered-tests.sh "FullyQualifiedName~Outbox|FullyQualifiedName~Worker|FullyQualifiedName~Handler" outbox-worker
+
+  runtime-smoke:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_USER: integrarp, POSTGRES_PASSWORD: integrarp, POSTGRES_DB: integrarp_ci }
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U integrarp -d integrarp_ci" --health-interval 5s --health-timeout 5s --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '${{ env.DOTNET_VERSION }}' }
+      - run: psql -X "$POSTGRES_URI" -v ON_ERROR_STOP=1 -f database/scriptcompleto.sql
+      - run: dotnet restore IntegraRP.sln
+      - run: scripts/run-filtered-tests.sh "FullyQualifiedName~RuntimeSmoke|FullyQualifiedName~CommercialJourney" runtime-smoke
+        env: { ConnectionStrings__DefaultConnection: '${{ env.POSTGRES_URI }}' }
+
   release-gate:
     runs-on: ubuntu-latest
     if: always()
-    needs: [syntax, manifest-validation, schema-inventory, schema-qualification, generator-determinism, database-object-validation, database-security, architecture, dotnet-linux, dotnet-windows, warnings-as-errors, razor, bootstrap-contract, database-clean, database-upgrade, database-idempotency, database-preservation, migration-runner-real, auth, onboarding, notifications, customers, products, inventory, orders, process, tasks, evidence, billing-pending, audit-outbox, worker, dashboard, web-bff, standalone-linux, standalone-windows, playwright, visual-regression, accessibility, mobile, security]
+    needs: [syntax, format, manifest-validation, schema-contract, schema-inventory, schema-qualification, generator-determinism, dotnet-linux, dotnet-windows, warnings-as-errors, razor, bootstrap-contract, database-clean, database-idempotency, database-upgrade, database-preservation, migration-runner-real, database-object-validation, commercial-domain, commercial-api, web-bff, outbox-worker, runtime-smoke, playwright, accessibility, visual-regression, standalone-linux, standalone-windows, security]
     steps:
       - name: Exigir todos os checks obrigatórios verdes
         env:
@@ -473,6 +534,6 @@ jobs:
     needs: [release-gate]
     steps:
       - uses: actions/checkout@v4
-      - run: mkdir -p artifacts/v140/database && cp database/scriptcompleto.sql database/script_completop.sql database/validate_scriptcompleto.sql database/validate_script_completop.sql database/schema_inventory.json database/migration_manifest.json artifacts/v140/database/
+      - run: mkdir -p artifacts/v143/database && cp database/scriptcompleto.sql database/script_completop.sql database/validate_scriptcompleto.sql database/validate_script_completop.sql database/schema_inventory.json database/migration_manifest.json artifacts/v143/database/
       - uses: actions/upload-artifact@v4
-        with: { name: "v140-diagnostic-${{ github.run_id }}", path: artifacts/v140, retention-days: 30 }
+        with: { name: "v143-diagnostic-${{ github.run_id }}", path: artifacts/v143, retention-days: 30 }

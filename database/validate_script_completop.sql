@@ -1,8 +1,8 @@
 -- Produto: IntegraRP
--- Versao: v1.40
+-- Versao: v1.43
 -- PostgreSQL: 16
 -- Schema: integrarp
--- Validador executavel do contrato canônico v1.40.
+-- Validador executavel do contrato canônico v1.43.
 \set ON_ERROR_STOP on
 
 DO $validation$
@@ -17,13 +17,13 @@ BEGIN
         RAISE EXCEPTION 'Schema canônico integrarp ausente';
     END IF;
     IF to_regclass('integrarp.schema_contract') IS NULL THEN
-        RAISE EXCEPTION 'Contrato v1.40 ausente';
+        RAISE EXCEPTION 'Contrato v1.43 ausente';
     END IF;
     IF EXISTS (SELECT 1 FROM pg_catalog.pg_namespace WHERE nspname IN ('integra','dbo')) THEN
         RAISE EXCEPTION 'Schema proibido integra ou dbo detectado';
     END IF;
-    IF EXISTS (SELECT 1 FROM integrarp.schema_contract WHERE contract_name='Banco Canônico Integrarp v1.40' AND migration_count <> 46) THEN
-        RAISE EXCEPTION 'Quantidade de migrations do contrato v1.40 divergente';
+    IF EXISTS (SELECT 1 FROM integrarp.schema_contract WHERE contract_name='Banco Canônico Integrarp v1.43' AND migration_count <> 47) THEN
+        RAISE EXCEPTION 'Quantidade de migrations do contrato v1.43 divergente';
     END IF;
 
     SELECT string_agg(required.object_name, ', ' ORDER BY required.object_name)
