@@ -40,7 +40,7 @@ public sealed class AttachmentsController(IAttachmentUseCases useCases) : V11Con
     [HttpDelete("{id:guid}")] public async Task<IActionResult> Delete(Guid id, [FromBody] AttachmentCommand command, CancellationToken ct) => ToActionResult(this, await useCases.DeleteAsync(id, command, ct));
 }
 
-[Route("api/notifications")]
+[Route("api/legacy/notifications")]
 public sealed class NotificationsController(INotificationUseCases useCases) : V11ControllerBase
 {
     [HttpPost] public async Task<IActionResult> Create([FromBody] NotificationCommand command, CancellationToken ct) => ToActionResult(this, await useCases.CreateAsync(command, ct));

@@ -10,7 +10,7 @@ public sealed record NextBestAction(string Type, string Context, string Priority
         }
 
         if (string.IsNullOrWhiteSpace(DeepLink)
-            || !DeepLink.StartsWith('/', StringComparison.Ordinal)
+            || !DeepLink.StartsWith("/", StringComparison.Ordinal)
             || DeepLink.StartsWith("//", StringComparison.Ordinal))
         {
             throw new ArgumentException("O destino deve ser uma rota interna válida.");

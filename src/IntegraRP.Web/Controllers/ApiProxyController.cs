@@ -71,9 +71,9 @@ public sealed class ApiProxyController(IHttpClientFactory httpClientFactory, ILo
             var target = path + Request.QueryString;
             using var request = new HttpRequestMessage(new HttpMethod(Request.Method), target);
 
-            ForwardHeader("Authorization", request.Headers.TryAddWithoutValidation);
-            ForwardHeader("X-Correlation-Id", request.Headers.TryAddWithoutValidation);
-            ForwardHeader("X-Tenant-Id", request.Headers.TryAddWithoutValidation);
+            ForwardHeader("Authorization", request.Headers);
+            ForwardHeader("X-Correlation-Id", request.Headers);
+            ForwardHeader("X-Tenant-Id", request.Headers);
 
             if (Request.ContentLength > 0)
             {
@@ -93,11 +93,23 @@ public sealed class ApiProxyController(IHttpClientFactory httpClientFactory, ILo
         }
     }
 
-    private void ForwardHeader(string name, Func<string, IEnumerable<string>, bool> add)
+    private void ForwardHeader(string name, HttpHeaders destination)
     {
         if (Request.Headers.TryGetValue(name, out var values))
         {
-            add(name, values.ToArray());
+            var nonNullValues = new List<string>(values.Count);
+            foreach (var value in values)
+            {
+                if (value is not null)
+                {
+                    nonNullValues.Add(value);
+                }
+            }
+
+            if (nonNullValues.Count > 0)
+            {
+                destination.TryAddWithoutValidation(name, nonNullValues);
+            }
         }
     }
 }
