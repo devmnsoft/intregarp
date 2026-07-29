@@ -17,6 +17,7 @@ public sealed class V137ProductJourneyTests
     [InlineData("https://example.test/tasks/1")]
     [InlineData("//example.test/tasks/1")]
     [InlineData("")]
+    [InlineData("   ")]
     public void NextBestActionRejectsExternalOrEmptyDeepLink(string deepLink)
     {
         var action = new NextBestAction("tarefa", "Pedido", "alta", null, null, "Abrir tarefa", deepLink);
