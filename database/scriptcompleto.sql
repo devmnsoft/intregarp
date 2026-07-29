@@ -1,12 +1,12 @@
 -- Produto: IntegraRP
--- Versão: v1.40
+-- Versão: v1.43
 -- PostgreSQL: 16
 -- Schema: integrarp
 -- Arquivo principal: database/scriptcompleto.sql
--- Quantidade de migrations: 46
--- Data UTC determinística: 2026-07-28T00:00:00Z
--- Checksum SHA-256: 5573cc0854b967e20238668001cd9f9ea5bda2b93570bd88581776bf60f8de16
--- Contrato: Banco Canônico Integrarp v1.40
+-- Quantidade de migrations: 47
+-- Data UTC determinística: 2026-07-29T00:00:00Z
+-- Checksum SHA-256: f13583c2743f1a7542d61a39153f40a22424de0c00c6ef00860d15ac6afe945c
+-- Contrato: Banco Canônico Integrarp v1.43
 -- Execução:
 -- psql -X "$POSTGRES_URI" --set ON_ERROR_STOP=1 --file database/scriptcompleto.sql
 -- Gerado automaticamente; não editar os arquivos de saída.
@@ -16,14 +16,14 @@ DO $version_check$
 BEGIN
   IF current_setting('server_version_num')::integer < 160000
      OR current_setting('server_version_num')::integer >= 170000 THEN
-    RAISE EXCEPTION 'IntegraRP v1.40 requer PostgreSQL 16; encontrado %', current_setting('server_version');
+    RAISE EXCEPTION 'IntegraRP v1.43 requer PostgreSQL 16; encontrado %', current_setting('server_version');
   END IF;
 END
 $version_check$;
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE SCHEMA IF NOT EXISTS integrarp;
-SELECT pg_advisory_lock(14020260728);
+SELECT pg_advisory_lock(14320260729);
 BEGIN;
 
 -- >>> 0001_initial_integrarp.sql
@@ -1701,6 +1701,97 @@ INSERT INTO integrarp.processo_definicao (nome, codigo, status) SELECT 'Checagem
 INSERT INTO integrarp.processo_definicao (nome, codigo, status) SELECT 'Precificação no Ponto de Venda', lower(regexp_replace('Precificação no Ponto de Venda', '[^a-zA-Z0-9]+', '-', 'g')), 'template' WHERE NOT EXISTS (SELECT 1 FROM integrarp.processo_definicao WHERE nome = 'Precificação no Ponto de Venda');
 
 -- <<< 0001_initial_integrarp.sql
+
+-- >>> 0047_v143_convergencia_executavel.sql
+-- IntegraRP v1.43: converge o contrato de processos antes da criação de índices.
+-- A migration é aditiva e pode ser promovida pelo gerador antes da migration 0003.
+ALTER TABLE IF EXISTS integrarp.processo_definicao
+  ADD COLUMN IF NOT EXISTS processo_definicao_id uuid;
+UPDATE integrarp.processo_definicao
+SET processo_definicao_id = id
+WHERE processo_definicao_id IS NULL AND id IS NOT NULL;
+
+ALTER TABLE IF EXISTS integrarp.processo_versao
+  ADD COLUMN IF NOT EXISTS processo_versao_id uuid,
+  ADD COLUMN IF NOT EXISTS processo_definicao_id uuid,
+  ADD COLUMN IF NOT EXISTS numero integer,
+  ADD COLUMN IF NOT EXISTS descricao text,
+  ADD COLUMN IF NOT EXISTS bpmn_json jsonb NOT NULL DEFAULT '{}'::jsonb,
+  ADD COLUMN IF NOT EXISTS publicado_em timestamptz;
+UPDATE integrarp.processo_versao SET processo_versao_id = id WHERE processo_versao_id IS NULL AND id IS NOT NULL;
+
+ALTER TABLE IF EXISTS integrarp.processo_elemento
+  ADD COLUMN IF NOT EXISTS processo_elemento_id uuid,
+  ADD COLUMN IF NOT EXISTS processo_versao_id uuid,
+  ADD COLUMN IF NOT EXISTS tipo varchar(80),
+  ADD COLUMN IF NOT EXISTS configuracao_json jsonb NOT NULL DEFAULT '{}'::jsonb,
+  ADD COLUMN IF NOT EXISTS posicao_x numeric(12,2),
+  ADD COLUMN IF NOT EXISTS posicao_y numeric(12,2);
+UPDATE integrarp.processo_elemento SET processo_elemento_id = id WHERE processo_elemento_id IS NULL AND id IS NOT NULL;
+
+ALTER TABLE IF EXISTS integrarp.processo_transicao
+  ADD COLUMN IF NOT EXISTS processo_transicao_id uuid,
+  ADD COLUMN IF NOT EXISTS processo_versao_id uuid,
+  ADD COLUMN IF NOT EXISTS elemento_origem_id uuid,
+  ADD COLUMN IF NOT EXISTS elemento_destino_id uuid,
+  ADD COLUMN IF NOT EXISTS condicao_json jsonb NOT NULL DEFAULT '{}'::jsonb;
+UPDATE integrarp.processo_transicao SET processo_transicao_id = id WHERE processo_transicao_id IS NULL AND id IS NOT NULL;
+
+ALTER TABLE IF EXISTS integrarp.processo_instancia
+  ADD COLUMN IF NOT EXISTS processo_instancia_id uuid,
+  ADD COLUMN IF NOT EXISTS processo_definicao_id uuid,
+  ADD COLUMN IF NOT EXISTS processo_versao_id uuid,
+  ADD COLUMN IF NOT EXISTS iniciado_em timestamptz,
+  ADD COLUMN IF NOT EXISTS concluido_em timestamptz,
+  ADD COLUMN IF NOT EXISTS prazo_em timestamptz;
+UPDATE integrarp.processo_instancia SET processo_instancia_id = id WHERE processo_instancia_id IS NULL AND id IS NOT NULL;
+
+ALTER TABLE IF EXISTS integrarp.processo_variavel
+  ADD COLUMN IF NOT EXISTS processo_variavel_id uuid,
+  ADD COLUMN IF NOT EXISTS processo_instancia_id uuid,
+  ADD COLUMN IF NOT EXISTS valor_json jsonb NOT NULL DEFAULT '{}'::jsonb;
+UPDATE integrarp.processo_variavel SET processo_variavel_id = id WHERE processo_variavel_id IS NULL AND id IS NOT NULL;
+
+DO $v143_process_contract$
+DECLARE
+  incompatíveis bigint;
+BEGIN
+  SELECT count(*) INTO incompatíveis FROM integrarp.processo_versao
+   WHERE processo_definicao_id IS NULL;
+  IF incompatíveis > 0 THEN
+    RAISE EXCEPTION 'integrarp.processo_versao.processo_definicao_id: % registros incompatíveis; associe cada versão a uma definição antes do upgrade v1.43', incompatíveis;
+  END IF;
+END
+$v143_process_contract$;
+
+CREATE UNIQUE INDEX IF NOT EXISTS ux_processo_definicao_id
+  ON integrarp.processo_definicao (processo_definicao_id);
+CREATE INDEX IF NOT EXISTS ix_processo_versao_tenant_definicao
+  ON integrarp.processo_versao (tenant_id, processo_definicao_id);
+CREATE INDEX IF NOT EXISTS ix_processo_elemento_tenant_versao
+  ON integrarp.processo_elemento (tenant_id, processo_versao_id);
+CREATE INDEX IF NOT EXISTS ix_processo_transicao_tenant_versao
+  ON integrarp.processo_transicao (tenant_id, processo_versao_id);
+CREATE INDEX IF NOT EXISTS ix_processo_instancia_tenant_status_v143
+  ON integrarp.processo_instancia (tenant_id, status);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_processo_variavel_tenant_instancia_nome
+  ON integrarp.processo_variavel (tenant_id, processo_instancia_id, nome);
+
+INSERT INTO integrarp.schema_contract (
+  contract_name, product_version, postgresql_major, schema_name,
+  migration_count, manifest_generated_at_utc
+) VALUES (
+  'Banco Canônico Integrarp v1.43', 'v1.43', 16, 'integrarp', 47,
+  '2026-07-29T00:00:00Z'::timestamptz
+)
+ON CONFLICT (contract_name) DO UPDATE SET
+  product_version = EXCLUDED.product_version,
+  postgresql_major = EXCLUDED.postgresql_major,
+  schema_name = EXCLUDED.schema_name,
+  migration_count = EXCLUDED.migration_count,
+  manifest_generated_at_utc = EXCLUDED.manifest_generated_at_utc;
+
+-- <<< 0047_v143_convergencia_executavel.sql
 
 -- >>> 0003_flow_bpmn_core.sql
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
@@ -8276,14 +8367,105 @@ COMMENT ON TABLE integrarp.schema_contract IS 'Contrato canônico e versão inst
 
 -- <<< 0046_v140_scriptcompleto_integrarp.sql
 
+-- >>> 0047_v143_convergencia_executavel.sql
+-- IntegraRP v1.43: converge o contrato de processos antes da criação de índices.
+-- A migration é aditiva e pode ser promovida pelo gerador antes da migration 0003.
+ALTER TABLE IF EXISTS integrarp.processo_definicao
+  ADD COLUMN IF NOT EXISTS processo_definicao_id uuid;
+UPDATE integrarp.processo_definicao
+SET processo_definicao_id = id
+WHERE processo_definicao_id IS NULL AND id IS NOT NULL;
+
+ALTER TABLE IF EXISTS integrarp.processo_versao
+  ADD COLUMN IF NOT EXISTS processo_versao_id uuid,
+  ADD COLUMN IF NOT EXISTS processo_definicao_id uuid,
+  ADD COLUMN IF NOT EXISTS numero integer,
+  ADD COLUMN IF NOT EXISTS descricao text,
+  ADD COLUMN IF NOT EXISTS bpmn_json jsonb NOT NULL DEFAULT '{}'::jsonb,
+  ADD COLUMN IF NOT EXISTS publicado_em timestamptz;
+UPDATE integrarp.processo_versao SET processo_versao_id = id WHERE processo_versao_id IS NULL AND id IS NOT NULL;
+
+ALTER TABLE IF EXISTS integrarp.processo_elemento
+  ADD COLUMN IF NOT EXISTS processo_elemento_id uuid,
+  ADD COLUMN IF NOT EXISTS processo_versao_id uuid,
+  ADD COLUMN IF NOT EXISTS tipo varchar(80),
+  ADD COLUMN IF NOT EXISTS configuracao_json jsonb NOT NULL DEFAULT '{}'::jsonb,
+  ADD COLUMN IF NOT EXISTS posicao_x numeric(12,2),
+  ADD COLUMN IF NOT EXISTS posicao_y numeric(12,2);
+UPDATE integrarp.processo_elemento SET processo_elemento_id = id WHERE processo_elemento_id IS NULL AND id IS NOT NULL;
+
+ALTER TABLE IF EXISTS integrarp.processo_transicao
+  ADD COLUMN IF NOT EXISTS processo_transicao_id uuid,
+  ADD COLUMN IF NOT EXISTS processo_versao_id uuid,
+  ADD COLUMN IF NOT EXISTS elemento_origem_id uuid,
+  ADD COLUMN IF NOT EXISTS elemento_destino_id uuid,
+  ADD COLUMN IF NOT EXISTS condicao_json jsonb NOT NULL DEFAULT '{}'::jsonb;
+UPDATE integrarp.processo_transicao SET processo_transicao_id = id WHERE processo_transicao_id IS NULL AND id IS NOT NULL;
+
+ALTER TABLE IF EXISTS integrarp.processo_instancia
+  ADD COLUMN IF NOT EXISTS processo_instancia_id uuid,
+  ADD COLUMN IF NOT EXISTS processo_definicao_id uuid,
+  ADD COLUMN IF NOT EXISTS processo_versao_id uuid,
+  ADD COLUMN IF NOT EXISTS iniciado_em timestamptz,
+  ADD COLUMN IF NOT EXISTS concluido_em timestamptz,
+  ADD COLUMN IF NOT EXISTS prazo_em timestamptz;
+UPDATE integrarp.processo_instancia SET processo_instancia_id = id WHERE processo_instancia_id IS NULL AND id IS NOT NULL;
+
+ALTER TABLE IF EXISTS integrarp.processo_variavel
+  ADD COLUMN IF NOT EXISTS processo_variavel_id uuid,
+  ADD COLUMN IF NOT EXISTS processo_instancia_id uuid,
+  ADD COLUMN IF NOT EXISTS valor_json jsonb NOT NULL DEFAULT '{}'::jsonb;
+UPDATE integrarp.processo_variavel SET processo_variavel_id = id WHERE processo_variavel_id IS NULL AND id IS NOT NULL;
+
+DO $v143_process_contract$
+DECLARE
+  incompatíveis bigint;
+BEGIN
+  SELECT count(*) INTO incompatíveis FROM integrarp.processo_versao
+   WHERE processo_definicao_id IS NULL;
+  IF incompatíveis > 0 THEN
+    RAISE EXCEPTION 'integrarp.processo_versao.processo_definicao_id: % registros incompatíveis; associe cada versão a uma definição antes do upgrade v1.43', incompatíveis;
+  END IF;
+END
+$v143_process_contract$;
+
+CREATE UNIQUE INDEX IF NOT EXISTS ux_processo_definicao_id
+  ON integrarp.processo_definicao (processo_definicao_id);
+CREATE INDEX IF NOT EXISTS ix_processo_versao_tenant_definicao
+  ON integrarp.processo_versao (tenant_id, processo_definicao_id);
+CREATE INDEX IF NOT EXISTS ix_processo_elemento_tenant_versao
+  ON integrarp.processo_elemento (tenant_id, processo_versao_id);
+CREATE INDEX IF NOT EXISTS ix_processo_transicao_tenant_versao
+  ON integrarp.processo_transicao (tenant_id, processo_versao_id);
+CREATE INDEX IF NOT EXISTS ix_processo_instancia_tenant_status_v143
+  ON integrarp.processo_instancia (tenant_id, status);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_processo_variavel_tenant_instancia_nome
+  ON integrarp.processo_variavel (tenant_id, processo_instancia_id, nome);
+
+INSERT INTO integrarp.schema_contract (
+  contract_name, product_version, postgresql_major, schema_name,
+  migration_count, manifest_generated_at_utc
+) VALUES (
+  'Banco Canônico Integrarp v1.43', 'v1.43', 16, 'integrarp', 47,
+  '2026-07-29T00:00:00Z'::timestamptz
+)
+ON CONFLICT (contract_name) DO UPDATE SET
+  product_version = EXCLUDED.product_version,
+  postgresql_major = EXCLUDED.postgresql_major,
+  schema_name = EXCLUDED.schema_name,
+  migration_count = EXCLUDED.migration_count,
+  manifest_generated_at_utc = EXCLUDED.manifest_generated_at_utc;
+
+-- <<< 0047_v143_convergencia_executavel.sql
+
 DO $final_validation$
 BEGIN
   IF to_regnamespace('integrarp') IS NULL THEN RAISE EXCEPTION 'Schema integrarp ausente'; END IF;
-  IF to_regclass('integrarp.schema_contract') IS NULL THEN RAISE EXCEPTION 'Contrato v1.40 ausente'; END IF;
+  IF to_regclass('integrarp.schema_contract') IS NULL THEN RAISE EXCEPTION 'Contrato v1.43 ausente'; END IF;
   IF EXISTS (SELECT 1 FROM pg_catalog.pg_constraint c JOIN pg_catalog.pg_class r ON r.oid=c.conrelid JOIN pg_catalog.pg_namespace n ON n.oid=r.relnamespace WHERE n.nspname='integrarp' AND NOT c.convalidated) THEN
     RAISE EXCEPTION 'Existem constraints não validadas no schema integrarp';
   END IF;
 END
 $final_validation$;
 COMMIT;
-SELECT pg_advisory_unlock(14020260728);
+SELECT pg_advisory_unlock(14320260729);

@@ -1,16 +1,16 @@
 {
-  "contract": "Banco Canônico Integrarp v1.40",
-  "generatedAtUtc": "2026-07-28T00:00:00Z",
+  "contract": "Banco Canônico Integrarp v1.43",
+  "generatedAtUtc": "2026-07-29T00:00:00Z",
   "sourceManifest": "database/migration_manifest.json",
   "schema": "integrarp",
   "extensions": [
     "pgcrypto"
   ],
-  "migrations": 46,
+  "migrations": 47,
   "counts": {
     "constraint": 53,
     "function": 7,
-    "index": 619,
+    "index": 621,
     "table": 284,
     "trigger": 138,
     "view": 90
@@ -7136,8 +7136,8 @@
       "schema": "integrarp",
       "name": "ix_processo_elemento_tenant_versao",
       "type": "index",
-      "module": "Flow",
-      "originMigration": "0003_flow_bpmn_core.sql",
+      "module": "Database",
+      "originMigration": "0047_v143_convergencia_executavel.sql",
       "usedBy": [
         "database/scriptcompleto.sql"
       ],
@@ -7440,6 +7440,24 @@
     },
     {
       "schema": "integrarp",
+      "name": "ix_processo_instancia_tenant_status_v143",
+      "type": "index",
+      "module": "Database",
+      "originMigration": "0047_v143_convergencia_executavel.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE INDEX IF NOT EXISTS ix_processo_instancia_tenant_status_v143 ON integrarp.processo_instancia (tenant_id, status);",
+      "definitionChecksumSha256": "ac435638af9a8bc2cc202df333a3d49c961236493587d86a2436f53625582e17",
+      "dependencies": [
+        "integrarp.processo_instancia"
+      ]
+    },
+    {
+      "schema": "integrarp",
       "name": "ix_processo_sla_politica_criado_em",
       "type": "index",
       "module": "Database",
@@ -7694,8 +7712,8 @@
       "schema": "integrarp",
       "name": "ix_processo_transicao_tenant_versao",
       "type": "index",
-      "module": "Flow",
-      "originMigration": "0003_flow_bpmn_core.sql",
+      "module": "Database",
+      "originMigration": "0047_v143_convergencia_executavel.sql",
       "usedBy": [
         "database/scriptcompleto.sql"
       ],
@@ -7946,8 +7964,8 @@
       "schema": "integrarp",
       "name": "ix_processo_versao_tenant_definicao",
       "type": "index",
-      "module": "Flow",
-      "originMigration": "0003_flow_bpmn_core.sql",
+      "module": "Database",
+      "originMigration": "0047_v143_convergencia_executavel.sql",
       "usedBy": [
         "database/scriptcompleto.sql"
       ],
@@ -11688,6 +11706,24 @@
     },
     {
       "schema": "integrarp",
+      "name": "ux_processo_definicao_id",
+      "type": "index",
+      "module": "Database",
+      "originMigration": "0047_v143_convergencia_executavel.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE UNIQUE INDEX IF NOT EXISTS ux_processo_definicao_id ON integrarp.processo_definicao (processo_definicao_id);",
+      "definitionChecksumSha256": "d5f8ad375e7e014adde53c0ab57cfce6a7a7a6e6d9e39bd72f990a297b38a448",
+      "dependencies": [
+        "integrarp.processo_definicao"
+      ]
+    },
+    {
+      "schema": "integrarp",
       "name": "ux_processo_definicao_tenant_codigo",
       "type": "index",
       "module": "Flow",
@@ -11708,8 +11744,8 @@
       "schema": "integrarp",
       "name": "ux_processo_variavel_tenant_instancia_nome",
       "type": "index",
-      "module": "Flow",
-      "originMigration": "0003_flow_bpmn_core.sql",
+      "module": "Database",
+      "originMigration": "0047_v143_convergencia_executavel.sql",
       "usedBy": [
         "database/scriptcompleto.sql"
       ],

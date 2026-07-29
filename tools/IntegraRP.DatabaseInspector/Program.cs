@@ -69,7 +69,7 @@ static int LintSql(string root)
             }
         }
     }
-    var reportPath = Path.Combine(root, "artifacts", "database", "schema-qualification-report.json");
+    var reportPath = Path.Combine(root, "artifacts", "v143", "database", "schema-qualification-report.json");
     Directory.CreateDirectory(Path.GetDirectoryName(reportPath)!);
     var issues = failures.Select(failure => new
     {
@@ -79,7 +79,7 @@ static int LintSql(string root)
         @object = Regex.Match(failure, @"(?:proibido:\s*|proibido\s+)(?<name>[\w.]+)$").Groups["name"].Value,
         expectedCorrection = "Qualificar a relação de negócio como integrarp.nome_do_objeto."
     }).ToArray();
-    File.WriteAllText(reportPath, JsonSerializer.Serialize(new { contract = "Banco Canônico Integrarp v1.40", issueCount = issues.Length, issues }, new JsonSerializerOptions { WriteIndented = true }) + Environment.NewLine);
+    File.WriteAllText(reportPath, JsonSerializer.Serialize(new { contract = "Banco Canônico Integrarp v1.43", classification = "violação real", realViolationCount = issues.Length, issues }, new JsonSerializerOptions { WriteIndented = true }) + Environment.NewLine);
     foreach (var failure in failures) Console.Error.WriteLine(failure);
     Console.WriteLine($"Relatório: {reportPath} ({failures.Count} problema(s)).");
     return failures.Count == 0 ? 0 : 2;
@@ -92,7 +92,7 @@ static bool IsAllowedName(string name)
     if (lower.StartsWith("integrarp.")) return true;
     if (lower.StartsWith("information_schema.") || lower.StartsWith("pg_catalog.")) return true;
     if (lower.StartsWith("pg_") || lower.StartsWith("tmp_")) return true;
-    if (new[] { "select", "values", "jsonb_array_elements", "unnest" }.Contains(lower)) return true;
+    if (new[] { "select", "values", "jsonb_array_elements", "unnest", "if", "then", "else", "end", "returning", "new", "old", "excluded" }.Contains(lower)) return true;
     return false;
 }
 
