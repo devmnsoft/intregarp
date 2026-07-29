@@ -14,7 +14,7 @@
       if (!response.ok) throw new Error(`Dashboard indisponível (${response.status}).`);
       window.location.reload();
     } catch (error) {
-      if (error.name !== "AbortError") window.IntegraFeedback?.error?.(error.message);
+      if (error.name !== "AbortError") window.IntegraRPFeedback?.error?.(error.message);
     } finally {
       refresh.disabled = false;
       refresh.removeAttribute("aria-busy");
