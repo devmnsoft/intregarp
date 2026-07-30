@@ -1,4 +1,3 @@
-using System.Data.Common;
 using IntegraRP.Application.Runtime;
 using Microsoft.Extensions.Logging;
 using Npgsql;
@@ -76,6 +75,7 @@ public sealed class PostgresV112OperationalRepository(PostgresConnectionFactory 
         }
         catch
         {
+            logger.LogWarning("Revertendo criação do pedido do tenant {TenantId} após falha transacional.", tenantId);
             await tx.RollbackAsync(ct);
             throw;
         }
@@ -84,10 +84,19 @@ public sealed class PostgresV112OperationalRepository(PostgresConnectionFactory 
     {
         await using var c = await connectionFactory.OpenAsync(ct);
         await using var tx = await c.BeginTransactionAsync(ct);
-        var row = await AddOrderItemAsync(c, tx, tenantId, id, request, ct);
-        await RecalculateOrderAsync(c, tx, tenantId, id, ct);
-        await tx.CommitAsync(ct);
-        return row;
+        try
+        {
+            var row = await AddOrderItemAsync(c, tx, tenantId, id, request, ct);
+            await RecalculateOrderAsync(c, tx, tenantId, id, ct);
+            await tx.CommitAsync(ct);
+            return row;
+        }
+        catch
+        {
+            logger.LogWarning("Revertendo inclusão de item no pedido {OrderId} do tenant {TenantId}.", id, tenantId);
+            await tx.RollbackAsync(ct);
+            throw;
+        }
     }
     public async Task<IDictionary<string, object?>?> RemoveOrderItemAsync(Guid tenantId, Guid id, Guid itemId, CancellationToken ct)
     {
