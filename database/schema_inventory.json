@@ -1,35 +1,83 @@
 {
-  "contract": "Banco Canônico Integrarp v1.43",
-  "generatedAtUtc": "2026-07-29T00:00:00Z",
+  "contract": "Banco Canônico Integrarp v1.45",
+  "generatedAtUtc": "2026-07-30T00:00:00Z",
   "sourceManifest": "database/migration_manifest.json",
   "schema": "integrarp",
   "extensions": [
     "pgcrypto"
   ],
-  "migrations": 47,
+  "migrations": 48,
   "counts": {
-    "constraint": 53,
+    "constraint": 199,
     "function": 7,
-    "index": 621,
-    "table": 284,
+    "index": 625,
+    "table": 303,
     "trigger": 138,
     "view": 90
   },
   "objects": [
     {
       "schema": "integrarp",
-      "name": "WHERE",
+      "name": "ck_aprovacao_desconto_status",
       "type": "constraint",
       "module": "Commercial",
-      "originMigration": "0045_v139_release_candidate_piloto.sql",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
       "usedBy": [
         "database/scriptcompleto.sql"
       ],
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "constraint WHERE conname = 'fk_outbox_execucao_evento_tenant') THEN ALTER TABLE integrarp.outbox_execucao_handler ADD CONSTRAINT fk_outbox_execucao_evento_tenant FOREIGN KEY (tenant_id,",
-      "definitionChecksumSha256": "5f90b9466516975b2c8b8d7933be87212552e2033d43b2b1994738fc90a8f538",
+      "canonicalDefinition": ", CONSTRAINT ck_aprovacao_desconto_status CHECK(status IN ('pendente',",
+      "definitionChecksumSha256": "9da399244e0cd1dea8fb5369ceff6a0a43264db5b42233508674b56ab39095c2",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_arquivo_privado_tamanho",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT ck_arquivo_privado_tamanho CHECK(tamanho_bytes > 0) )",
+      "definitionChecksumSha256": "81e17c5984dbb9766a7f62e820b94fe5809abc4cae21d0f200d5c40e4c825bf1",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_atividade_tipo",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT ck_atividade_tipo CHECK (tipo IN ('ligacao',",
+      "definitionChecksumSha256": "a3b25c89dd15cba617822c9390892d1e084b2c8200b9ac459558613770037151",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_entrega_status",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT ck_entrega_status CHECK(status IN ('pendente',",
+      "definitionChecksumSha256": "4d9ffb81eb7239173cac5ca440d518f9f64120356fe7a1d3534da6bbf387e89e",
       "dependencies": []
     },
     {
@@ -44,8 +92,8 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT ck_estoque_movimento_quantidade CHECK (quantidade > 0) )",
-      "definitionChecksumSha256": "f855c72ae8cb5029f4108281689ac7b5e57c93084ea9aeccccc02fc94a91b5f1",
+      "canonicalDefinition": ", CONSTRAINT ck_estoque_movimento_quantidade CHECK (quantidade > 0) )",
+      "definitionChecksumSha256": "26ed37878dd532a13b8285b0842167c30d9a5e881019ca833f4a825b14689a2d",
       "dependencies": []
     },
     {
@@ -60,8 +108,24 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT ck_estoque_movimento_tipo CHECK (tipo IN ('entrada',",
-      "definitionChecksumSha256": "89104c1a9bfa4666812720f4ee093b3391653b35d9bb89e9b031378d7551a293",
+      "canonicalDefinition": ", CONSTRAINT ck_estoque_movimento_tipo CHECK (tipo IN ('entrada',",
+      "definitionChecksumSha256": "a3e4d1666c8c23cadfdc6125e47dd9aca28e0077b801991148ea91d732192125",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_estoque_saldo_disponivel_v132",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0038_v132_operacao_comercial_homologada.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.estoque_saldo ADD CONSTRAINT ck_estoque_saldo_disponivel_v132 CHECK(saldo_fisico >= saldo_reservado AND saldo_reservado >= 0) NOT VALID;",
+      "definitionChecksumSha256": "d939cc00650c18f750ce41cfbede890d216146831ba5a26d262429bfe0cb447b",
       "dependencies": []
     },
     {
@@ -76,8 +140,552 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT ck_estoque_saldo_quantidades CHECK (saldo_fisico >= 0 AND saldo_reservado >= 0 AND saldo_fisico >= saldo_reservado) )",
-      "definitionChecksumSha256": "6f097ae26eff500cc6d9c67feb8f8465f7cc9b096adf0f8f1db42ce612169a63",
+      "canonicalDefinition": ", CONSTRAINT ck_estoque_saldo_quantidades CHECK (saldo_fisico >= 0 AND saldo_reservado >= 0 AND saldo_fisico >= saldo_reservado) )",
+      "definitionChecksumSha256": "b0006deadab8d10610f67fee44b6f6be8aa35f75c1edb0052cf9b618daa6446a",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_financeiro_alerta_inadimplencia_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.financeiro_alerta_inadimplencia ADD CONSTRAINT ck_financeiro_alerta_inadimplencia_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "73b007447d507e15747f87d3ee31f80c7789fc2d2d99399b201044200ea6ba61",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_financeiro_baixa_sugerida_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.financeiro_baixa_sugerida ADD CONSTRAINT ck_financeiro_baixa_sugerida_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "db262f70859235be3a0d601b7fcc4f2d0f6ae9dbdc39e0093b38d654ee7e9865",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_financeiro_conciliacao_item_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.financeiro_conciliacao_item ADD CONSTRAINT ck_financeiro_conciliacao_item_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "7b3c396525f0c6f1affcc54e75618a69a33f4f8d44161f777525232016581b57",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_financeiro_conciliacao_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.financeiro_conciliacao ADD CONSTRAINT ck_financeiro_conciliacao_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "4afc6de2bbee95ac9bf7002c6b22c16bc4fa22f5b78281c8de18316ffd8673b6",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_financeiro_conta_bancaria_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.financeiro_conta_bancaria ADD CONSTRAINT ck_financeiro_conta_bancaria_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "13637ed38c951b84565d3a298e4da9015572a54031cdad95474c015464d78bf3",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_financeiro_extrato_importacao_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.financeiro_extrato_importacao ADD CONSTRAINT ck_financeiro_extrato_importacao_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "934538ad31be073505fe1bcd56a27da6931692d58b7ba6e905c3758acce15e6c",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_financeiro_extrato_lancamento_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.financeiro_extrato_lancamento ADD CONSTRAINT ck_financeiro_extrato_lancamento_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "b776732aa281e453e13e356180ec6c6bbfde3f56dad1945099a9bef317fc1ccd",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_financeiro_projecao_recebivel_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.financeiro_projecao_recebivel ADD CONSTRAINT ck_financeiro_projecao_recebivel_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "896d0248bd155d61e9799af6c7c5bf1e3ce58251b32a9673e7272f2be0a5da13",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_financeiro_regra_conciliacao_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.financeiro_regra_conciliacao ADD CONSTRAINT ck_financeiro_regra_conciliacao_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "7372c5639d7bae19b9db997d4657965081f59e4d58de0e5a67e94b5cca24fa61",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_fiscal_cancelamento_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.fiscal_cancelamento ADD CONSTRAINT ck_fiscal_cancelamento_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "7f5636046b884e0aff6d519076397d0b4559e4152b655736de03b44c7304babd",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_fiscal_carta_correcao_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.fiscal_carta_correcao ADD CONSTRAINT ck_fiscal_carta_correcao_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "a6ad175b1dae44c7ea9dabef849055f6b8644242f3a59a55f148e935dbd3a4e2",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_fiscal_certificado_referencia_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.fiscal_certificado_referencia ADD CONSTRAINT ck_fiscal_certificado_referencia_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "1093ca191882c394a0faadfbd58ebce4a5cc2735ffd6dde2466399d43830902b",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_fiscal_configuracao_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.fiscal_configuracao ADD CONSTRAINT ck_fiscal_configuracao_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "8a2b54f4feac2561d6194085c558123b9870f4bdc3db1eb7ae056967d1051a5d",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_fiscal_documento_evento_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.fiscal_documento_evento ADD CONSTRAINT ck_fiscal_documento_evento_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "2317c182b9cba8741d63bc10b9f523136d4f70547b678cfd79a26942604a3f13",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_fiscal_documento_item_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.fiscal_documento_item ADD CONSTRAINT ck_fiscal_documento_item_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "b40861d43fbd8b4e1e87a70da4ff0b0eafcba764772aaec49d578039aef9caca",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_fiscal_documento_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.fiscal_documento ADD CONSTRAINT ck_fiscal_documento_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "bff0cd2706b4e565d3e4ec02527d142e68702c16d59bfe6abc233ac0c695b1f2",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_fiscal_emissao_log_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.fiscal_emissao_log ADD CONSTRAINT ck_fiscal_emissao_log_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "8c0bf82166a9053352133adc399af8d0d3be589dec539775f6642d4a2a04bf0b",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_fiscal_emissao_lote_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.fiscal_emissao_lote ADD CONSTRAINT ck_fiscal_emissao_lote_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "d4d4713790f36303c3abc20ec3ef4a7685e24d8f8ef65e8b984412320e998cd1",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_fiscal_provedor_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.fiscal_provedor ADD CONSTRAINT ck_fiscal_provedor_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "caab6dffacec607a753a74fa7cb7e278d1d417a98d07053bd3f70b402fdc3e75",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_fiscal_serie_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.fiscal_serie ADD CONSTRAINT ck_fiscal_serie_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "48d691ab5d90ad9324efcb7766c2841c54caf672c1dfeab1012b3881dd529469",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_formulario_campo_tipo_v11",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0013_v11_scriptcompleto_forms_automation.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.formulario_campo ADD CONSTRAINT ck_formulario_campo_tipo_v11 CHECK (tipo IN ('text',",
+      "definitionChecksumSha256": "2f04e9c218ce34b24fbf51e4c7cb0c3190987c6e5fc3a0ff2e7c1de9bcdf86e9",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_integracao_conector_configuracao_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.integracao_conector_configuracao ADD CONSTRAINT ck_integracao_conector_configuracao_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "c1a7d9f91e31d5928e219520d697ea650b674b25fc2fd6a387ee5784e1d664bf",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_integracao_conector_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.integracao_conector ADD CONSTRAINT ck_integracao_conector_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "e862030c3daaba9abdc7e76addf141e4250cf1cf40b3ee8c5cbfd3ab15cac212",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_integracao_credencial_referencia_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.integracao_credencial_referencia ADD CONSTRAINT ck_integracao_credencial_referencia_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "7ac2b897a6b4fcd3c1e41f55b0b566dbdcaaad1450a4ae1260ff03ae9a618577",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_integracao_execucao_log_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.integracao_execucao_log ADD CONSTRAINT ck_integracao_execucao_log_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "1ac54169f162d7ee04efc73bfa8d308e5b427c79678caa0f463b62e616e004d7",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_integracao_execucao_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.integracao_execucao ADD CONSTRAINT ck_integracao_execucao_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "09689994d5f7f4ca9a70b23ca8ce4c511a927e3662e3ff3631056069d5721397",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_integracao_fila_entrada_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.integracao_fila_entrada ADD CONSTRAINT ck_integracao_fila_entrada_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "d86f8ae047d9626233a1e860bb6ad198667850f48e510d3dad178627545ef9ae",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_integracao_fila_saida_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.integracao_fila_saida ADD CONSTRAINT ck_integracao_fila_saida_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "d82056762304cf43f861a87a742557923a6f11dde7ce0e5c3955e592992a6e50",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_integracao_mapeamento_campo_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.integracao_mapeamento_campo ADD CONSTRAINT ck_integracao_mapeamento_campo_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "d3ba2901cd6237dbc2fd6f2eb6625c1d454c1c17e3c4702640ecec3afd564d11",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_integracao_webhook_endpoint_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.integracao_webhook_endpoint ADD CONSTRAINT ck_integracao_webhook_endpoint_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "63256f91e094bfecbe08ed63a8ffa473bb7bdd3910d756025ea87268b83010cf",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_integracao_webhook_evento_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.integracao_webhook_evento ADD CONSTRAINT ck_integracao_webhook_evento_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "b020958531def0d3f0380300657401c942288f7a4b44d3b7e9830f9f8455a616",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_jornada_progresso_percentual",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_jornada_cliente_onboarding_ux.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.jornada_usuario_progresso ADD CONSTRAINT ck_jornada_progresso_percentual CHECK (progresso_percentual >= 0 AND progresso_percentual <= 100);",
+      "definitionChecksumSha256": "1311faae2bd0f43e208137de3daa688318ebf8fb40c1fc7368a8864b3a9b7130",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_jornada_usuario_progresso_status",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_jornada_cliente_onboarding_ux.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.jornada_usuario_progresso ADD CONSTRAINT ck_jornada_usuario_progresso_status CHECK (status IN ('pendente',",
+      "definitionChecksumSha256": "d827a4b996bb662695aba2ae6124c64390dd2c582ce3ee05e6ea62c20b3c684f",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_notificacao_canal_v11",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0013_v11_scriptcompleto_forms_automation.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.notificacao ADD CONSTRAINT ck_notificacao_canal_v11 CHECK (canal IN ('sistema',",
+      "definitionChecksumSha256": "08c89bed7215b97888494e4258c03ab426a695fe545f9e4b898ae7920fcad91b",
       "dependencies": []
     },
     {
@@ -92,8 +700,24 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT ck_notificacao_usuario_correlation CHECK (length(btrim(correlation_id)) BETWEEN 1 AND 160),",
-      "definitionChecksumSha256": "13600d9134083d3df1ca40ccf5a00746ccb19dcfc9f9047d2f9085b63f227dd8",
+      "canonicalDefinition": ", CONSTRAINT ck_notificacao_usuario_correlation CHECK (length(btrim(correlation_id)) BETWEEN 1 AND 160),",
+      "definitionChecksumSha256": "21ef417499277505d85ecfe8e8bff1ef7649ad661ecc83a85c5a3d1d808be2be",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_notificacao_usuario_deep_link_interno",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0043_v137_produto_navegavel.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.notificacao_usuario ADD CONSTRAINT ck_notificacao_usuario_deep_link_interno CHECK (url IS NULL OR (url LIKE '/%' AND url NOT LIKE '//%')) NOT VALID;",
+      "definitionChecksumSha256": "ef8a3da88f626139647eb3546e96ba51fad2490be47821ec749fc4b633656995",
       "dependencies": []
     },
     {
@@ -108,40 +732,8 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT ck_notificacao_usuario_mensagem CHECK (length(btrim(mensagem)) BETWEEN 1 AND 2000),",
-      "definitionChecksumSha256": "b0a2047c18f0fff1998fbee34333234002667cd64cc105a7380f36aebd3879bd",
-      "dependencies": []
-    },
-    {
-      "schema": "integrarp",
-      "name": "ck_notificacao_usuario_prioridade",
-      "type": "constraint",
-      "module": "Commercial",
-      "originMigration": "0040_v134_experiencia_guiada_core_comercial.sql",
-      "usedBy": [
-        "database/scriptcompleto.sql"
-      ],
-      "required": true,
-      "legacy": false,
-      "active": true,
-      "canonicalDefinition": "CONSTRAINT ck_notificacao_usuario_prioridade CHECK (prioridade IN ('baixa',",
-      "definitionChecksumSha256": "2673030d856a56a8e610b76142f6b9fb5f388229dc60d0b32ef69121f12303e0",
-      "dependencies": []
-    },
-    {
-      "schema": "integrarp",
-      "name": "ck_notificacao_usuario_row_version",
-      "type": "constraint",
-      "module": "Commercial",
-      "originMigration": "0040_v134_experiencia_guiada_core_comercial.sql",
-      "usedBy": [
-        "database/scriptcompleto.sql"
-      ],
-      "required": true,
-      "legacy": false,
-      "active": true,
-      "canonicalDefinition": "CONSTRAINT ck_notificacao_usuario_row_version CHECK (row_version > 0) )",
-      "definitionChecksumSha256": "e6c3284d9f69fae6338336f76c21ecb756051951710ddccfcfc194c2293c0749",
+      "canonicalDefinition": ", CONSTRAINT ck_notificacao_usuario_mensagem CHECK (length(btrim(mensagem)) BETWEEN 1 AND 2000),",
+      "definitionChecksumSha256": "0269a415d70f5b7f87beed5aff9e643afdd269770c218de4c6eaa3555b615fa1",
       "dependencies": []
     },
     {
@@ -156,24 +748,264 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT ck_notificacao_usuario_tipo CHECK (length(btrim(tipo)) BETWEEN 1 AND 80),",
-      "definitionChecksumSha256": "ae654fb41722f61498907db98b34db818dae35cb4d2fc8519f2ee86e8f90c046",
+      "canonicalDefinition": ", CONSTRAINT ck_notificacao_usuario_tipo CHECK (length(btrim(tipo)) BETWEEN 1 AND 80),",
+      "definitionChecksumSha256": "492f3db945bb29fdd43cac6bad89dec1cc22d3b0d10f4808a48660de9ad0e936",
       "dependencies": []
     },
     {
       "schema": "integrarp",
-      "name": "ck_notificacao_usuario_titulo",
+      "name": "ck_offline_checkpoint_tenant_not_empty",
       "type": "constraint",
-      "module": "Commercial",
-      "originMigration": "0040_v134_experiencia_guiada_core_comercial.sql",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
       "usedBy": [
         "database/scriptcompleto.sql"
       ],
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT ck_notificacao_usuario_titulo CHECK (length(btrim(titulo)) BETWEEN 1 AND 180),",
-      "definitionChecksumSha256": "dbdc086ffc541e1af132abdaac4ac24c49fa9e1a8e79ec6365d343f3b917d59d",
+      "canonicalDefinition": "ALTER TABLE integrarp.offline_checkpoint ADD CONSTRAINT ck_offline_checkpoint_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "0cabbf43ccbde0f4a93d05284987860b16884cb7b8b3b0cd17e15f07740241cc",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_offline_conflito_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.offline_conflito ADD CONSTRAINT ck_offline_conflito_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "15a0c6513c8898cd98223ce0980f18c5b2b6f88d9df7b39e07dc7637f2843c12",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_offline_dispositivo_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.offline_dispositivo ADD CONSTRAINT ck_offline_dispositivo_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "28e5ef290d7f95ec125304362adcb170775a2e7bc13145ed9b83fdb9b4c68583",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_offline_item_sincronizacao_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.offline_item_sincronizacao ADD CONSTRAINT ck_offline_item_sincronizacao_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "f34fb2a750aa5dfe34fefc8acfb111275d23947ecfaf92df4d17aed6977adb9e",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_offline_log_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.offline_log ADD CONSTRAINT ck_offline_log_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "8bc9ecbe8171d7f029572ff5a51f840c40b128d0e16170af631f7c6ab329cd0c",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_offline_pacote_sincronizacao_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.offline_pacote_sincronizacao ADD CONSTRAINT ck_offline_pacote_sincronizacao_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "07dea0d177a710e305db867e86d318feb13bf5161a26b1cd7442e82e5847e7a5",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_offline_resolucao_conflito_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.offline_resolucao_conflito ADD CONSTRAINT ck_offline_resolucao_conflito_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "38ab7daa5097c49489432596492836444a0514dc8b1973c8d6a55f74c1062968",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_oportunidade_etapa",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT ck_oportunidade_etapa CHECK (etapa IN ('nova',",
+      "definitionChecksumSha256": "70995977717af2031bf37f00153309158ae1c01ca2893bda0707719faceed4d6",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_oportunidade_probabilidade",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT ck_oportunidade_probabilidade CHECK (probabilidade BETWEEN 0 AND 100),",
+      "definitionChecksumSha256": "faeeb1120cc1f7f1f0624499c943be4e84ad22214a5389c8376c271239166cf3",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_orcamento_item_v145_valores",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT ck_orcamento_item_v145_valores CHECK(quantidade > 0 AND preco_unitario >= 0 AND desconto_percentual BETWEEN 0 AND 100 AND total >= 0) )",
+      "definitionChecksumSha256": "b4451b09ebc3bf6ea4f0589c12bf9af5020e1fed87db8e5bee312058287c6f99",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_orcamento_v145_status",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT ck_orcamento_v145_status CHECK(status IN ('rascunho',",
+      "definitionChecksumSha256": "3b2c3fb5ddab770164e93f3812dad3dc27309cad719cc5d4f2f9c9244afe7425",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_orcamento_v145_valores",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT ck_orcamento_v145_valores CHECK(subtotal >= 0 AND desconto >= 0 AND total >= 0 AND total = subtotal-desconto) )",
+      "definitionChecksumSha256": "ca6b8855b2fe26a2be5e132014a7237cf679d94844a0c7fb5cf7b2cd5ce40923",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_outbox_evento_status_v131",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0037_v131_release_candidate_comercial.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.outbox_evento ADD CONSTRAINT ck_outbox_evento_status_v131 CHECK (status IN ('pendente',",
+      "definitionChecksumSha256": "ef2226cb263a09b4e86927e46303660f2d536a60fe099e6542a0e8781b154db1",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_outbox_evento_tentativas_nao_negativas",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0043_v137_produto_navegavel.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.outbox_evento ADD CONSTRAINT ck_outbox_evento_tentativas_nao_negativas CHECK (tentativas >= 0) NOT VALID;",
+      "definitionChecksumSha256": "f94a4ecff3ffc31339cc79186ce0b63fdd2e31e7d4b47628eee31fca5d551223",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_outbox_execucao_handler_status",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0045_v139_release_candidate_piloto.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.outbox_execucao_handler ADD CONSTRAINT ck_outbox_execucao_handler_status CHECK (status IN ('processando',",
+      "definitionChecksumSha256": "849dd12429af3f0bebe588d94b086310a5a7d3005fb228e163ef18a4d5d06972",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_outbox_execucao_handler_tentativa",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0045_v139_release_candidate_piloto.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.outbox_execucao_handler ADD CONSTRAINT ck_outbox_execucao_handler_tentativa CHECK (tentativa > 0) NOT VALID;",
+      "definitionChecksumSha256": "0c208eb2194a91ea20b265cf3013120de2ec4d6e103f5ef802b4ca991ccb5bfa",
       "dependencies": []
     },
     {
@@ -188,24 +1020,8 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT ck_pedido_numeracao_ano CHECK (ano BETWEEN 2000 AND 9999),",
-      "definitionChecksumSha256": "017e40d0dc53d65b5d548c034aa59dca80d4315fedf7e9133bae135d2d59c31d",
-      "dependencies": []
-    },
-    {
-      "schema": "integrarp",
-      "name": "ck_pedido_numeracao_proximo",
-      "type": "constraint",
-      "module": "Commercial",
-      "originMigration": "0040_v134_experiencia_guiada_core_comercial.sql",
-      "usedBy": [
-        "database/scriptcompleto.sql"
-      ],
-      "required": true,
-      "legacy": false,
-      "active": true,
-      "canonicalDefinition": "CONSTRAINT ck_pedido_numeracao_proximo CHECK (proximo_numero > 0),",
-      "definitionChecksumSha256": "2db82f98fc4327e0f54d298579ec77c6cf4707b0afa224319b45ddf8299f8f18",
+      "canonicalDefinition": ", CONSTRAINT ck_pedido_numeracao_ano CHECK (ano BETWEEN 2000 AND 9999),",
+      "definitionChecksumSha256": "39e07ed209c8001d7e1712d64c6afc1f6e565334eb969ef698f838d940fbea12",
       "dependencies": []
     },
     {
@@ -220,8 +1036,40 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT ck_pedido_numeracao_row_version CHECK (row_version > 0) )",
-      "definitionChecksumSha256": "003ae37afb8b11363c9b01a9256fc8b331e12ce513f1eb4b814c6b454cd0547f",
+      "canonicalDefinition": ", CONSTRAINT ck_pedido_numeracao_row_version CHECK (row_version > 0) )",
+      "definitionChecksumSha256": "853c03aa4297aaa258bc78305233e4284187fd70bb63b4d7742234dcabfc5ce9",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_pedido_totais_v132",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0038_v132_operacao_comercial_homologada.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.pedido ADD CONSTRAINT ck_pedido_totais_v132 CHECK(subtotal >= 0 AND desconto_total >= 0 AND total >= 0 AND desconto_total <= subtotal) NOT VALID;",
+      "definitionChecksumSha256": "7ec8516d8827fe7162d43e00a662e1d72e2ecfa93b49c356202b398dc1e94e56",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_politica_desconto_faixa",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT ck_politica_desconto_faixa CHECK (percentual_inicial >= 0 AND percentual_final <= 100 AND percentual_inicial <= percentual_final) )",
+      "definitionChecksumSha256": "2ecf0e2089e0ae21002e554b6f73fe4a4db308c1167e0cf76d39b1902b9111c9",
       "dependencies": []
     },
     {
@@ -236,8 +1084,24 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT ck_produto_categoria_status CHECK (status IN ('ativo',",
-      "definitionChecksumSha256": "44b9a9c21c5e13c7ab355f04e5c44a95c2f3a6bfb4f2d7c0b557c114663e8b05",
+      "canonicalDefinition": ", CONSTRAINT ck_produto_categoria_status CHECK (status IN ('ativo',",
+      "definitionChecksumSha256": "a027405b351df4648a822306b92f344683724d08802154ad3f284075bc8eee8d",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_relatorio_formato_v11",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0013_v11_scriptcompleto_forms_automation.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.relatorio_exportacao ADD CONSTRAINT ck_relatorio_formato_v11 CHECK (formato IN ('csv',",
+      "definitionChecksumSha256": "4a1e46b9634739937e2db0e1f213b3277d8316a9e0b50997753520643974795a",
       "dependencies": []
     },
     {
@@ -252,8 +1116,120 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT ck_release_candidate_evidencia_status CHECK (status IN ('parcial',",
-      "definitionChecksumSha256": "e0177677a275e3de691369d8a62c32af7b0028dd345adaef5d7cf374b6dd0259",
+      "canonicalDefinition": ", CONSTRAINT ck_release_candidate_evidencia_status CHECK (status IN ('parcial',",
+      "definitionChecksumSha256": "89c4b087178d09818b1e58f4f21748d31ede6e1a6c877b376454b5805fea8eb0",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_rota_distancia_cache_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.rota_distancia_cache ADD CONSTRAINT ck_rota_distancia_cache_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "49e4c3363f1f801a4298666c6b39508c6dbc8e72369e50ddcefc35ebc0296e3d",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_rota_janela_entrega_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.rota_janela_entrega ADD CONSTRAINT ck_rota_janela_entrega_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "2713ad3ed1c3ef5be8d99f92ca18f0e3a1f9830093e9a0839fcd8d5ea30f0e45",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_rota_otimizacao_execucao_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.rota_otimizacao_execucao ADD CONSTRAINT ck_rota_otimizacao_execucao_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "d45cb9eee8267ed1715b79eb72b63f90a91c48029740ea3b6ff5c53ce44fa5e1",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_rota_otimizacao_parada_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.rota_otimizacao_parada ADD CONSTRAINT ck_rota_otimizacao_parada_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "dc9a031bf8887a76aba8dfad759e3d2b5854430733c7b88a527ffa308849684f",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_rota_otimizacao_resultado_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.rota_otimizacao_resultado ADD CONSTRAINT ck_rota_otimizacao_resultado_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "21d38499bdda54a549b6d5e0bffe360ee81bd53de727cf63f56b6dbd5973e70a",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_rota_regra_otimizacao_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.rota_regra_otimizacao ADD CONSTRAINT ck_rota_regra_otimizacao_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "55c4509f0bfafb5b0fa9a19baba0332c27c7678fac747bf0a9dc16d9d7a80c88",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_rota_restricao_tenant_not_empty",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.rota_restricao ADD CONSTRAINT ck_rota_restricao_tenant_not_empty CHECK (tenant_id <> '00000000-0000-0000-0000-000000000000'::uuid);",
+      "definitionChecksumSha256": "f211e67019ee73295053c8615dc185b9d4a81a038c0d28797b87587764025b85",
       "dependencies": []
     },
     {
@@ -268,24 +1244,56 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT ck_schema_contract_postgresql CHECK (postgresql_major = 16),",
-      "definitionChecksumSha256": "926cf36e53d02056cada49ed6377c3b0556ffb29677e23bb6abf987b4b8af229",
+      "canonicalDefinition": ", CONSTRAINT ck_schema_contract_postgresql CHECK (postgresql_major = 16),",
+      "definitionChecksumSha256": "568f29b2602ef3f1f9accdd2506255ce6f1cd3412fb02fdce46750e62429b3f1",
       "dependencies": []
     },
     {
       "schema": "integrarp",
-      "name": "ck_schema_contract_schema",
+      "name": "ck_score_operacional_range",
       "type": "constraint",
       "module": "Database",
-      "originMigration": "0046_v140_scriptcompleto_integrarp.sql",
+      "originMigration": "0007_bi_kpis_project_central.sql",
       "usedBy": [
         "database/scriptcompleto.sql"
       ],
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT ck_schema_contract_schema CHECK (schema_name = 'integrarp') )",
-      "definitionChecksumSha256": "33c25ed04b905405eb9c691f612d95ae54ef21c83f0a2899dbced2257fc941bb",
+      "canonicalDefinition": "ALTER TABLE integrarp.score_operacional ADD CONSTRAINT ck_score_operacional_range CHECK (score >= 0 AND score <= 100);",
+      "definitionChecksumSha256": "53e6a8c296d1ab7bbb2f816c5287775a47534577f45aed000f85c5d76e95476c",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_tabela_preco_item_preco",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT ck_tabela_preco_item_preco CHECK(preco >= 0),",
+      "definitionChecksumSha256": "0eb4a16165477ba829e970180e2f5e0ae9e62dadd70cf0918db00f0bdb58c607",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_tabela_preco_vigencia",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT ck_tabela_preco_vigencia CHECK (vigente_ate IS NULL OR vigente_ate >= vigente_de) )",
+      "definitionChecksumSha256": "be88382eb8e5918d0e994f3199d14d3c4b11090efdd5aaec57c9c22b16fd392a",
       "dependencies": []
     },
     {
@@ -300,8 +1308,72 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "ADD CONSTRAINT ck_tarefa_operacional_prioridade_v129 CHECK (prioridade IN ('baixa',",
-      "definitionChecksumSha256": "63d09a5dbb11e69f7f1b64b2ea12ddcde6374bb8bd0d8a46fa11e177578d5bd0",
+      "canonicalDefinition": "ALTER TABLE integrarp.tarefa_operacional ADD CONSTRAINT ck_tarefa_operacional_prioridade_v129 CHECK (prioridade IN ('baixa',",
+      "definitionChecksumSha256": "513c43103fc0f8ce03482375937d826d9093ce7f5b0257ed9a18173f46d018b6",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_tarefa_operacional_prioridade_v131",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0037_v131_release_candidate_comercial.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.tarefa_operacional ADD CONSTRAINT ck_tarefa_operacional_prioridade_v131 CHECK (prioridade IN ('baixa',",
+      "definitionChecksumSha256": "cf8b5a7b9d914a056bfcd366818ad11954af323442968e0902b98092b7130930",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_template_documento_tipo",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT ck_template_documento_tipo CHECK(tipo IN ('orcamento',",
+      "definitionChecksumSha256": "2e9c0b5fd13c543fbe49d31f5a869ff561b3033b9550727d243c51f0ddfd108e",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_template_fluxo_etapa_sla",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT ck_template_fluxo_etapa_sla CHECK(sla_minutos > 0) )",
+      "definitionChecksumSha256": "abea18ff03863bfd1c15190470b5098daf45394e363e6bc50ba1cf4fe5ed776d",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_template_fluxo_versao_status",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT ck_template_fluxo_versao_status CHECK(status IN ('rascunho',",
+      "definitionChecksumSha256": "001e9d5adb0b6de0a9fe4bd7545259eeac001638ef30790e2d24d77563faf610",
       "dependencies": []
     },
     {
@@ -316,8 +1388,8 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT ck_usuario_preferencia_chave CHECK (length(btrim(chave)) BETWEEN 1 AND 120),",
-      "definitionChecksumSha256": "cc5470cbc7dd02ee611e6027f6f17f6b8172fc51597f0be6d8536092cdcfc9a3",
+      "canonicalDefinition": ", CONSTRAINT ck_usuario_preferencia_chave CHECK (length(btrim(chave)) BETWEEN 1 AND 120),",
+      "definitionChecksumSha256": "b3210a1bac51f23ff288c8822008c505e55b41cfa3726596e656fda89206e4d9",
       "dependencies": []
     },
     {
@@ -332,40 +1404,152 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT ck_usuario_preferencia_row_version CHECK (row_version > 0),",
-      "definitionChecksumSha256": "045b8c9c780993ef965fc82d89f20f5afaaaf24b5377065c9fe46bff94f2036c",
+      "canonicalDefinition": ", CONSTRAINT ck_usuario_preferencia_row_version CHECK (row_version > 0),",
+      "definitionChecksumSha256": "93ce3c631dc9a01164de16024e5e42069d0e59f9ab5774c9be075ee1964f2ddc",
       "dependencies": []
     },
     {
       "schema": "integrarp",
-      "name": "ck_usuario_preferencia_valor",
+      "name": "ck_v13_funcionalidade_status_status",
       "type": "constraint",
-      "module": "Commercial",
-      "originMigration": "0040_v134_experiencia_guiada_core_comercial.sql",
+      "module": "Database",
+      "originMigration": "0015_v13_funcionalidade_real_end_to_end.sql",
       "usedBy": [
         "database/scriptcompleto.sql"
       ],
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT ck_usuario_preferencia_valor CHECK (jsonb_typeof(valor) = 'object'),",
-      "definitionChecksumSha256": "1324b0c9fd777c068738707844ecd488afe520c13bc3c356d60a8d2304696e63",
+      "canonicalDefinition": "ALTER TABLE integrarp.v13_funcionalidade_status ADD CONSTRAINT ck_v13_funcionalidade_status_status CHECK (status IN ('ok',",
+      "definitionChecksumSha256": "7a8dfc2da09a2dc39d065c5a2a12339c0097be6ea5765c48c19016a7928ecb4a",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_v13_recommended_action_status",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0015_v13_funcionalidade_real_end_to_end.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.v13_recommended_action ADD CONSTRAINT ck_v13_recommended_action_status CHECK (status IN ('pendente',",
+      "definitionChecksumSha256": "c14aafdc5ee4115103ffb868e46c9d00513716a9acbc25c5702c12489f77d73b",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_v16_release_candidate_check_status",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0018_v16_release_candidate_validation.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.v16_release_candidate_check ADD CONSTRAINT ck_v16_release_candidate_check_status CHECK (status IN ('ok',",
+      "definitionChecksumSha256": "f19a10127c11028ffdd161224afedf41432d2fa732ca7fb98fed711089cdbfad",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_v18_screen_audit_status",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0021_v19_fix_scriptcompleto_inserts_demo_jornada.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.v18_screen_audit ADD CONSTRAINT ck_v18_screen_audit_status CHECK (status IN ('ok',",
+      "definitionChecksumSha256": "4121c3752efc68e02310d1ed23b822a565c7bb7c3eb9a22b823b712fe88418f8",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_v18_validation_status",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0020_v18_produto_funcional_cruds_telas_jornada.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.v18_functional_validation_check ADD CONSTRAINT ck_v18_validation_status CHECK (status IN ('ok',",
+      "definitionChecksumSha256": "ae160059c28494674e01f4a80cceade1187fef8566920cf41ca2cb9ba86624d5",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_aprovacao_orcamento",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT fk_aprovacao_orcamento FOREIGN KEY(tenant_id,",
+      "definitionChecksumSha256": "185961e875e340fde0fc721db8a3d65e288cf490af45887031e3e5383c61eb65",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_aprovacao_politica",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT fk_aprovacao_politica FOREIGN KEY(tenant_id,",
+      "definitionChecksumSha256": "545231867e1b58473ec780468774f5b6c2177e71205bf7df2a292dab9e51ec17",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_atividade_oportunidade",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT fk_atividade_oportunidade FOREIGN KEY (tenant_id,",
+      "definitionChecksumSha256": "fbda320b7b8211031669356a4644bfc1e786495a973408053796f30bbd09bdc1",
       "dependencies": []
     },
     {
       "schema": "integrarp",
       "name": "fk_auth_password_history_usuario",
       "type": "constraint",
-      "module": "Core",
-      "originMigration": "0029_v123_core_operacional_real.sql",
+      "module": "Auth",
+      "originMigration": "0030_v124_production_foundation_auth_ux.sql",
       "usedBy": [
         "database/scriptcompleto.sql"
       ],
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT fk_auth_password_history_usuario FOREIGN KEY (tenant_id,",
-      "definitionChecksumSha256": "d1783403051a45cd5881f39a9416edf3682eac2d2c50fe81e84b14bf4a673ac5",
+      "canonicalDefinition": "ALTER TABLE integrarp.auth_password_history ADD CONSTRAINT fk_auth_password_history_usuario FOREIGN KEY (tenant_id,",
+      "definitionChecksumSha256": "19458cc3a27a79fec9465686e0a7b2ed021fbb693fa4cfd80dbc044893d61cc3",
       "dependencies": []
     },
     {
@@ -380,8 +1564,232 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT fk_auth_password_reset_usuario FOREIGN KEY (tenant_id,",
-      "definitionChecksumSha256": "f4e2ed3816fb36121ebace2973ce20246d68fe8a0852a05aeada0fe82c48fd52",
+      "canonicalDefinition": ", CONSTRAINT fk_auth_password_reset_usuario FOREIGN KEY (tenant_id,",
+      "definitionChecksumSha256": "653e659ef3f02bd99fc7840e4dae77bf57e00b3fe33f4863259d1dad775e18ba",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_documento_template_v145",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT fk_documento_template_v145 FOREIGN KEY(tenant_id,",
+      "definitionChecksumSha256": "079bd1696f2974473d6efecda957aba320d320ae493551742d6aff147bb71334",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_entrega_evidencia",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT fk_entrega_evidencia FOREIGN KEY(tenant_id,",
+      "definitionChecksumSha256": "28d5967e7ca68311779eeb863ac3c6f69a7a7a89d0ab3f934e9d1d97f3575e08",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_evidencia_arquivo",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT fk_evidencia_arquivo FOREIGN KEY(tenant_id,",
+      "definitionChecksumSha256": "8ffdcd1bd3e8d183a9501678a3bb87aea50320382c00ca4e82c0d17240a3b3bb",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_evidencia_tarefa_tenant_v132",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0038_v132_operacao_comercial_homologada.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.tarefa_evidencia ADD CONSTRAINT fk_evidencia_tarefa_tenant_v132 FOREIGN KEY(tenant_id,",
+      "definitionChecksumSha256": "1952f1dca9ed919ea33e7c10e7d7171f8ce4323b1167dc01b850b61403a12b6d",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_flow_template_elemento_template",
+      "type": "constraint",
+      "module": "Flow",
+      "originMigration": "0004_flow_designer_web.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.flow_template_elemento ADD CONSTRAINT fk_flow_template_elemento_template FOREIGN KEY (flow_template_id) REFERENCES integrarp.flow_template(flow_template_id) ON DELETE CASCADE;",
+      "definitionChecksumSha256": "4e6746abd06ea77d36cef1bfdf2fe2172526453081d2218232abe7f9350068d9",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_flow_template_transicao_template",
+      "type": "constraint",
+      "module": "Flow",
+      "originMigration": "0004_flow_designer_web.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.flow_template_transicao ADD CONSTRAINT fk_flow_template_transicao_template FOREIGN KEY (flow_template_id) REFERENCES integrarp.flow_template(flow_template_id) ON DELETE CASCADE;",
+      "definitionChecksumSha256": "ae9856eb8791ed548365a9d92e81100a81a0d82cea8fcd7923bfd8889eaa943b",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_fluxo_instancia_etapa",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT fk_fluxo_instancia_etapa FOREIGN KEY(tenant_id,",
+      "definitionChecksumSha256": "aaa1df593d8cb4cbfce1bbb02efca75bb99c5885ba5345fceb3d3f26e6901a1e",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_fluxo_instancia_versao",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT fk_fluxo_instancia_versao FOREIGN KEY(tenant_id,",
+      "definitionChecksumSha256": "e4366bd29ac5e89b3918f63d769295ee16ea481cbc0f9590062d70832f16741a",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_jornada_etapa_cliente",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0014_v12_jornada_cliente_onboarding_ux.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.jornada_etapa ADD CONSTRAINT fk_jornada_etapa_cliente FOREIGN KEY (jornada_cliente_id) REFERENCES integrarp.jornada_cliente(jornada_cliente_id);",
+      "definitionChecksumSha256": "55fa3a84417d7b5d1d79a29fc95004a00aa9d9db78075e0c39904c2bd065b572",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_notificacao_usuario_lida_por_tenant",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0042_v136_experiencia_premium_funcional.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.notificacao_usuario ADD CONSTRAINT fk_notificacao_usuario_lida_por_tenant FOREIGN KEY (tenant_id,",
+      "definitionChecksumSha256": "d46571a4939d9baae11b55a80275f1b6e5cae6e8f19f2655511ac7c96fbbbe2c",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_notificacao_usuario_tenant",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0041_v135_experiencia_guiada_funcional.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.notificacao_usuario ADD CONSTRAINT fk_notificacao_usuario_tenant FOREIGN KEY (tenant_id) REFERENCES integrarp.tenant(id) ON DELETE CASCADE;",
+      "definitionChecksumSha256": "3b2e4864d59803b5913b46b1a0311c6e62f5cfd89ef3b6c2009b05e5b48e6d30",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_notificacao_usuario_usuario",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0041_v135_experiencia_guiada_funcional.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.notificacao_usuario ADD CONSTRAINT fk_notificacao_usuario_usuario FOREIGN KEY (usuario_id) REFERENCES integrarp.usuario(id) ON DELETE CASCADE;",
+      "definitionChecksumSha256": "b4a08039019e94e5d0caf491209d31fefd13dbcf11ec9d7b53789c95c5276f74",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_notificacao_usuario_usuario_tenant",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0042_v136_experiencia_premium_funcional.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.notificacao_usuario ADD CONSTRAINT fk_notificacao_usuario_usuario_tenant FOREIGN KEY (tenant_id,",
+      "definitionChecksumSha256": "ba9973954dec8f07cb6f23b692a07d13ce04abdb5cf5cac0c6eff20a14414998",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_orcamento_item_v145",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT fk_orcamento_item_v145 FOREIGN KEY(tenant_id,",
+      "definitionChecksumSha256": "f0d7adebb25efe92addc452e69f30c46aa3460338e1d521aaa8a83286a2f7e3d",
       "dependencies": []
     },
     {
@@ -396,8 +1804,200 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT fk_outbox_execucao_evento FOREIGN KEY (evento_id) REFERENCES integrarp.outbox_evento(id) )",
-      "definitionChecksumSha256": "348e479ba387fd8e9cc9520899ff5042d8317790d981973a2eae0524c59dfdef",
+      "canonicalDefinition": ", CONSTRAINT fk_outbox_execucao_evento FOREIGN KEY (evento_id) REFERENCES integrarp.outbox_evento(id) )",
+      "definitionChecksumSha256": "23fa1228d7d173b0b2048d66e9bb2eec3870c8753a22d5fa661ddc2eb57c90d2",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_outbox_execucao_evento_tenant",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0045_v139_release_candidate_piloto.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.outbox_execucao_handler ADD CONSTRAINT fk_outbox_execucao_evento_tenant FOREIGN KEY (tenant_id,",
+      "definitionChecksumSha256": "28bb9c95769eb0008ab0039e3f9ac05fceb112071de7f040de7d633a6a81b70d",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_pedido_cliente_tenant_v131",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0037_v131_release_candidate_comercial.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.pedido ADD CONSTRAINT fk_pedido_cliente_tenant_v131 FOREIGN KEY (tenant_id,",
+      "definitionChecksumSha256": "aaf4037a74fb216c43488543e7ac50653b64bcbc9cda07b0aa799bbb5c2e189a",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_pedido_cliente_tenant_v133",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0039_v133_convergencia_executavel.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.pedido ADD CONSTRAINT fk_pedido_cliente_tenant_v133 FOREIGN KEY (tenant_id,",
+      "definitionChecksumSha256": "d9ffab716d598477191bf1159cf1a67e43e02647b94da7bdc6caed47abfe37b2",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_pedido_historico_status_pedido_tenant",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0034_v128_core_comercial_producao.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.pedido_historico_status ADD CONSTRAINT fk_pedido_historico_status_pedido_tenant FOREIGN KEY (tenant_id,",
+      "definitionChecksumSha256": "a334c733fe3738beb7c2a5ea62aef597aa63e9c81f8bb0512ccdbfae9ed1f922",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_pedido_item_pedido_tenant_v131",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0037_v131_release_candidate_comercial.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.pedido_item ADD CONSTRAINT fk_pedido_item_pedido_tenant_v131 FOREIGN KEY (tenant_id,",
+      "definitionChecksumSha256": "f4d42efd5d5c736c033542a96c3e03f690a01567ebee3b675fc626457df238b4",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_pedido_item_pedido_tenant_v133",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0039_v133_convergencia_executavel.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.pedido_item ADD CONSTRAINT fk_pedido_item_pedido_tenant_v133 FOREIGN KEY (tenant_id,",
+      "definitionChecksumSha256": "ee241ad4385f2b725147663871f4710f11ded0a708fb74d94452a2458b662a4a",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_pedido_item_produto_tenant_v131",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0037_v131_release_candidate_comercial.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.pedido_item ADD CONSTRAINT fk_pedido_item_produto_tenant_v131 FOREIGN KEY (tenant_id,",
+      "definitionChecksumSha256": "aca9fe3e046bb22206f0eb11498c8371f23eb4f3c7453a41ec930aba48052e97",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_pedido_item_produto_tenant_v133",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0039_v133_convergencia_executavel.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.pedido_item ADD CONSTRAINT fk_pedido_item_produto_tenant_v133 FOREIGN KEY (tenant_id,",
+      "definitionChecksumSha256": "d0c003b279750374930cb51c692cd8a5074769ca32a26623b94338640666db4c",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_pedido_numeracao_tenant",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0042_v136_experiencia_premium_funcional.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.pedido_numeracao ADD CONSTRAINT fk_pedido_numeracao_tenant FOREIGN KEY (tenant_id) REFERENCES integrarp.tenant(id) ON DELETE CASCADE;",
+      "definitionChecksumSha256": "c560a6d7c6abc10535a27323e075c706a7ff83a404b5924392cdf7a58453c212",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_produto_categoria_tenant_v131",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0037_v131_release_candidate_comercial.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.produto ADD CONSTRAINT fk_produto_categoria_tenant_v131 FOREIGN KEY (tenant_id,",
+      "definitionChecksumSha256": "ae7b9a211f3c988805146ad55d9fc620b1fa8d1d4404b59d4a12cffcecffd1ed",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_produto_categoria_tenant_v133",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0039_v133_convergencia_executavel.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.produto ADD CONSTRAINT fk_produto_categoria_tenant_v133 FOREIGN KEY (tenant_id,",
+      "definitionChecksumSha256": "0f11e2c465f8b8968e368643786adb72267c7bcea5bbf589b930ca3859b84f9b",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_tabela_preco_item_tabela",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT fk_tabela_preco_item_tabela FOREIGN KEY(tenant_id,",
+      "definitionChecksumSha256": "08f212d6438deec3b4c54a2a4fbbeb3fccf6417886e43d7bc398c83a9c8b873b",
       "dependencies": []
     },
     {
@@ -412,8 +2012,8 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT fk_tarefa_arquivo_tarefa FOREIGN KEY (tenant_id,",
-      "definitionChecksumSha256": "da4d342e22f16bcc54285877284239da761580532c48c6aa50a62577c29bcf0b",
+      "canonicalDefinition": ", CONSTRAINT fk_tarefa_arquivo_tarefa FOREIGN KEY (tenant_id,",
+      "definitionChecksumSha256": "547378bb0d6dfd4beadb0b1132f6bfc613e1b32569ffa40b25ce47d9a4dcbc41",
       "dependencies": []
     },
     {
@@ -428,8 +2028,184 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT fk_tarefa_historico_tarefa FOREIGN KEY (tenant_id,",
-      "definitionChecksumSha256": "ea01d986f09aac09af3c04e96643f3732eb171b45994ea387a0739181be3b090",
+      "canonicalDefinition": ", CONSTRAINT fk_tarefa_historico_tarefa FOREIGN KEY (tenant_id,",
+      "definitionChecksumSha256": "cb433464425eff68306dccf7107f04e10646af08f38aadc2106678887c63f127",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_tarefa_operacional_pedido",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0034_v128_core_comercial_producao.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.tarefa_operacional ADD CONSTRAINT fk_tarefa_operacional_pedido FOREIGN KEY (tenant_id,",
+      "definitionChecksumSha256": "c06823859164b0d66aac8ac67a7a3ea52c350ae546b9dfe7edcab53da5c16c10",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_tarefa_operacional_responsavel",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0034_v128_core_comercial_producao.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.tarefa_operacional ADD CONSTRAINT fk_tarefa_operacional_responsavel FOREIGN KEY (tenant_id,",
+      "definitionChecksumSha256": "48707724ec7bf7ca90ef9ca14d5eee9ddd42e7a6c1a3d9a87308adede5e25277",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_tarefa_operacional_setor",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0034_v128_core_comercial_producao.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.tarefa_operacional ADD CONSTRAINT fk_tarefa_operacional_setor FOREIGN KEY (tenant_id,",
+      "definitionChecksumSha256": "4847e653953c212d959431a2d41839ea081a9272e2944f05875d67ebd5818c7d",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_template_fluxo_etapa",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT fk_template_fluxo_etapa FOREIGN KEY(tenant_id,",
+      "definitionChecksumSha256": "02660a522dcbdf3d861093c4f15f9fd86a2b2d9cc69e2173b6006d5027d22865",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_template_fluxo_versao",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT fk_template_fluxo_versao FOREIGN KEY(tenant_id,",
+      "definitionChecksumSha256": "c31bc1f05c8fd5a934ed0fe49e5943294dff010f8d84b368b7b857b29b0033d5",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_usuario_preferencia_tenant",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0041_v135_experiencia_guiada_funcional.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.usuario_preferencia ADD CONSTRAINT fk_usuario_preferencia_tenant FOREIGN KEY (tenant_id) REFERENCES integrarp.tenant(id) ON DELETE CASCADE;",
+      "definitionChecksumSha256": "23fbd9ceb6d4edae0df9485b0f22a5ecc793f432c7414bcad61e95486327cc40",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_usuario_preferencia_usuario",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0041_v135_experiencia_guiada_funcional.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.usuario_preferencia ADD CONSTRAINT fk_usuario_preferencia_usuario FOREIGN KEY (usuario_id) REFERENCES integrarp.usuario(id) ON DELETE CASCADE;",
+      "definitionChecksumSha256": "acca594413c24c51a98e79872c2f2b1b732418af87322c5bc8e1a43897311844",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fk_usuario_preferencia_usuario_tenant",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0042_v136_experiencia_premium_funcional.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.usuario_preferencia ADD CONSTRAINT fk_usuario_preferencia_usuario_tenant FOREIGN KEY (tenant_id,",
+      "definitionChecksumSha256": "cae1d4a567744895c2c9814fc1fc04b2db0d2682acfa11062921c8906ab13409",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "pk_aprovacao_desconto",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT pk_aprovacao_desconto PRIMARY KEY(tenant_id,",
+      "definitionChecksumSha256": "2f09e7432dea18db882a2d0a9bc4e8b7372cb36c198130acd38734bfcbfa7ef6",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "pk_arquivo_privado",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT pk_arquivo_privado PRIMARY KEY(tenant_id,",
+      "definitionChecksumSha256": "e0b79cdca52c7efb03c1b441eb1a8e3b40e908664e26b6b2652286ecfc2c37a9",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "pk_atividade_comercial",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT pk_atividade_comercial PRIMARY KEY (tenant_id,",
+      "definitionChecksumSha256": "a6fb93502a0f1f2488aacb85eaf8c993630660c6d3824c043647d1160805611f",
       "dependencies": []
     },
     {
@@ -444,8 +2220,8 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT pk_auditoria_evento PRIMARY KEY(id));",
-      "definitionChecksumSha256": "d44354991f717019f63eea79c70e5428fb154097f15c147b889e252e6b34a9bb",
+      "canonicalDefinition": ", CONSTRAINT pk_auditoria_evento PRIMARY KEY(id));",
+      "definitionChecksumSha256": "6a7d5b3d42246f645afd1b4bf5143a1e0582ba2410b273b4870d01c16c1d1101",
       "dependencies": []
     },
     {
@@ -460,8 +2236,40 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT pk_cliente PRIMARY KEY (id) )",
-      "definitionChecksumSha256": "32b79fc904a506ce8e6c6a7aa45b553cd0870b32679a9747edc17e397922d3c2",
+      "canonicalDefinition": ", CONSTRAINT pk_cliente PRIMARY KEY (id) )",
+      "definitionChecksumSha256": "bcf3a6f72f9d07159909313ce2482e75198b3294315eccff3accec4e33b7b9d2",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "pk_documento_gerado_v145",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT pk_documento_gerado_v145 PRIMARY KEY(tenant_id,",
+      "definitionChecksumSha256": "e59e7129e2c64004d2e7e65e9985324d1eff0d8db1be27bd22490a9ac79212b1",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "pk_entrega_pedido",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT pk_entrega_pedido PRIMARY KEY(tenant_id,",
+      "definitionChecksumSha256": "e0c87b54a0c816c733f162f55dcceba27b1122044d9518c345ceb78a0f8c31e4",
       "dependencies": []
     },
     {
@@ -476,8 +2284,8 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT pk_estoque_movimento PRIMARY KEY(id));",
-      "definitionChecksumSha256": "f482c5a5eaba334d769bb715e9e547f957e7d9a1e4ab82ecdca4dc87b19e13a0",
+      "canonicalDefinition": ", CONSTRAINT pk_estoque_movimento PRIMARY KEY(id));",
+      "definitionChecksumSha256": "ce67eae1e9e6c350979c303c5b3bc5977432af2d95feb6492dfb830f2bdf8a7f",
       "dependencies": []
     },
     {
@@ -492,8 +2300,8 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT pk_estoque_reserva PRIMARY KEY(id));",
-      "definitionChecksumSha256": "5537179006b0ab3d4d5e188aa87f0a31369e7c11a330782ea0cd451fce8c35f5",
+      "canonicalDefinition": ", CONSTRAINT pk_estoque_reserva PRIMARY KEY(id));",
+      "definitionChecksumSha256": "1a423129b91fe3f7de2fc97ca780ab876ec9b9cdaa2524b04dacb379089cd38c",
       "dependencies": []
     },
     {
@@ -508,8 +2316,120 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT pk_estoque_saldo PRIMARY KEY(id));",
-      "definitionChecksumSha256": "1955568f632d30c6035f1572903504535a0b71205b742f2ff9a5ae192f0afa33",
+      "canonicalDefinition": ", CONSTRAINT pk_estoque_saldo PRIMARY KEY(id));",
+      "definitionChecksumSha256": "8b2c021486628aee443d438e86ee71f7ac78ac5a110e6ee1ab9a346630e9c674",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "pk_evidencia_operacional",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT pk_evidencia_operacional PRIMARY KEY(tenant_id,",
+      "definitionChecksumSha256": "e1433848d25f08c0d51a24b202a2ba92f4e8f46e37b91b1af94c960245925cda",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "pk_fluxo_instancia_etapa",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT pk_fluxo_instancia_etapa PRIMARY KEY(tenant_id,",
+      "definitionChecksumSha256": "a7ef5098c849cdd3ea7d344284cb6ec52fe4cbdd4f361d9c80481c2d3b1fc921",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "pk_fluxo_operacional_instancia",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT pk_fluxo_operacional_instancia PRIMARY KEY(tenant_id,",
+      "definitionChecksumSha256": "53ce22e08da3b25286a8ae121cceeb84053c2b4abf762a4c6cae3cc2b4b303a5",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "pk_historico_operacional_v145",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT pk_historico_operacional_v145 PRIMARY KEY(tenant_id,",
+      "definitionChecksumSha256": "1e849759269004e5b2df06a6929b6b0c2a082f5a9d9fc947ac873a3b4b7bfbda",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "pk_oportunidade_comercial",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT pk_oportunidade_comercial PRIMARY KEY (tenant_id,",
+      "definitionChecksumSha256": "12d51a19ae6b2de1c1b3c74b9d8d7cea64f0992d6f4d2f8198bf14a864a57a03",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "pk_orcamento_item_v145",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT pk_orcamento_item_v145 PRIMARY KEY(tenant_id,",
+      "definitionChecksumSha256": "64fef95837baf70afe6345eba403d79c116395e662944b6667fdc2112dce2b2c",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "pk_orcamento_v145",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT pk_orcamento_v145 PRIMARY KEY(tenant_id,",
+      "definitionChecksumSha256": "089aae7059fd61a381d081d0398bd6ca75b1a1ae4dd42a2c15495c5d976edfc5",
       "dependencies": []
     },
     {
@@ -524,8 +2444,8 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT pk_outbox_evento PRIMARY KEY(id));",
-      "definitionChecksumSha256": "77630fd162bef2204e786af44f571066b1e0bdfe430abab246c84917da0a5ff9",
+      "canonicalDefinition": ", CONSTRAINT pk_outbox_evento PRIMARY KEY(id));",
+      "definitionChecksumSha256": "b50f27d2f153d247bdc2a60b805babb186a77322f1275e19cf0f16743d0c532a",
       "dependencies": []
     },
     {
@@ -540,8 +2460,8 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT pk_pedido PRIMARY KEY(id));",
-      "definitionChecksumSha256": "85fa9098fad1f5afb47ce0a16718fa87c1a68a7f84ebb72cbd9884027ad3e81b",
+      "canonicalDefinition": ", CONSTRAINT pk_pedido PRIMARY KEY(id));",
+      "definitionChecksumSha256": "1052a6cda066955b80131b2b3bccf6d237b48e2edf36588e5c3d91e3688c9b5d",
       "dependencies": []
     },
     {
@@ -556,8 +2476,8 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT pk_pedido_historico_status PRIMARY KEY(id));",
-      "definitionChecksumSha256": "2bbc20127a1d3cb70695628fac7cc65070cc2386f5b5a836681088d7ea5aae0c",
+      "canonicalDefinition": ", CONSTRAINT pk_pedido_historico_status PRIMARY KEY(id));",
+      "definitionChecksumSha256": "6f0c90122e94175841811e4f8ff094242f029dac4c5797e8623a532724c55380",
       "dependencies": []
     },
     {
@@ -572,8 +2492,8 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT pk_pedido_item PRIMARY KEY(id));",
-      "definitionChecksumSha256": "7a796e45f34a92e60f14779bfec0b9359665611781fc58f56a5f1ee84eb5cdac",
+      "canonicalDefinition": ", CONSTRAINT pk_pedido_item PRIMARY KEY(id));",
+      "definitionChecksumSha256": "daa882d75b2695b742fd61559a1f3f7631b9cdb3534f8d0dfa686d3be7a81540",
       "dependencies": []
     },
     {
@@ -588,8 +2508,24 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT pk_pedido_numeracao PRIMARY KEY (tenant_id,",
-      "definitionChecksumSha256": "0597d9a37b4c992c8582be67040f4385bce24f30d8d5044699433e00d68431c6",
+      "canonicalDefinition": ", CONSTRAINT pk_pedido_numeracao PRIMARY KEY (tenant_id,",
+      "definitionChecksumSha256": "9a40eab6c8ea7d72109c595269f098a863025cbdd3742e41c86b2a9f5beca2e3",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "pk_politica_desconto",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT pk_politica_desconto PRIMARY KEY (tenant_id,",
+      "definitionChecksumSha256": "c5efbd2716519c40716d53b94bd7d2ab11a0d962be8effcf1b3afa1d82afc9fc",
       "dependencies": []
     },
     {
@@ -604,8 +2540,8 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT pk_produto PRIMARY KEY(id) )",
-      "definitionChecksumSha256": "0360d700af535b131b779ac758dd16c982abdf5557498e9fe72944e0b1495e01",
+      "canonicalDefinition": ", CONSTRAINT pk_produto PRIMARY KEY(id) )",
+      "definitionChecksumSha256": "6430000a7f8f71ae8a3b2e8c9343c76eaf88a619f6bcbbee542ae2138982283a",
       "dependencies": []
     },
     {
@@ -620,8 +2556,40 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT pk_produto_categoria PRIMARY KEY(id) )",
-      "definitionChecksumSha256": "abff0b8b972a47c680c875c0269ec5e482e1bdcacaff38164cd72e66ffec375b",
+      "canonicalDefinition": ", CONSTRAINT pk_produto_categoria PRIMARY KEY(id) )",
+      "definitionChecksumSha256": "f3746fb0fcba4c3bd29e23c63f8bd335d529ddf65296d3aff2d47338d7e33611",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "pk_tabela_preco",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT pk_tabela_preco PRIMARY KEY(tenant_id,",
+      "definitionChecksumSha256": "ffc276ecfff4754c2a41f7b55c0105f20932c6fd619d9863dff493d9fb0e1376",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "pk_tabela_preco_item",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT pk_tabela_preco_item PRIMARY KEY(tenant_id,",
+      "definitionChecksumSha256": "ed0ef2cb0c86565c42b853555f6f32b6a0c54cc36d592f5b086d76609700ca20",
       "dependencies": []
     },
     {
@@ -636,8 +2604,72 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT pk_tarefa_operacional PRIMARY KEY(id));",
-      "definitionChecksumSha256": "7b728e771a3ad96cc9392f5caed8bfa6e2a483a42d296074799e023779844158",
+      "canonicalDefinition": ", CONSTRAINT pk_tarefa_operacional PRIMARY KEY(id));",
+      "definitionChecksumSha256": "654d01d60326151b2c1ea68e07d0e25e9defc1ff6717f1bc6da9b1da1ac07964",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "pk_template_documento_v145",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT pk_template_documento_v145 PRIMARY KEY(tenant_id,",
+      "definitionChecksumSha256": "eac64b49b4fa4cb729164db6aba071bad32a866e2d1ad987970ff1aaad273e9d",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "pk_template_fluxo_etapa",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT pk_template_fluxo_etapa PRIMARY KEY(tenant_id,",
+      "definitionChecksumSha256": "7e95bfcc303f8ab3c82767e48d16d33662c6b739e2af6a615991a10425b05c51",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "pk_template_fluxo_operacional",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT pk_template_fluxo_operacional PRIMARY KEY(tenant_id,",
+      "definitionChecksumSha256": "7e1be94e4e21a211ad232cdc874eae98375220a46c4295335ee739b6123aa4f8",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "pk_template_fluxo_versao",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT pk_template_fluxo_versao PRIMARY KEY(tenant_id,",
+      "definitionChecksumSha256": "8898476549bc982862b244e885624ded11d3754c2ed1714416ff32de6822c4f1",
       "dependencies": []
     },
     {
@@ -652,8 +2684,8 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT pk_worker_dead_letter PRIMARY KEY(id));",
-      "definitionChecksumSha256": "1e960353ee97fabe7727739a8e11ae2d8b35fc51ee0120f6d39a367fa1a9c35c",
+      "canonicalDefinition": ", CONSTRAINT pk_worker_dead_letter PRIMARY KEY(id));",
+      "definitionChecksumSha256": "763dbef89b5e907f7e78511434f1bad4bcd229fbd261cba5abebd38695c14f90",
       "dependencies": []
     },
     {
@@ -668,8 +2700,24 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT pk_worker_tenant_job_lock PRIMARY KEY(tenant_id,",
-      "definitionChecksumSha256": "6504cee9ba62dc62b98203ffe29454a41fa2968b5fdf5edc5ddac953b52576f9",
+      "canonicalDefinition": ", CONSTRAINT pk_worker_tenant_job_lock PRIMARY KEY(tenant_id,",
+      "definitionChecksumSha256": "4722c3d21d599fef176332637ec8151c5609dc6c90151b3650fa7a501d98eb55",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "uk_v13_demo_execucao_codigo_etapa",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0015_v13_funcionalidade_real_end_to_end.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.v13_demo_execucao ADD CONSTRAINT uk_v13_demo_execucao_codigo_etapa UNIQUE (tenant_id,",
+      "definitionChecksumSha256": "d89fa230c4bab8c40a2a494dbf3fba2cd63e5354c2b95e6cf15ab205b404e245",
       "dependencies": []
     },
     {
@@ -684,8 +2732,8 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "ADD CONSTRAINT uq_cliente_tenant_id_v129 UNIQUE (tenant_id,",
-      "definitionChecksumSha256": "fda549d4723a06395ad2c3de53ba2b3ebdfb90bce16ada790d3774d0e09f0d40",
+      "canonicalDefinition": "ALTER TABLE integrarp.cliente ADD CONSTRAINT uq_cliente_tenant_id_v129 UNIQUE (tenant_id,",
+      "definitionChecksumSha256": "dce296e75a3c8f4e6522189395a30dc37b9f41a90e0566a5d20aa1e1e82a487d",
       "dependencies": []
     },
     {
@@ -700,8 +2748,8 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT uq_estoque_movimento_idempotencia UNIQUE (tenant_id,",
-      "definitionChecksumSha256": "8465362372831b95301f747640ceafcfbacfcbcc2c5ca93cf2baf0bd3897e859",
+      "canonicalDefinition": ", CONSTRAINT uq_estoque_movimento_idempotencia UNIQUE (tenant_id,",
+      "definitionChecksumSha256": "6258121edd086becd65ebdd2276bc4c333f7a443991c6328b44ee5688ce6114a",
       "dependencies": []
     },
     {
@@ -716,8 +2764,40 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT uq_estoque_saldo_tenant_produto_local UNIQUE (tenant_id,",
-      "definitionChecksumSha256": "b94bd9074350ab91f3f4a041e0809839f5f22491d09df0e11509c07d359b5b6a",
+      "canonicalDefinition": ", CONSTRAINT uq_estoque_saldo_tenant_produto_local UNIQUE (tenant_id,",
+      "definitionChecksumSha256": "158c75cc00c97876dc753d4bb4d3feb70575569cec49b4ae5eda017f55055801",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "uq_flow_template_tenant_codigo",
+      "type": "constraint",
+      "module": "Flow",
+      "originMigration": "0004_flow_designer_web.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.flow_template ADD CONSTRAINT uq_flow_template_tenant_codigo UNIQUE (tenant_id,",
+      "definitionChecksumSha256": "f9f81a610340642f9e0574d0e6f4a9bbba05c3a1f148d360fd01253784db2d1d",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "uq_mensagem_template_tenant_canal_codigo",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0006_faturamento_connect_outbox.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.mensagem_template ADD CONSTRAINT uq_mensagem_template_tenant_canal_codigo UNIQUE (tenant_id,",
+      "definitionChecksumSha256": "6e528f22674e0d20924ec178251928ba41082f63b363cd688c0bdab8d3c37b6a",
       "dependencies": []
     },
     {
@@ -732,8 +2812,24 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT uq_outbox_execucao_handler UNIQUE (tenant_id,",
-      "definitionChecksumSha256": "d5d63211da51ee88854dba2ce5aee600bd7d04ee7b786b1d345c956f022bf2b9",
+      "canonicalDefinition": ", CONSTRAINT uq_outbox_execucao_handler UNIQUE (tenant_id,",
+      "definitionChecksumSha256": "ce3e101fa5b0ab5d9489a60fe1ab76b2a2fffd55e297370c921610d8aeb7ad70",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "uq_outbox_execucao_handler_tenant_evento_handler",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0045_v139_release_candidate_piloto.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.outbox_execucao_handler ADD CONSTRAINT uq_outbox_execucao_handler_tenant_evento_handler UNIQUE (tenant_id,",
+      "definitionChecksumSha256": "4f8ea4d7019ee98d9cd943191013ec885ebe1d12737f02e7dd234ed694a1c0ed",
       "dependencies": []
     },
     {
@@ -748,8 +2844,8 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "ADD CONSTRAINT uq_pedido_tenant_id_v129 UNIQUE (tenant_id,",
-      "definitionChecksumSha256": "701f0f531fdbfc864fc76c8ca4713dda7a018c62f1b7eb0d89fcf654c0f22834",
+      "canonicalDefinition": "ALTER TABLE integrarp.pedido ADD CONSTRAINT uq_pedido_tenant_id_v129 UNIQUE (tenant_id,",
+      "definitionChecksumSha256": "a677d879df9e2aacf468f911a7dcf7706bd60b4bc71cb71aa1c7d0ab88d87f70",
       "dependencies": []
     },
     {
@@ -764,8 +2860,8 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT uq_piloto_v1_demo_catalogo UNIQUE (categoria,",
-      "definitionChecksumSha256": "395b111ad8997f273b498436e0bf51f0a0728b3756bee2894128cde2c2dd339c",
+      "canonicalDefinition": ", CONSTRAINT uq_piloto_v1_demo_catalogo UNIQUE (categoria,",
+      "definitionChecksumSha256": "2ee1e419a9da42086983683eefbc0eff0624c10018ab00614f5677695a76d4c8",
       "dependencies": []
     },
     {
@@ -780,8 +2876,8 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT uq_produto_categoria_tenant_codigo UNIQUE (tenant_id,",
-      "definitionChecksumSha256": "7cc21679c8f3128e9ce5a71b8f6ebaad3c95445e39528ac5328f86b67c172b16",
+      "canonicalDefinition": ", CONSTRAINT uq_produto_categoria_tenant_codigo UNIQUE (tenant_id,",
+      "definitionChecksumSha256": "bfc24b0bfb8200a9359df21ca14225b0deb4a33be46ac50aa95325d7b9f9f20c",
       "dependencies": []
     },
     {
@@ -796,8 +2892,8 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "ADD CONSTRAINT uq_produto_tenant_id_v129 UNIQUE (tenant_id,",
-      "definitionChecksumSha256": "d1dfe8cbf4495ae4581594519cbd0a556c5042bf09af371bd8e3efdff8dde096",
+      "canonicalDefinition": "ALTER TABLE integrarp.produto ADD CONSTRAINT uq_produto_tenant_id_v129 UNIQUE (tenant_id,",
+      "definitionChecksumSha256": "0ccd0aba35549f0103992ab31a6070b36f1f257887f2a42023d4df2f09dcabc5",
       "dependencies": []
     },
     {
@@ -812,8 +2908,8 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT uq_release_candidate_evidencia_versao UNIQUE (versao) )",
-      "definitionChecksumSha256": "ea3e8025c1cea13d68a040bb6e43f9163db20922d3423b5ba03f7f0059d4d026",
+      "canonicalDefinition": ", CONSTRAINT uq_release_candidate_evidencia_versao UNIQUE (versao) )",
+      "definitionChecksumSha256": "1d62956bf39328c179afd20c176265dae460d6d686f194b159aa0c058c98a46f",
       "dependencies": []
     },
     {
@@ -828,8 +2924,24 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "ADD CONSTRAINT uq_setor_tenant_id_v129 UNIQUE (tenant_id,",
-      "definitionChecksumSha256": "9cbfe92c4bbd1e3d173d6835e86967499389248a652c6f2583e44272d51161b8",
+      "canonicalDefinition": "ALTER TABLE integrarp.setor ADD CONSTRAINT uq_setor_tenant_id_v129 UNIQUE (tenant_id,",
+      "definitionChecksumSha256": "ddbaac3488af4f077d29529c37717badf32db6c1aadcf8077b4446d5ec9a7edb",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "uq_usuario_tenant_id_id",
+      "type": "constraint",
+      "module": "Auth",
+      "originMigration": "0030_v124_production_foundation_auth_ux.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.usuario ADD CONSTRAINT uq_usuario_tenant_id_id UNIQUE (tenant_id,",
+      "definitionChecksumSha256": "3aef4c5e316f717828d44ab0eea3fb7971bdf81a9d217614f95164bfab7191c1",
       "dependencies": []
     },
     {
@@ -844,24 +2956,248 @@
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "ADD CONSTRAINT uq_usuario_tenant_id_v129 UNIQUE (tenant_id,",
-      "definitionChecksumSha256": "035952fd2cf18e8f245b8370c5ba8aedda05a36533de1f654c9938e7f03698b1",
+      "canonicalDefinition": "ALTER TABLE integrarp.usuario ADD CONSTRAINT uq_usuario_tenant_id_v129 UNIQUE (tenant_id,",
+      "definitionChecksumSha256": "e63f0c464a3e671dd35cd653567fc0f17e2209eb68d9d23d4f3f64c56489872c",
       "dependencies": []
     },
     {
       "schema": "integrarp",
-      "name": "ux_usuario_preferencia_tenant_usuario_chave",
+      "name": "uq_v14_operational_demo_run_codigo_etapa",
       "type": "constraint",
-      "module": "Commercial",
-      "originMigration": "0040_v134_experiencia_guiada_core_comercial.sql",
+      "module": "Database",
+      "originMigration": "0016_v14_postgres_repositories_operacional.sql",
       "usedBy": [
         "database/scriptcompleto.sql"
       ],
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CONSTRAINT ux_usuario_preferencia_tenant_usuario_chave UNIQUE (tenant_id,",
-      "definitionChecksumSha256": "ff5a443afab7731d9280ccbf7e2e99ab9790d17986d2bbfdae5aafb9608be27d",
+      "canonicalDefinition": "ALTER TABLE integrarp.v14_operational_demo_run ADD CONSTRAINT uq_v14_operational_demo_run_codigo_etapa UNIQUE (tenant_id,",
+      "definitionChecksumSha256": "b6afaca1a3107dcd395d5b6745891dba2427ebe7459eebb1f9fc2a99a2120bee",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "uq_v14_repository_status_tenant_objeto",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0016_v14_postgres_repositories_operacional.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.v14_repository_status ADD CONSTRAINT uq_v14_repository_status_tenant_objeto UNIQUE (tenant_id,",
+      "definitionChecksumSha256": "751cc97f60851decbde3a01140907d71e9ed63f4f8c78c08421c3f43c1d637d3",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "uq_v15_customer_full_journey_step",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0017_v15_validacao_real_cruds_qa_deploy.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.v15_customer_full_journey_check ADD CONSTRAINT uq_v15_customer_full_journey_step UNIQUE (tenant_id,",
+      "definitionChecksumSha256": "8e950c227f5d2ca04c81861df2bc3d0b71e9c76b5723418251d884c43a6a0048",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "uq_v15_operational_object_tenant_modulo_objeto",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0017_v15_validacao_real_cruds_qa_deploy.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.v15_operational_object ADD CONSTRAINT uq_v15_operational_object_tenant_modulo_objeto UNIQUE (tenant_id,",
+      "definitionChecksumSha256": "9c6cdbb32f5187217dcb4a3c3c399f1877fd63132ac337daba0692c991d9b7d8",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "uq_v15_worker_queue_health_fila",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0017_v15_validacao_real_cruds_qa_deploy.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.v15_worker_queue_health ADD CONSTRAINT uq_v15_worker_queue_health_fila UNIQUE (tenant_id,",
+      "definitionChecksumSha256": "9cfcf8e7b8b5d12bf2d04b506ec04c84497c6a5eb84341da82d993786a357001",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "uq_v16_release_candidate_check_area_name",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0018_v16_release_candidate_validation.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.v16_release_candidate_check ADD CONSTRAINT uq_v16_release_candidate_check_area_name UNIQUE (tenant_id,",
+      "definitionChecksumSha256": "74dc2447d93767d27095b6c1999eaba2ca031928814749746ec157928168b7b9",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "uq_v18_screen_audit_tenant_rota",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0020_v18_produto_funcional_cruds_telas_jornada.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.v18_screen_audit ADD CONSTRAINT uq_v18_screen_audit_tenant_rota UNIQUE (tenant_id,",
+      "definitionChecksumSha256": "487ac7715e306801846f5d1f0bae6365492fdf1e1dba9f8be42191312e2f29da",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "uq_v18_template_catalog_codigo",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0020_v18_produto_funcional_cruds_telas_jornada.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.v18_template_catalog ADD CONSTRAINT uq_v18_template_catalog_codigo UNIQUE (tenant_id,",
+      "definitionChecksumSha256": "37ed5e4113e5b6cb5c03d5f149221a0469d6b8e72fc126051437acce1edeec3d",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "uq_v18_validation_area_modulo",
+      "type": "constraint",
+      "module": "Database",
+      "originMigration": "0020_v18_produto_funcional_cruds_telas_jornada.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.v18_functional_validation_check ADD CONSTRAINT uq_v18_validation_area_modulo UNIQUE (tenant_id,",
+      "definitionChecksumSha256": "75415238f781e4c104de762a3e6ed0dd71f0790062c6bd0256696c728da815f7",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ux_orcamento_v145_idempotencia",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT ux_orcamento_v145_idempotencia UNIQUE(tenant_id,",
+      "definitionChecksumSha256": "de318ec717ab511667b0c3d5eac10a403b558612817fc8883b538f3a4f97a500",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ux_orcamento_v145_numero",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT ux_orcamento_v145_numero UNIQUE(tenant_id,",
+      "definitionChecksumSha256": "de470258278904a5a6a09eec143fad3da17cb09762dabb80cdc7fea0c539cac0",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ux_template_documento_v145",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT ux_template_documento_v145 UNIQUE(tenant_id,",
+      "definitionChecksumSha256": "444ac5af41e40382801d0fb82a25b97bf30c3d40c100483e4126cc0bbb41c0d3",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ux_template_fluxo_etapa_codigo",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT ux_template_fluxo_etapa_codigo UNIQUE(tenant_id,",
+      "definitionChecksumSha256": "36d2bae1f6a7334046bb6b1a78cd8288b93ecd4586ed279dd74c087ec9a69c6d",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ux_template_fluxo_etapa_ordem",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT ux_template_fluxo_etapa_ordem UNIQUE(tenant_id,",
+      "definitionChecksumSha256": "410c903bead441249c970d5e5d867a78192ce87cbb9f50c2ebaee1f267857164",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ux_template_fluxo_versao",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT ux_template_fluxo_versao UNIQUE(tenant_id,",
+      "definitionChecksumSha256": "a1f623268a87f971dbb3e3b98206bfb5f43f93cec450dace060535b4f8cc9778",
       "dependencies": []
     },
     {
@@ -3404,6 +5740,24 @@
       "definitionChecksumSha256": "b0314b5bef4534a158f157e4fa22cd029d026877a8007966b67a5e547d94c126",
       "dependencies": [
         "integrarp.formulario_definicao"
+      ]
+    },
+    {
+      "schema": "integrarp",
+      "name": "ix_historico_operacional_entidade",
+      "type": "index",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE INDEX IF NOT EXISTS ix_historico_operacional_entidade ON integrarp.historico_operacional_v145(tenant_id,entidade_tipo,entidade_id,criado_em DESC);",
+      "definitionChecksumSha256": "20e9dfa46218c5a9d75e2dfcfecd06f77d154a6d2b81c283404e5dec693704a4",
+      "dependencies": [
+        "integrarp.historico_operacional_v145"
       ]
     },
     {
@@ -6284,6 +8638,24 @@
       "definitionChecksumSha256": "80e0233eed29b2f9a51955f2d16b47c28e4a2a4b626990b9618be7ab157063a3",
       "dependencies": [
         "integrarp.operacao_rota"
+      ]
+    },
+    {
+      "schema": "integrarp",
+      "name": "ix_oportunidade_tenant_etapa",
+      "type": "index",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE INDEX IF NOT EXISTS ix_oportunidade_tenant_etapa ON integrarp.oportunidade_comercial(tenant_id,etapa) WHERE removido_em IS NULL;",
+      "definitionChecksumSha256": "a3e971561f18762f1adf2045f43abf1a073dfc7d2f500cda70c1c09b75058add",
+      "dependencies": [
+        "integrarp.oportunidade_comercial"
       ]
     },
     {
@@ -11706,6 +14078,24 @@
     },
     {
       "schema": "integrarp",
+      "name": "ux_politica_desconto_prioridade",
+      "type": "index",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE UNIQUE INDEX IF NOT EXISTS ux_politica_desconto_prioridade ON integrarp.politica_desconto(tenant_id,prioridade) WHERE ativa AND removido_em IS NULL;",
+      "definitionChecksumSha256": "0aa9a80158c4ced7dff543b35e6b7cf61b7220a748323a12f47538766d8b09ea",
+      "dependencies": [
+        "integrarp.politica_desconto"
+      ]
+    },
+    {
+      "schema": "integrarp",
       "name": "ux_processo_definicao_id",
       "type": "index",
       "module": "Database",
@@ -11900,6 +14290,24 @@
       "definitionChecksumSha256": "072a99cdeef204fc12fba714357372da945de8181b773c64e4614ce9a2c5e76b",
       "dependencies": [
         "integrarp.setor"
+      ]
+    },
+    {
+      "schema": "integrarp",
+      "name": "ux_tabela_preco_padrao",
+      "type": "index",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE UNIQUE INDEX IF NOT EXISTS ux_tabela_preco_padrao ON integrarp.tabela_preco(tenant_id) WHERE padrao AND ativa AND removido_em IS NULL;",
+      "definitionChecksumSha256": "00274037b98799fed4b6760afb6dcabfa6c2be17180dfc51ce6b629587dfdf5c",
+      "dependencies": [
+        "integrarp.tabela_preco"
       ]
     },
     {
@@ -12540,6 +14948,54 @@
     },
     {
       "schema": "integrarp",
+      "name": "aprovacao_desconto",
+      "type": "table",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.aprovacao_desconto ( id uuid NOT NULL DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, orcamento_id uuid NOT NULL, politica_id uuid NOT NULL, status varchar(24) NOT NULL DEFAULT 'pendente', solicitado_por uuid NOT NULL, solicitado_em timestamptz NOT NULL DEFAULT now(), decidido_por uuid, decidido_em timestamptz, motivo text, criado_em timestamptz NOT NULL DEFAULT now(), criado_por uuid NOT NULL, atualizado_em timestamptz NOT NULL DEFAULT now(), atualizado_por uuid NOT NULL, removido_em timestamptz, removido_por uuid, row_version bigint NOT NULL DEFAULT 1, CONSTRAINT pk_aprovacao_desconto PRIMARY KEY(tenant_id,id), CONSTRAINT fk_aprovacao_orcamento FOREIGN KEY(tenant_id,orcamento_id) REFERENCES integrarp.orcamento_v145(tenant_id,id), CONSTRAINT fk_aprovacao_politica FOREIGN KEY(tenant_id,politica_id) REFERENCES integrarp.politica_desconto(tenant_id,id), CONSTRAINT ck_aprovacao_desconto_status CHECK(status IN ('pendente','aprovada','rejeitada','cancelada')) );",
+      "definitionChecksumSha256": "8f0de16b557743c34753b3dd90e1faa9cd341e0b11b2d39d93b302c12782bc41",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "arquivo_privado",
+      "type": "table",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.arquivo_privado ( id uuid NOT NULL DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, nome_original varchar(255) NOT NULL, nome_fisico uuid NOT NULL, mime_type varchar(100) NOT NULL, tamanho_bytes bigint NOT NULL, hash_sha256 char(64) NOT NULL, criado_em timestamptz NOT NULL DEFAULT now(), criado_por uuid NOT NULL, removido_em timestamptz, removido_por uuid, row_version bigint NOT NULL DEFAULT 1, CONSTRAINT pk_arquivo_privado PRIMARY KEY(tenant_id,id), CONSTRAINT ck_arquivo_privado_tamanho CHECK(tamanho_bytes > 0) );",
+      "definitionChecksumSha256": "b52bfcf0b207eccf869fa54138676fb8f9060a4ee566eedffa7439166a121f83",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "atividade_comercial",
+      "type": "table",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.atividade_comercial ( id uuid NOT NULL DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, oportunidade_id uuid NOT NULL, tipo varchar(24) NOT NULL, titulo varchar(180) NOT NULL, descricao text, agendada_em timestamptz, concluida_em timestamptz, cancelada_em timestamptz, responsavel_id uuid NOT NULL, criado_em timestamptz NOT NULL DEFAULT now(), criado_por uuid NOT NULL, atualizado_em timestamptz NOT NULL DEFAULT now(), atualizado_por uuid NOT NULL, removido_em timestamptz, removido_por uuid, row_version bigint NOT NULL DEFAULT 1, CONSTRAINT pk_atividade_comercial PRIMARY KEY (tenant_id,id), CONSTRAINT fk_atividade_oportunidade FOREIGN KEY (tenant_id,oportunidade_id) REFERENCES integrarp.oportunidade_comercial(tenant_id,id), CONSTRAINT ck_atividade_tipo CHECK (tipo IN ('ligacao','reuniao','email','follow_up','tarefa','anotacao')) );",
+      "definitionChecksumSha256": "7750d52b30b7a049ac9ce001816cfcc9c4c6441b7247be99a8701cc7a5a16bca",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
       "name": "atividade_operacional",
       "type": "table",
       "module": "Database",
@@ -13020,6 +15476,22 @@
     },
     {
       "schema": "integrarp",
+      "name": "documento_gerado_v145",
+      "type": "table",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.documento_gerado_v145 ( id uuid NOT NULL DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, template_id uuid NOT NULL, entidade_tipo varchar(30) NOT NULL, entidade_id uuid NOT NULL, nome varchar(255) NOT NULL, hash_sha256 char(64) NOT NULL, conteudo_html text NOT NULL, gerado_em timestamptz NOT NULL DEFAULT now(), gerado_por uuid NOT NULL, criado_em timestamptz NOT NULL DEFAULT now(), criado_por uuid NOT NULL, removido_em timestamptz, removido_por uuid, row_version bigint NOT NULL DEFAULT 1, CONSTRAINT pk_documento_gerado_v145 PRIMARY KEY(tenant_id,id), CONSTRAINT fk_documento_template_v145 FOREIGN KEY(tenant_id,template_id) REFERENCES integrarp.template_documento_v145(tenant_id,id) );",
+      "definitionChecksumSha256": "cbaaac08a4c8294afdf9a822db886a5cefa95ed08581067fb42bc0fcfb8d7c98",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
       "name": "entrega",
       "type": "table",
       "module": "Database",
@@ -13032,6 +15504,22 @@
       "active": true,
       "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.entrega (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, codigo text NOT NULL, status text NOT NULL, criado_em timestamptz NOT NULL DEFAULT now(), criado_por_usuario_id uuid NULL, atualizado_em timestamptz NULL, atualizado_por_usuario_id uuid NULL, excluido_em timestamptz NULL, metadata_json jsonb NOT NULL DEFAULT '{}'::jsonb);",
       "definitionChecksumSha256": "19052f16e99cd44580ee620ebd50a090e0ac118b2fbf0c1e565d21635b7205d2",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "entrega_pedido",
+      "type": "table",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.entrega_pedido ( id uuid NOT NULL DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, pedido_id uuid NOT NULL, responsavel_id uuid, destinatario varchar(180), documento_destinatario varchar(40), entregue_em timestamptz, observacao text, evidencia_id uuid, latitude numeric(9,6), longitude numeric(9,6), status varchar(24) NOT NULL DEFAULT 'pendente', criado_em timestamptz NOT NULL DEFAULT now(), criado_por uuid NOT NULL, atualizado_em timestamptz NOT NULL DEFAULT now(), atualizado_por uuid NOT NULL, removido_em timestamptz, removido_por uuid, row_version bigint NOT NULL DEFAULT 1, CONSTRAINT pk_entrega_pedido PRIMARY KEY(tenant_id,id), CONSTRAINT fk_entrega_evidencia FOREIGN KEY(tenant_id,evidencia_id) REFERENCES integrarp.evidencia_operacional(tenant_id,id), CONSTRAINT ck_entrega_status CHECK(status IN ('pendente','atribuida','em_rota','confirmada','cancelada')) );",
+      "definitionChecksumSha256": "79c8a569c486e9c903cfa1acaaee050ff677fa20dd1c211fe793933e87c6a02a",
       "dependencies": []
     },
     {
@@ -13128,6 +15616,22 @@
       "active": true,
       "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.evento_negocio (evento_negocio_id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, tipo_evento varchar(120) NOT NULL, origem_tipo varchar(80) NULL, origem_id uuid NULL, processo_instancia_id uuid NULL, tarefa_id uuid NULL, payload_json jsonb NOT NULL DEFAULT '{}'::jsonb, status varchar(40) NOT NULL DEFAULT 'pendente', criado_em timestamptz NOT NULL DEFAULT now(), processado_em timestamptz NULL, erro text NULL);",
       "definitionChecksumSha256": "b8367e83a82d768065e1f6bc58d59f5da88998e24d69553b51e9cf5e3be3fdae",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "evidencia_operacional",
+      "type": "table",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.evidencia_operacional ( id uuid NOT NULL DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, tarefa_id uuid, arquivo_id uuid NOT NULL, descricao text, criado_em timestamptz NOT NULL DEFAULT now(), criado_por uuid NOT NULL, removido_em timestamptz, removido_por uuid, row_version bigint NOT NULL DEFAULT 1, CONSTRAINT pk_evidencia_operacional PRIMARY KEY(tenant_id,id), CONSTRAINT fk_evidencia_arquivo FOREIGN KEY(tenant_id,arquivo_id) REFERENCES integrarp.arquivo_privado(tenant_id,id) );",
+      "definitionChecksumSha256": "f21797bf13d5c56bcbfdb2e8a0b59b20bfc145a2db1be2f5dcfc4c5e8d6ea352",
       "dependencies": []
     },
     {
@@ -13596,6 +16100,38 @@
     },
     {
       "schema": "integrarp",
+      "name": "fluxo_operacional_instancia",
+      "type": "table",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.fluxo_operacional_instancia ( id uuid NOT NULL DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, versao_id uuid NOT NULL, entidade_tipo varchar(40) NOT NULL, entidade_id uuid NOT NULL, status varchar(24) NOT NULL DEFAULT 'ativa', iniciado_em timestamptz NOT NULL DEFAULT now(), concluido_em timestamptz, criado_em timestamptz NOT NULL DEFAULT now(), criado_por uuid NOT NULL, atualizado_em timestamptz NOT NULL DEFAULT now(), atualizado_por uuid NOT NULL, removido_em timestamptz, removido_por uuid, row_version bigint NOT NULL DEFAULT 1, CONSTRAINT pk_fluxo_operacional_instancia PRIMARY KEY(tenant_id,id), CONSTRAINT fk_fluxo_instancia_versao FOREIGN KEY(tenant_id,versao_id) REFERENCES integrarp.template_fluxo_versao(tenant_id,id) );",
+      "definitionChecksumSha256": "2fce266a9d726592c832ae2c53f27057a5719fec2b7c26734eab302959f8e36d",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "fluxo_operacional_instancia_etapa",
+      "type": "table",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.fluxo_operacional_instancia_etapa ( id uuid NOT NULL DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, instancia_id uuid NOT NULL, etapa_id uuid NOT NULL, status varchar(24) NOT NULL DEFAULT 'pendente', tarefa_id uuid, iniciado_em timestamptz, concluido_em timestamptz, criado_em timestamptz NOT NULL DEFAULT now(), criado_por uuid NOT NULL, atualizado_em timestamptz NOT NULL DEFAULT now(), atualizado_por uuid NOT NULL, removido_em timestamptz, removido_por uuid, row_version bigint NOT NULL DEFAULT 1, CONSTRAINT pk_fluxo_instancia_etapa PRIMARY KEY(tenant_id,id), CONSTRAINT fk_fluxo_instancia_etapa FOREIGN KEY(tenant_id,instancia_id) REFERENCES integrarp.fluxo_operacional_instancia(tenant_id,id) );",
+      "definitionChecksumSha256": "267ddc115bc0b9a425cfad1e6fa56e8339c531fe1a5145edc20189c2f6a2285e",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
       "name": "formulario_campo",
       "type": "table",
       "module": "Database",
@@ -13736,6 +16272,22 @@
       "active": true,
       "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.formulario_versao (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, formulario_definicao_id uuid NOT NULL, numero int NOT NULL, publicado boolean NOT NULL DEFAULT false, publicado_em timestamptz NULL, criado_em timestamptz NOT NULL DEFAULT now(), criado_por_usuario_id uuid NULL, atualizado_em timestamptz NULL, atualizado_por_usuario_id uuid NULL, excluido_em timestamptz NULL, metadata_json jsonb NOT NULL DEFAULT '{}'::jsonb);",
       "definitionChecksumSha256": "506691707efd8512f6eab6521f7a1d7ee9777bf12ecc88ba9bee56a9d138b0eb",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "historico_operacional_v145",
+      "type": "table",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.historico_operacional_v145 ( id uuid NOT NULL DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, entidade_tipo varchar(40) NOT NULL, entidade_id uuid NOT NULL, evento varchar(100) NOT NULL, dados_json jsonb NOT NULL DEFAULT '{}'::jsonb, correlation_id varchar(100) NOT NULL, criado_em timestamptz NOT NULL DEFAULT now(), criado_por uuid NOT NULL, CONSTRAINT pk_historico_operacional_v145 PRIMARY KEY(tenant_id,id) );",
+      "definitionChecksumSha256": "79d046aa239416860a4836e197b98497cbb1c76a66be7700174add91fc81a67f",
       "dependencies": []
     },
     {
@@ -15148,6 +17700,54 @@
     },
     {
       "schema": "integrarp",
+      "name": "oportunidade_comercial",
+      "type": "table",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.oportunidade_comercial ( id uuid NOT NULL DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, cliente_id uuid NOT NULL, nome varchar(180) NOT NULL, etapa varchar(32) NOT NULL DEFAULT 'nova', probabilidade smallint NOT NULL DEFAULT 10, valor_esperado numeric(18,2) NOT NULL DEFAULT 0, fechamento_previsto date NOT NULL, proxima_acao text, proxima_acao_em timestamptz, responsavel_id uuid NOT NULL, motivo_perda text, criado_em timestamptz NOT NULL DEFAULT now(), criado_por uuid NOT NULL, atualizado_em timestamptz NOT NULL DEFAULT now(), atualizado_por uuid NOT NULL, removido_em timestamptz, removido_por uuid, row_version bigint NOT NULL DEFAULT 1, CONSTRAINT pk_oportunidade_comercial PRIMARY KEY (tenant_id,id), CONSTRAINT ck_oportunidade_etapa CHECK (etapa IN ('nova','qualificacao','diagnostico','proposta','negociacao','ganha','perdida','cancelada')), CONSTRAINT ck_oportunidade_probabilidade CHECK (probabilidade BETWEEN 0 AND 100), CONSTRAINT ck_oportunidade_valor CHECK (valor_esperado >= 0) );",
+      "definitionChecksumSha256": "8a2d5062f10393e4f4bc56c7ef2c0601e2e4215c748837ab6db42e319c33542f",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "orcamento_item_v145",
+      "type": "table",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.orcamento_item_v145 ( id uuid NOT NULL DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, orcamento_id uuid NOT NULL, produto_id uuid NOT NULL, descricao varchar(240) NOT NULL, quantidade numeric(18,4) NOT NULL, preco_unitario numeric(18,4) NOT NULL, desconto_percentual numeric(7,4) NOT NULL DEFAULT 0, subtotal numeric(18,2) NOT NULL, desconto numeric(18,2) NOT NULL, total numeric(18,2) NOT NULL, criado_em timestamptz NOT NULL DEFAULT now(), criado_por uuid NOT NULL, atualizado_em timestamptz NOT NULL DEFAULT now(), atualizado_por uuid NOT NULL, removido_em timestamptz, removido_por uuid, row_version bigint NOT NULL DEFAULT 1, CONSTRAINT pk_orcamento_item_v145 PRIMARY KEY(tenant_id,id), CONSTRAINT fk_orcamento_item_v145 FOREIGN KEY(tenant_id,orcamento_id) REFERENCES integrarp.orcamento_v145(tenant_id,id), CONSTRAINT ck_orcamento_item_v145_valores CHECK(quantidade > 0 AND preco_unitario >= 0 AND desconto_percentual BETWEEN 0 AND 100 AND total >= 0) );",
+      "definitionChecksumSha256": "74ac1263890ffcd0ec406d481fa3590cda0d0bae361192dfa36bfce0a9cff475",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "orcamento_v145",
+      "type": "table",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.orcamento_v145 ( id uuid NOT NULL DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, numero varchar(24) NOT NULL, cliente_id uuid NOT NULL, oportunidade_id uuid, tabela_preco_id uuid, validade date NOT NULL, status varchar(32) NOT NULL DEFAULT 'rascunho', desconto_global_percentual numeric(7,4) NOT NULL DEFAULT 0, subtotal numeric(18,2) NOT NULL DEFAULT 0, desconto numeric(18,2) NOT NULL DEFAULT 0, total numeric(18,2) NOT NULL DEFAULT 0, aprovado_por uuid, aprovado_em timestamptz, motivo_rejeicao text, idempotency_key varchar(160) NOT NULL, criado_em timestamptz NOT NULL DEFAULT now(), criado_por uuid NOT NULL, atualizado_em timestamptz NOT NULL DEFAULT now(), atualizado_por uuid NOT NULL, removido_em timestamptz, removido_por uuid, row_version bigint NOT NULL DEFAULT 1, CONSTRAINT pk_orcamento_v145 PRIMARY KEY(tenant_id,id), CONSTRAINT ux_orcamento_v145_numero UNIQUE(tenant_id,numero), CONSTRAINT ux_orcamento_v145_idempotencia UNIQUE(tenant_id,idempotency_key), CONSTRAINT ck_orcamento_v145_status CHECK(status IN ('rascunho','em_aprovacao','aprovado','rejeitado','enviado','aceito','recusado','expirado','convertido','cancelado')), CONSTRAINT ck_orcamento_v145_valores CHECK(subtotal >= 0 AND desconto >= 0 AND total >= 0 AND total = subtotal-desconto) );",
+      "definitionChecksumSha256": "c8ef9f8e89faa9a2f776369830165bbd160a33cc9b58768031923f8c4ee86453",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
       "name": "outbox_evento",
       "type": "table",
       "module": "Commercial",
@@ -15352,6 +17952,22 @@
       "active": true,
       "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.piloto_v1_demo_catalogo ( id UUID PRIMARY KEY, categoria TEXT NOT NULL, chave TEXT NOT NULL, nome TEXT NOT NULL, descricao TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'ativo', tenant_demo TEXT NOT NULL DEFAULT 'Valora Group & MNSoft Demo', metadados JSONB NOT NULL DEFAULT '{}'::jsonb, criado_em TIMESTAMPTZ NOT NULL DEFAULT now(), atualizado_em TIMESTAMPTZ NOT NULL DEFAULT now(), CONSTRAINT uq_piloto_v1_demo_catalogo UNIQUE (categoria, chave) );",
       "definitionChecksumSha256": "e2e50602bee1262d49b84cda4a0f816e7a2f5acdc0c0e572eac0d641fd0868d8",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "politica_desconto",
+      "type": "table",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.politica_desconto ( id uuid NOT NULL DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, percentual_inicial numeric(7,4) NOT NULL, percentual_final numeric(7,4) NOT NULL, perfil_aprovador varchar(100) NOT NULL, prioridade integer NOT NULL DEFAULT 0, ativa boolean NOT NULL DEFAULT true, criado_em timestamptz NOT NULL DEFAULT now(), criado_por uuid NOT NULL, atualizado_em timestamptz NOT NULL DEFAULT now(), atualizado_por uuid NOT NULL, removido_em timestamptz, removido_por uuid, row_version bigint NOT NULL DEFAULT 1, CONSTRAINT pk_politica_desconto PRIMARY KEY (tenant_id,id), CONSTRAINT ck_politica_desconto_faixa CHECK (percentual_inicial >= 0 AND percentual_final <= 100 AND percentual_inicial <= percentual_final) );",
+      "definitionChecksumSha256": "0823aab71c111c0e4ec5f778d1ae52aada34778c355c0abfc5cba3399b78e360",
       "dependencies": []
     },
     {
@@ -15996,6 +18612,38 @@
     },
     {
       "schema": "integrarp",
+      "name": "tabela_preco",
+      "type": "table",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.tabela_preco ( id uuid NOT NULL DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, nome varchar(140) NOT NULL, padrao boolean NOT NULL DEFAULT false, vigente_de date NOT NULL, vigente_ate date, ativa boolean NOT NULL DEFAULT true, criado_em timestamptz NOT NULL DEFAULT now(), criado_por uuid NOT NULL, atualizado_em timestamptz NOT NULL DEFAULT now(), atualizado_por uuid NOT NULL, removido_em timestamptz, removido_por uuid, row_version bigint NOT NULL DEFAULT 1, CONSTRAINT pk_tabela_preco PRIMARY KEY(tenant_id,id), CONSTRAINT ck_tabela_preco_vigencia CHECK (vigente_ate IS NULL OR vigente_ate >= vigente_de) );",
+      "definitionChecksumSha256": "7b0215fd18185040aa0fc7ae20d5dca62ea8b8e5c0e7aae7a241a1e6497430fc",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "tabela_preco_item",
+      "type": "table",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.tabela_preco_item ( id uuid NOT NULL DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, tabela_preco_id uuid NOT NULL, produto_id uuid NOT NULL, preco numeric(18,4) NOT NULL, criado_em timestamptz NOT NULL DEFAULT now(), criado_por uuid NOT NULL, atualizado_em timestamptz NOT NULL DEFAULT now(), atualizado_por uuid NOT NULL, removido_em timestamptz, removido_por uuid, row_version bigint NOT NULL DEFAULT 1, CONSTRAINT pk_tabela_preco_item PRIMARY KEY(tenant_id,id), CONSTRAINT fk_tabela_preco_item_tabela FOREIGN KEY(tenant_id,tabela_preco_id) REFERENCES integrarp.tabela_preco(tenant_id,id), CONSTRAINT ck_tabela_preco_item_preco CHECK(preco >= 0), CONSTRAINT ux_tabela_preco_item UNIQUE(tenant_id,tabela_preco_id,produto_id) );",
+      "definitionChecksumSha256": "541dc420c9f9cdf11b7ec35b54f5f44c9990812e4f326b2c078599b23567f959",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
       "name": "tarefa",
       "type": "table",
       "module": "Database",
@@ -16104,6 +18752,70 @@
       "active": true,
       "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.tarefa_operacional (id uuid NOT NULL DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, pedido_id uuid NULL, setor_id uuid NULL, responsavel_usuario_id uuid NULL, titulo text NOT NULL, status text NOT NULL DEFAULT 'aberta', prioridade text NOT NULL DEFAULT 'normal', sla_minutos integer NULL, vencimento_em timestamptz NULL, checklist_resposta_json jsonb NOT NULL DEFAULT '[]'::jsonb, row_version bigint NOT NULL DEFAULT 1, correlation_id text NULL, criado_em timestamptz NOT NULL DEFAULT now(), atualizado_em timestamptz NOT NULL DEFAULT now(), CONSTRAINT pk_tarefa_operacional PRIMARY KEY(id));",
       "definitionChecksumSha256": "33ad690c4d3dfc891c5b6ea93e67f99f87c6465d97bc2c67e27c8c8c14866789",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "template_documento_v145",
+      "type": "table",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.template_documento_v145 ( id uuid NOT NULL DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, tipo varchar(30) NOT NULL, nome varchar(160) NOT NULL, versao integer NOT NULL, conteudo_html text NOT NULL, status varchar(20) NOT NULL DEFAULT 'rascunho', publicado_em timestamptz, ativo boolean NOT NULL DEFAULT true, criado_em timestamptz NOT NULL DEFAULT now(), criado_por uuid NOT NULL, atualizado_em timestamptz NOT NULL DEFAULT now(), atualizado_por uuid NOT NULL, removido_em timestamptz, removido_por uuid, row_version bigint NOT NULL DEFAULT 1, CONSTRAINT pk_template_documento_v145 PRIMARY KEY(tenant_id,id), CONSTRAINT ux_template_documento_v145 UNIQUE(tenant_id,tipo,versao), CONSTRAINT ck_template_documento_tipo CHECK(tipo IN ('orcamento','pedido','comprovante_entrega')) );",
+      "definitionChecksumSha256": "365eb1f0cd79d714b6db748449c03e4ce6f979b1f3299fdf1f595155653cfafa",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "template_fluxo_etapa",
+      "type": "table",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.template_fluxo_etapa ( id uuid NOT NULL DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, versao_id uuid NOT NULL, codigo varchar(60) NOT NULL, nome varchar(160) NOT NULL, descricao text, ordem integer NOT NULL, perfil_responsavel varchar(100), setor_responsavel_id uuid, sla_minutos integer NOT NULL, tipo_tarefa varchar(60) NOT NULL, checklist_json jsonb NOT NULL DEFAULT '[]'::jsonb, exige_evidencia boolean NOT NULL DEFAULT false, bloqueia_proxima boolean NOT NULL DEFAULT true, acao_automatica varchar(80), ativa boolean NOT NULL DEFAULT true, criado_em timestamptz NOT NULL DEFAULT now(), criado_por uuid NOT NULL, atualizado_em timestamptz NOT NULL DEFAULT now(), atualizado_por uuid NOT NULL, removido_em timestamptz, removido_por uuid, row_version bigint NOT NULL DEFAULT 1, CONSTRAINT pk_template_fluxo_etapa PRIMARY KEY(tenant_id,id), CONSTRAINT fk_template_fluxo_etapa FOREIGN KEY(tenant_id,versao_id) REFERENCES integrarp.template_fluxo_versao(tenant_id,id), CONSTRAINT ux_template_fluxo_etapa_codigo UNIQUE(tenant_id,versao_id,codigo), CONSTRAINT ux_template_fluxo_etapa_ordem UNIQUE(tenant_id,versao_id,ordem), CONSTRAINT ck_template_fluxo_etapa_sla CHECK(sla_minutos > 0) );",
+      "definitionChecksumSha256": "e2b06e31f1078829c253f3f7fe4434ce799d375424a9347afc876b36dd58ea0b",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "template_fluxo_operacional",
+      "type": "table",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.template_fluxo_operacional ( id uuid NOT NULL DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, nome varchar(160) NOT NULL, descricao text, gatilho varchar(80) NOT NULL, ativo boolean NOT NULL DEFAULT true, criado_em timestamptz NOT NULL DEFAULT now(), criado_por uuid NOT NULL, atualizado_em timestamptz NOT NULL DEFAULT now(), atualizado_por uuid NOT NULL, removido_em timestamptz, removido_por uuid, row_version bigint NOT NULL DEFAULT 1, CONSTRAINT pk_template_fluxo_operacional PRIMARY KEY(tenant_id,id) );",
+      "definitionChecksumSha256": "adc32a55e9ca5748f9af00845ca23c6dce2ab5308efe3bfd1e4707130988d0d7",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "template_fluxo_versao",
+      "type": "table",
+      "module": "Commercial",
+      "originMigration": "0048_v145_produto_operacional_360.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.template_fluxo_versao ( id uuid NOT NULL DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, template_id uuid NOT NULL, numero integer NOT NULL, status varchar(20) NOT NULL DEFAULT 'rascunho', publicado_em timestamptz, criado_em timestamptz NOT NULL DEFAULT now(), criado_por uuid NOT NULL, atualizado_em timestamptz NOT NULL DEFAULT now(), atualizado_por uuid NOT NULL, removido_em timestamptz, removido_por uuid, row_version bigint NOT NULL DEFAULT 1, CONSTRAINT pk_template_fluxo_versao PRIMARY KEY(tenant_id,id), CONSTRAINT fk_template_fluxo_versao FOREIGN KEY(tenant_id,template_id) REFERENCES integrarp.template_fluxo_operacional(tenant_id,id), CONSTRAINT ux_template_fluxo_versao UNIQUE(tenant_id,template_id,numero), CONSTRAINT ck_template_fluxo_versao_status CHECK(status IN ('rascunho','publicada')) );",
+      "definitionChecksumSha256": "c982732ab74ff407c68b56fcfff8ca87f8165658e68b584a0e2565fd4b48d724",
       "dependencies": []
     },
     {

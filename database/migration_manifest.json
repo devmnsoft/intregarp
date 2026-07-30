@@ -519,8 +519,19 @@
       "status": "versionada",
       "observacoes": "Migration aditiva v1.43; migrations 0001 a 0046 permanecem congeladas.",
       "checksum_sha256": "6b841b5ecc345ddcf6cc61a03b3aded3891e8168ad8f96ce7b7c84437a283748"
+    },
+    {
+      "ordem": 48,
+      "arquivo": "0048_v145_produto_operacional_360.sql",
+      "versao": "0048_v145_produto_operacional_360",
+      "descricao": "Produto Operacional 360: CRM, orçamentos, preços, fluxos, evidências, entrega e documentos",
+      "modulo": "Commercial",
+      "presente_no_script_completop": true,
+      "status": "versionada",
+      "observacoes": "Migration aditiva v1.45; migrations 0001 a 0047 permanecem congeladas.",
+      "checksum_sha256": "bc7db3f4bf80a8544b1927714fc9a4b54bc72a6ff974732db11ed174effeb12b"
     }
   ],
   "postgresql": "16",
-  "generatedAtUtc": "2026-07-29T00:00:00Z"
+  "generatedAtUtc": "2026-07-30T00:00:00Z"
 }
