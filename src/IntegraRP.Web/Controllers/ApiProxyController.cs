@@ -10,6 +10,9 @@ public sealed class ApiProxyController(IHttpClientFactory httpClientFactory, ILo
     private static readonly string[] AllowedPrefixes =
     [
         "/api/activities",
+        "/api/customers",
+        "/api/opportunities",
+        "/api/quotes",
         "/api/dashboard",
         "/api/dynamic/",
         "/api/flow/designer/",

@@ -53,6 +53,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUserPreferenceRepository, PostgresUserPreferenceRepository>();
         services.AddScoped<IOnboardingProgressQuery, PostgresOnboardingProgressQuery>();
         services.AddScoped<INotificationRepository, PostgresNotificationRepository>();
+        services.AddScoped<ICommercialOperationsRepository, PostgresCommercialOperationsRepository>();
         services.AddSingleton<IDataMaskingService, DataMaskingService>();
         services.AddSingleton<ILgpdAuditService, InMemoryLgpdAuditService>();
         services.AddSingleton<ISprint7BiProjectService, InMemoryBiProjectService>();

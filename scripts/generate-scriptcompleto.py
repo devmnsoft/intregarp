@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Gera deterministicamente o script completo, seu alias e os contratos v1.43."""
+"""Gera deterministicamente o script completo, seu alias e os contratos v1.45."""
 from __future__ import annotations
 import hashlib, json, re
 from pathlib import Path
@@ -44,16 +44,16 @@ first, rest = parts[0], parts[1:]
 convergence = next(part for name, part in rest if name == '0047_v143_convergencia_executavel.sql')
 body='\n'.join([first[1], convergence] + [part for _, part in rest])
 body_checksum=sha(body.encode())
-lock_key=143_2026_0729
+lock_key=145_2026_0730
 header=f'''-- Produto: IntegraRP
--- Versão: v1.43
+-- Versão: v1.45
 -- PostgreSQL: 16
 -- Schema: integrarp
 -- Arquivo principal: database/scriptcompleto.sql
 -- Quantidade de migrations: {len(entries)}
 -- Data UTC determinística: {manifest['generatedAtUtc']}
 -- Checksum SHA-256: {body_checksum}
--- Contrato: Banco Canônico Integrarp v1.43
+-- Contrato: Banco Canônico Integrarp v1.45
 -- Execução:
 -- psql -X "$POSTGRES_URI" --set ON_ERROR_STOP=1 --file database/scriptcompleto.sql
 -- Gerado automaticamente; não editar os arquivos de saída.
@@ -63,7 +63,7 @@ DO $version_check$
 BEGIN
   IF current_setting('server_version_num')::integer < 160000
      OR current_setting('server_version_num')::integer >= 170000 THEN
-    RAISE EXCEPTION 'IntegraRP v1.43 requer PostgreSQL 16; encontrado %', current_setting('server_version');
+    RAISE EXCEPTION 'IntegraRP v1.45 requer PostgreSQL 16; encontrado %', current_setting('server_version');
   END IF;
 END
 $version_check$;
@@ -77,7 +77,7 @@ BEGIN;
 footer=f'''\nDO $final_validation$
 BEGIN
   IF to_regnamespace('integrarp') IS NULL THEN RAISE EXCEPTION 'Schema integrarp ausente'; END IF;
-  IF to_regclass('integrarp.schema_contract') IS NULL THEN RAISE EXCEPTION 'Contrato v1.43 ausente'; END IF;
+  IF to_regclass('integrarp.schema_contract') IS NULL THEN RAISE EXCEPTION 'Contrato v1.45 ausente'; END IF;
   IF EXISTS (SELECT 1 FROM pg_catalog.pg_constraint c JOIN pg_catalog.pg_class r ON r.oid=c.conrelid JOIN pg_catalog.pg_namespace n ON n.oid=r.relnamespace WHERE n.nspname='integrarp' AND NOT c.convalidated) THEN
     RAISE EXCEPTION 'Existem constraints não validadas no schema integrarp';
   END IF;
@@ -98,14 +98,16 @@ for entry in entries:
 # Constraints and indexes are separately addressable contract objects.
 for entry in entries:
  text=normalized(MIG/entry['arquivo'])
- for m in re.finditer(r'(?:ADD\s+CONSTRAINT|CONSTRAINT)\s+([a-zA-Z_][\w]*)\s+(.+?)(?:,|;|\n\s*\))',text,re.I|re.S): objects.append(object_item('constraint',m.group(1),entry['arquivo'],m.group(0),entry['modulo']))
+ for m in re.finditer(r'(?:(?:ALTER\s+TABLE\s+integrarp\.[a-zA-Z_][\w]*\s+)?ADD\s+CONSTRAINT|[,(]\s*CONSTRAINT)\s+([a-zA-Z_][\w]*)\s+(.+?)(?:,|;|\n\s*\))',text,re.I|re.S): objects.append(object_item('constraint',m.group(1),entry['arquivo'],m.group(0),entry['modulo']))
  for m in re.finditer(r'CREATE\s+(?:UNIQUE\s+)?INDEX\s+(?:IF\s+NOT\s+EXISTS\s+)?([a-zA-Z_][\w]*)\s+ON\s+integrarp\.([a-zA-Z_][\w]*).*?;',text,re.I|re.S): objects.append(object_item('index',m.group(1),entry['arquivo'],m.group(0),entry['modulo'],[f'integrarp.{m.group(2)}']))
 # Keep the last canonical definition for repeated idempotent declarations.
 dedup={(o['type'],o['name']):o for o in objects}; objects=sorted(dedup.values(),key=lambda o:(o['type'],o['name']))
 counts={k:sum(o['type']==k for o in objects) for k in sorted({o['type'] for o in objects})}
-inventory={'contract':'Banco Canônico Integrarp v1.43','generatedAtUtc':manifest['generatedAtUtc'],'sourceManifest':'database/migration_manifest.json','schema':'integrarp','extensions':['pgcrypto'],'migrations':len(entries),'counts':counts,'objects':objects}
+inventory={'contract':'Banco Canônico Integrarp v1.45','generatedAtUtc':manifest['generatedAtUtc'],'sourceManifest':'database/migration_manifest.json','schema':'integrarp','extensions':['pgcrypto'],'migrations':len(entries),'counts':counts,'objects':objects}
 (DB/'schema_inventory.json').write_text(json.dumps(inventory,ensure_ascii=False,indent=2)+'\n',encoding='utf-8',newline='\n')
-artifact=ROOT/'artifacts/v143/database'; artifact.mkdir(parents=True,exist_ok=True)
+contract={'$schema':'https://json-schema.org/draft/2020-12/schema','contract':'Banco Canônico Integrarp v1.45','productVersion':'v1.45','postgresqlMajor':16,'schemas':['integrarp'],'extensions':['pgcrypto'],'types':[],'sequences':[o for o in objects if o['type']=='sequence'],'tables':[o for o in objects if o['type']=='table'],'views':[o for o in objects if o['type'] in ('view','materialized_view')],'functions':[o for o in objects if o['type']=='function'],'triggers':[o for o in objects if o['type']=='trigger'],'constraints':[o for o in objects if o['type']=='constraint'],'indexes':[o for o in objects if o['type']=='index']}
+(DB/'schema_contract.json').write_text(json.dumps(contract,ensure_ascii=False,indent=2)+'\n',encoding='utf-8',newline='\n')
+artifact=ROOT/'artifacts/v145/database'; artifact.mkdir(parents=True,exist_ok=True)
 log=f"generator=generate-scriptcompleto.py\nmigrations={len(entries)}\nbody_sha256={body_checksum}\nfile_sha256={sha(content)}\nalias_identical=true\nobjects={len(objects)}\ncounts={json.dumps(counts,sort_keys=True)}\n"
 (artifact/'generation.log').write_text(log,encoding='utf-8',newline='\n')
 (artifact/'scriptcompleto.sha256').write_text(f"{sha(content)}  database/scriptcompleto.sql\n{sha(content)}  database/script_completop.sql\n",encoding='utf-8',newline='\n')

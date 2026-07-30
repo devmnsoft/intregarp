@@ -82,6 +82,7 @@ public static class DependencyInjection
         services.AddScoped<MarkNotificationReadUseCase>();
         services.AddScoped<MarkAllNotificationsReadUseCase>();
         services.AddScoped<CreateNotificationUseCase>();
+        services.AddScoped<CommercialOperationsUseCases>();
         return services;
     }
 }
