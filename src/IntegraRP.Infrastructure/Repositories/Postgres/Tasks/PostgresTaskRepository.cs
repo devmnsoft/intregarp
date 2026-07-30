@@ -6,9 +6,4 @@ namespace IntegraRP.Infrastructure.Repositories.Postgres.Tasks;
 public sealed class PostgresTaskRepository(PostgresConnectionFactory connectionFactory, ILogger<PostgresTaskRepository> logger)
     : DomainCrudRepository(connectionFactory, logger, "integrarp.tarefa")
 {
-    public Task<IReadOnlyList<Guid>> ListIdsAsync(Guid tenantId, int page, int pageSize, string? status, CancellationToken cancellationToken)
-        => base.ListIdsAsync(tenantId, page, pageSize, status, cancellationToken);
-
-    public Task<bool> SoftDeleteAsync(Guid tenantId, Guid id, Guid? userId, CancellationToken cancellationToken)
-        => base.SoftDeleteAsync(tenantId, id, userId, cancellationToken);
 }

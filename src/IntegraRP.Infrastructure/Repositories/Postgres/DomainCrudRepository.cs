@@ -5,7 +5,7 @@ namespace IntegraRP.Infrastructure.Repositories.Postgres;
 
 public abstract class DomainCrudRepository(PostgresConnectionFactory connectionFactory, ILogger logger, string tableName)
 {
-    protected async Task<IReadOnlyList<Guid>> ListIdsAsync(Guid tenantId, int page, int pageSize, string? status, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<Guid>> ListIdsAsync(Guid tenantId, int page, int pageSize, string? status, CancellationToken cancellationToken)
     {
         SqlTenantGuard.Ensure(tenantId);
         var (limit, offset) = PaginatedQueryHelper.Normalize(page, pageSize);
@@ -31,7 +31,7 @@ public abstract class DomainCrudRepository(PostgresConnectionFactory connectionF
         }
     }
 
-    protected async Task<bool> SoftDeleteAsync(Guid tenantId, Guid id, Guid? userId, CancellationToken cancellationToken)
+    public async Task<bool> SoftDeleteAsync(Guid tenantId, Guid id, Guid? userId, CancellationToken cancellationToken)
     {
         SqlTenantGuard.Ensure(tenantId);
         var sql = $"""

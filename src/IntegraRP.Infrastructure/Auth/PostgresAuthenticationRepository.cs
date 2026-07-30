@@ -1,4 +1,5 @@
 using IntegraRP.Application.Auth;
+using IntegraRP.Contracts.Auth;
 using IntegraRP.Infrastructure.Repositories.Postgres;
 using Npgsql;
 
