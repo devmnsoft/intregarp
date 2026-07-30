@@ -12,7 +12,7 @@ public sealed class FunctionalValidationController(ILogger<FunctionalValidationC
     public IActionResult EndToEndHealth()
     {
         logger.LogInformation("Validando fluxo end-to-end v1.3 para tenant {TenantId}", TenantId);
-        return Ok(Response("ok", "Fluxo demo v1.3 mapeado com pedido, Flow, faturamento, outbox, BI e auditoria.", "Execute o script completo e consulte integrarp.vw_v13_demo_health.", new[]
+        return Ok(CreateResponse("ok", "Fluxo demo v1.3 mapeado com pedido, Flow, faturamento, outbox, BI e auditoria.", "Execute o script completo e consulte integrarp.vw_v13_demo_health.", new[]
         {
             "tenant demo",
             "pedido confirmado",
@@ -23,19 +23,19 @@ public sealed class FunctionalValidationController(ILogger<FunctionalValidationC
     }
 
     [HttpGet("demo/status")]
-    public IActionResult DemoStatus() => Ok(Response("ok", "Demo v1.3 documentada e sem dependência de dados em memória para validação SQL.", "Siga /docs/end-to-end-demo-v1.3.md.", new[] { "demo-v13", "vw_v13_fluxo_pedido_end_to_end" }));
+    public IActionResult DemoStatus() => Ok(CreateResponse("ok", "Demo v1.3 documentada e sem dependência de dados em memória para validação SQL.", "Siga /docs/end-to-end-demo-v1.3.md.", new[] { "demo-v13", "vw_v13_fluxo_pedido_end_to_end" }));
 
     [HttpGet("repositories/status")]
-    public IActionResult RepositoriesStatus() => Ok(Response("warning", "Inventário de repositories reais e providers sandbox publicado.", "Priorize os itens marcados como 'Trocar agora por PostgreSQL'.", new[] { "tenant_id obrigatório", "sem SELECT *", "SQL parametrizado", "Dapper/PostgreSQL" }));
+    public IActionResult RepositoriesStatus() => Ok(CreateResponse("warning", "Inventário de repositories reais e providers sandbox publicado.", "Priorize os itens marcados como 'Trocar agora por PostgreSQL'.", new[] { "tenant_id obrigatório", "sem SELECT *", "SQL parametrizado", "Dapper/PostgreSQL" }));
 
     [HttpGet("screens/status")]
-    public IActionResult ScreensStatus() => Ok(Response("warning", "Telas principais possuem plano de conexão API e estados vazios inteligentes documentados.", "Validar tela a tela usando /docs/screens-api-connection-status.md.", new[] { "/dashboard", "/orders", "/journey/what-to-do-now", "/ai/chat" }));
+    public IActionResult ScreensStatus() => Ok(CreateResponse("warning", "Telas principais possuem plano de conexão API e estados vazios inteligentes documentados.", "Validar tela a tela usando /docs/screens-api-connection-status.md.", new[] { "/dashboard", "/orders", "/journey/what-to-do-now", "/ai/chat" }));
 
     [HttpGet("tenant-isolation/status")]
-    public IActionResult TenantIsolationStatus() => Ok(Response("ok", "Contrato v1.3 exige tenant_id em toda consulta operacional.", "Executar testes de Tenant A versus Tenant B antes do piloto.", new[] { "tenant_id", "RBAC", RequiredPermission }));
+    public IActionResult TenantIsolationStatus() => Ok(CreateResponse("ok", "Contrato v1.3 exige tenant_id em toda consulta operacional.", "Executar testes de Tenant A versus Tenant B antes do piloto.", new[] { "tenant_id", "RBAC", RequiredPermission }));
 
     [HttpGet("flow/order-to-billing-demo")]
-    public IActionResult OrderToBillingDemo() => Ok(Response("ok", "Demo v1.4 pedido-faturamento-outbox mapeada com PostgreSQL real, Worker e auditoria.", "Executar database/scriptcompleto.sql e validar integrarp.vw_v14_order_to_billing_demo.", new { codigo = "order-to-billing-demo", etapas = new[] { "login", "onboarding", "cliente", "produto", "estoque", "pedido", "flow", "tarefa", "fatura", "titulo", "boleto-fake", "outbox", "worker", "dashboard", "project", "ia", "auditoria" }, idsGerados = new Dictionary<string, string>(), etapaComErro = (string?)null }));
+    public IActionResult OrderToBillingDemo() => Ok(CreateResponse("ok", "Demo v1.4 pedido-faturamento-outbox mapeada com PostgreSQL real, Worker e auditoria.", "Executar database/scriptcompleto.sql e validar integrarp.vw_v14_order_to_billing_demo.", new { codigo = "order-to-billing-demo", etapas = new[] { "login", "onboarding", "cliente", "produto", "estoque", "pedido", "flow", "tarefa", "fatura", "titulo", "boleto-fake", "outbox", "worker", "dashboard", "project", "ia", "auditoria" }, idsGerados = new Dictionary<string, string>(), etapaComErro = (string?)null }));
 
     [HttpGet("flow/customer-full-journey")]
     public IActionResult CustomerFullJourney() => Ok(new
@@ -80,7 +80,7 @@ public sealed class FunctionalValidationController(ILogger<FunctionalValidationC
         };
 
         var status = checks.Values.All(v => v) ? "ok" : "error";
-        return Ok(Response(status, "Validação estática do scriptcompleto.sql para v1.3/v1.4.", "Corrigir checks falsos antes de executar a migration em ambiente compartilhado.", checks));
+        return Ok(CreateResponse(status, "Validação estática do scriptcompleto.sql para v1.3/v1.4.", "Corrigir checks falsos antes de executar a migration em ambiente compartilhado.", checks));
     }
 
     [HttpGet("release-candidate/status")]
@@ -148,7 +148,7 @@ public sealed class FunctionalValidationController(ILogger<FunctionalValidationC
         correlationId = HttpContext.TraceIdentifier
     };
 
-    private static FunctionalValidationResponse Response(string status, string details, string nextAction, object data) =>
+    private static FunctionalValidationResponse CreateResponse(string status, string details, string nextAction, object data) =>
         new(status, details, nextAction, RequiredPermission, data);
 }
 

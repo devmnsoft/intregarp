@@ -530,6 +530,17 @@
       "status": "versionada",
       "observacoes": "Migration aditiva v1.45; migrations 0001 a 0047 permanecem congeladas.",
       "checksum_sha256": "bc7db3f4bf80a8544b1927714fc9a4b54bc72a6ff974732db11ed174effeb12b"
+    },
+    {
+      "ordem": 49,
+      "arquivo": "0049_v147_ciclo_comercial_executavel.sql",
+      "versao": "0049_v147_ciclo_comercial_executavel",
+      "descricao": "Ciclo Comercial Executável: numeração, atividades, idempotência e aprovação",
+      "modulo": "Commercial",
+      "presente_no_script_completop": true,
+      "status": "versionada",
+      "observacoes": "Migration aditiva v1.47; migrations 0001 a 0048 permanecem congeladas.",
+      "checksum_sha256": "c80462a3d77fe861f750c35602fd7806f357703d6eaee73c8a0b701918ddaeda"
     }
   ],
   "postgresql": "16",

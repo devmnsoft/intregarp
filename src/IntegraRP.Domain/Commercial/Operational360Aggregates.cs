@@ -35,6 +35,19 @@ public sealed class Customer
     public IReadOnlyList<CustomerAddress> Addresses => _addresses;
     public static Customer Create(Guid tenantId, CustomerKind kind, string name, string? document, string? email, string? phone, Guid actorId)
         => new(Guid.NewGuid(), tenantId, kind, name, document, email, phone, actorId);
+    public static Customer Rehydrate(Guid id, Guid tenantId, CustomerKind kind, string name, string? tradeName,
+        string? document, string? email, string? phone, Guid? commercialOwnerId, bool active, long rowVersion,
+        Guid updatedBy, IEnumerable<CustomerContact>? contacts = null, IEnumerable<CustomerAddress>? addresses = null)
+    {
+        if (rowVersion < 1) throw new ArgumentOutOfRangeException(nameof(rowVersion));
+        var customer = new Customer(id, tenantId, kind, name, document, email, phone, updatedBy)
+        {
+            TradeName = tradeName?.Trim(), CommercialOwnerId = commercialOwnerId, Active = active, RowVersion = rowVersion
+        };
+        if (contacts is not null) customer._contacts.AddRange(contacts);
+        if (addresses is not null) customer._addresses.AddRange(addresses);
+        return customer;
+    }
     public void ChangeName(string value, Guid actorId) { Name = Required(value, "Nome"); Touch(actorId); }
     public void ChangeTradeName(string? value, Guid actorId) { TradeName = value?.Trim(); Touch(actorId); }
     public void ChangeDocument(string? value, Guid actorId) { Document = value?.Trim(); Touch(actorId); }
@@ -69,11 +82,22 @@ public sealed class CommercialOpportunity
 {
     private CommercialOpportunity(Guid tenantId, Guid customerId, string name, Guid ownerId, decimal expectedValue, DateOnly expectedCloseDate)
     { if (tenantId == Guid.Empty || customerId == Guid.Empty || ownerId == Guid.Empty) throw new ArgumentException("Tenant, cliente e responsável são obrigatórios."); Id = Guid.NewGuid(); TenantId = tenantId; CustomerId = customerId; Name = Required(name); OwnerId = ownerId; ExpectedValue = expectedValue >= 0 ? expectedValue : throw new ArgumentOutOfRangeException(nameof(expectedValue)); ExpectedCloseDate = expectedCloseDate; Stage = OpportunityStage.New; Probability = 10; RowVersion = 1; }
-    public Guid Id { get; } public Guid TenantId { get; } public Guid CustomerId { get; } public string Name { get; private set; }
+    public Guid Id { get; private set; } public Guid TenantId { get; } public Guid CustomerId { get; } public string Name { get; private set; }
     public Guid OwnerId { get; private set; } public OpportunityStage Stage { get; private set; } public int Probability { get; private set; }
     public decimal ExpectedValue { get; private set; } public DateOnly ExpectedCloseDate { get; private set; } public string? NextAction { get; private set; }
     public DateTimeOffset? NextActionAt { get; private set; } public string? LossReason { get; private set; } public long RowVersion { get; private set; }
     public static CommercialOpportunity Create(Guid tenantId, Guid customerId, string name, Guid ownerId, decimal value, DateOnly closeDate) => new(tenantId, customerId, name, ownerId, value, closeDate);
+    public static CommercialOpportunity Rehydrate(Guid id, Guid tenantId, Guid customerId, string name, Guid ownerId,
+        OpportunityStage stage, int probability, decimal expectedValue, DateOnly expectedCloseDate, string? nextAction,
+        DateTimeOffset? nextActionAt, string? lossReason, long rowVersion)
+    {
+        if (id == Guid.Empty || rowVersion < 1) throw new ArgumentException("Identificador e versão persistida são obrigatórios.");
+        if (probability is < 0 or > 100) throw new ArgumentOutOfRangeException(nameof(probability));
+        var opportunity = new CommercialOpportunity(tenantId, customerId, name, ownerId, expectedValue, expectedCloseDate)
+        { Id = id, Stage = stage, Probability = probability, NextAction = nextAction, NextActionAt = nextActionAt,
+          LossReason = lossReason, RowVersion = rowVersion };
+        return opportunity;
+    }
     public void Rename(string value) { EnsureOpen(); Name = Required(value); Touch(); }
     public void AssignOwner(Guid ownerId) { EnsureOpen(); OwnerId = ownerId != Guid.Empty ? ownerId : throw new ArgumentException("Responsável obrigatório."); Touch(); }
     public void ChangeStage(OpportunityStage stage) { EnsureOpen(); Stage = stage; Touch(); }
@@ -96,12 +120,26 @@ public sealed class SalesQuote
 {
     private readonly List<SalesQuoteItem> _items = [];
     private SalesQuote(Guid tenantId, Guid customerId, string number, DateOnly validity) { if (tenantId == Guid.Empty || customerId == Guid.Empty) throw new ArgumentException("Tenant e cliente obrigatórios."); Id = Guid.NewGuid(); TenantId = tenantId; CustomerId = customerId; Number = Required(number); ChangeValidity(validity); Status = QuoteStatus.Draft; RowVersion = 1; }
-    public Guid Id { get; } public Guid TenantId { get; } public Guid CustomerId { get; private set; } public string Number { get; }
+    public Guid Id { get; private set; } public Guid TenantId { get; } public Guid CustomerId { get; private set; } public string Number { get; }
     public DateOnly Validity { get; private set; } public QuoteStatus Status { get; private set; } public decimal GlobalDiscountPercent { get; private set; }
     public decimal Subtotal { get; private set; } public decimal Discount { get; private set; } public decimal Total { get; private set; }
     public Guid? ApprovedBy { get; private set; } public DateTimeOffset? ApprovedAt { get; private set; } public string? RejectionReason { get; private set; }
     public long RowVersion { get; private set; } public IReadOnlyList<SalesQuoteItem> Items => _items;
     public static SalesQuote CreateDraft(Guid tenantId, Guid customerId, string number, DateOnly validity) => new(tenantId, customerId, number, validity);
+    public static SalesQuote Rehydrate(Guid id, Guid tenantId, Guid customerId, string number, DateOnly validity,
+        QuoteStatus status, decimal globalDiscountPercent, Guid? approvedBy, DateTimeOffset? approvedAt,
+        string? rejectionReason, long rowVersion, IEnumerable<SalesQuoteItem>? items = null)
+    {
+        if (id == Guid.Empty || rowVersion < 1) throw new ArgumentException("Identificador e versão persistida são obrigatórios.");
+        ValidateDiscount(globalDiscountPercent);
+        var quote = new SalesQuote(tenantId, customerId, number, validity)
+        { Id = id, Status = status, GlobalDiscountPercent = globalDiscountPercent, ApprovedBy = approvedBy,
+          ApprovedAt = approvedAt, RejectionReason = rejectionReason };
+        if (items is not null) quote._items.AddRange(items);
+        quote.Recalculate();
+        quote.RowVersion = rowVersion;
+        return quote;
+    }
     public void ChangeCustomer(Guid id) { EnsureDraft(); CustomerId = id != Guid.Empty ? id : throw new ArgumentException("Cliente obrigatório."); Touch(); }
     public void ChangeValidity(DateOnly value) { EnsureMutable(); if (value < DateOnly.FromDateTime(DateTime.UtcNow)) throw new ArgumentException("Validade não pode estar no passado."); Validity = value; Touch(); }
     public SalesQuoteItem AddItem(Guid productId, string description, decimal quantity, decimal serverPrice) { EnsureDraft(); ValidateLine(productId, quantity, serverPrice, 0); var item = new SalesQuoteItem(Guid.NewGuid(), productId, Required(description), quantity, serverPrice, 0); _items.Add(item); Recalculate(); return item; }

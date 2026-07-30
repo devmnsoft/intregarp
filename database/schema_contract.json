@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "contract": "Banco Canônico Integrarp v1.45",
-  "productVersion": "v1.45",
+  "contract": "Banco Canônico Integrarp v1.47",
+  "productVersion": "v1.47",
   "postgresqlMajor": 16,
   "schemas": [
     "integrarp"
@@ -814,6 +814,38 @@
     },
     {
       "schema": "integrarp",
+      "name": "commercial_activity",
+      "type": "table",
+      "module": "Commercial",
+      "originMigration": "0049_v147_ciclo_comercial_executavel.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.commercial_activity ( commercial_activity_id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, oportunidade_id uuid NULL, cliente_id uuid NULL, responsavel_id uuid NOT NULL, tipo varchar(24) NOT NULL, assunto varchar(200) NOT NULL, descricao text NULL, agendada_em timestamptz NOT NULL, concluida_em timestamptz NULL, cancelada_em timestamptz NULL, motivo_cancelamento text NULL, row_version bigint NOT NULL DEFAULT 1, criado_em timestamptz NOT NULL DEFAULT now(), atualizado_em timestamptz NOT NULL DEFAULT now(), CONSTRAINT ck_commercial_activity_tipo CHECK (tipo IN ('ligacao','reuniao','email','tarefa','follow_up','anotacao')), CONSTRAINT ck_commercial_activity_version CHECK (row_version > 0) );",
+      "definitionChecksumSha256": "792694d34199cacfdb967521b6289246f7d31cba76d40a03b0d5f624676c01f4",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "commercial_idempotency",
+      "type": "table",
+      "module": "Commercial",
+      "originMigration": "0049_v147_ciclo_comercial_executavel.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.commercial_idempotency ( tenant_id uuid NOT NULL, operation varchar(80) NOT NULL, idempotency_key varchar(160) NOT NULL, resource_id uuid NOT NULL, response_json jsonb NULL, criado_em timestamptz NOT NULL DEFAULT now(), CONSTRAINT pk_commercial_idempotency PRIMARY KEY (tenant_id, operation, idempotency_key) );",
+      "definitionChecksumSha256": "67a1f5b31bead49ea98e5030c435155b76fb030d3e7342bfdbb073a701d73ef2",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
       "name": "connect_configuracao",
       "type": "table",
       "module": "Database",
@@ -906,6 +938,22 @@
       "active": true,
       "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.dashboard_widget (dashboard_widget_id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NULL, nome varchar(180) NULL, status varchar(40) NOT NULL DEFAULT 'ativo', criado_em timestamptz NOT NULL DEFAULT now(), atualizado_em timestamptz NULL, excluido_em timestamptz NULL, metadata_json jsonb NOT NULL DEFAULT '{}'::jsonb);",
       "definitionChecksumSha256": "b909ca3de44d18e9c14d4055cc740fe35e9fd7a4986d125af6cce8e63af53466",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "discount_approval_decision",
+      "type": "table",
+      "module": "Commercial",
+      "originMigration": "0049_v147_ciclo_comercial_executavel.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.discount_approval_decision ( discount_approval_decision_id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, orcamento_id uuid NOT NULL, solicitante_id uuid NOT NULL, aprovador_id uuid NULL, percentual numeric(7,4) NOT NULL, status varchar(16) NOT NULL DEFAULT 'pendente', motivo text NULL, decidido_em timestamptz NULL, criado_em timestamptz NOT NULL DEFAULT now(), CONSTRAINT ck_discount_approval_percent CHECK (percentual BETWEEN 0 AND 100), CONSTRAINT ck_discount_approval_status CHECK (status IN ('pendente','aprovado','rejeitado')), CONSTRAINT ck_discount_approval_rejection CHECK (status <> 'rejeitado' OR length(trim(motivo)) > 0) );",
+      "definitionChecksumSha256": "252481c4fcdbcc1b8a6c216a224297ad976895b8616e82e38d1a98f7843fb832",
       "dependencies": []
     },
     {
@@ -2922,6 +2970,22 @@
       "active": true,
       "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.notificacao_usuario ( id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, usuario_id uuid NOT NULL, tipo text NOT NULL, titulo text NOT NULL, mensagem text NOT NULL, icone text, url text, prioridade text NOT NULL DEFAULT 'normal', lida_em timestamptz, criado_em timestamptz NOT NULL DEFAULT now(), correlation_id text NOT NULL, row_version bigint NOT NULL DEFAULT 1, CONSTRAINT ck_notificacao_usuario_tipo CHECK (length(btrim(tipo)) BETWEEN 1 AND 80), CONSTRAINT ck_notificacao_usuario_titulo CHECK (length(btrim(titulo)) BETWEEN 1 AND 180), CONSTRAINT ck_notificacao_usuario_mensagem CHECK (length(btrim(mensagem)) BETWEEN 1 AND 2000), CONSTRAINT ck_notificacao_usuario_prioridade CHECK (prioridade IN ('baixa', 'normal', 'alta', 'urgente')), CONSTRAINT ck_notificacao_usuario_correlation CHECK (length(btrim(correlation_id)) BETWEEN 1 AND 160), CONSTRAINT ck_notificacao_usuario_row_version CHECK (row_version > 0) );",
       "definitionChecksumSha256": "984030a977dba622e02a56b871b3083757dfd648721079842235863ba478164e",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "numeracao_comercial",
+      "type": "table",
+      "module": "Commercial",
+      "originMigration": "0049_v147_ciclo_comercial_executavel.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.numeracao_comercial ( tenant_id uuid NOT NULL, tipo varchar(20) NOT NULL, ano integer NOT NULL, proximo_numero bigint NOT NULL DEFAULT 1, atualizado_em timestamptz NOT NULL DEFAULT now(), CONSTRAINT pk_numeracao_comercial PRIMARY KEY (tenant_id, tipo, ano), CONSTRAINT ck_numeracao_comercial_tipo CHECK (tipo IN ('orcamento','pedido')), CONSTRAINT ck_numeracao_comercial_valor CHECK (proximo_numero > 0) );",
+      "definitionChecksumSha256": "302d88c3fa54c3f60e8dbf9be4571f971b6840d9adf033304a7a464a059545e3",
       "dependencies": []
     },
     {
@@ -8678,6 +8742,70 @@
     },
     {
       "schema": "integrarp",
+      "name": "ck_commercial_activity_tipo",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0049_v147_ciclo_comercial_executavel.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT ck_commercial_activity_tipo CHECK (tipo IN ('ligacao',",
+      "definitionChecksumSha256": "84e62057ea60ea8ef063328cdd6c05a6d217075340682db44f5e8d50432c13ae",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_commercial_activity_version",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0049_v147_ciclo_comercial_executavel.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT ck_commercial_activity_version CHECK (row_version > 0) )",
+      "definitionChecksumSha256": "12fc94b1af1ee37def0066e5e4cb6ca2c30496c6d0c4edf7ec149df10f0c507e",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_discount_approval_percent",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0049_v147_ciclo_comercial_executavel.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT ck_discount_approval_percent CHECK (percentual BETWEEN 0 AND 100),",
+      "definitionChecksumSha256": "a472ccca97d615d1a733ebb025efa05199151232e5b0218e2b8c7dad234b4a4f",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_discount_approval_rejection",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0049_v147_ciclo_comercial_executavel.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT ck_discount_approval_rejection CHECK (status <> 'rejeitado' OR length(trim(motivo)) > 0) )",
+      "definitionChecksumSha256": "15c8bd81ceb26637818cf5d8a399b8fab3ce5b6c6ce2f5c4816fc8b4e8420a50",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
       "name": "ck_entrega_status",
       "type": "constraint",
       "module": "Commercial",
@@ -9362,6 +9490,38 @@
       "active": true,
       "canonicalDefinition": ", CONSTRAINT ck_notificacao_usuario_tipo CHECK (length(btrim(tipo)) BETWEEN 1 AND 80),",
       "definitionChecksumSha256": "492f3db945bb29fdd43cac6bad89dec1cc22d3b0d10f4808a48660de9ad0e936",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_numeracao_comercial_tipo",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0049_v147_ciclo_comercial_executavel.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT ck_numeracao_comercial_tipo CHECK (tipo IN ('orcamento',",
+      "definitionChecksumSha256": "a0c06b071a7dcaf08c3f175a8ac2cdc15eb165fa2e273e25729d5087e8682b72",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_numeracao_comercial_valor",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0049_v147_ciclo_comercial_executavel.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT ck_numeracao_comercial_valor CHECK (proximo_numero > 0) )",
+      "definitionChecksumSha256": "e1b6df5c870961b37f7b2d248477cd62caaa60eaa711faddfd7533e70b24e627",
       "dependencies": []
     },
     {
@@ -10854,6 +11014,22 @@
     },
     {
       "schema": "integrarp",
+      "name": "pk_commercial_idempotency",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0049_v147_ciclo_comercial_executavel.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT pk_commercial_idempotency PRIMARY KEY (tenant_id,",
+      "definitionChecksumSha256": "bce5cfd5ecc287ba529445a81368a8e59d2071c50f98a3652ab9ef979710909e",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
       "name": "pk_documento_gerado_v145",
       "type": "constraint",
       "module": "Commercial",
@@ -10994,6 +11170,22 @@
       "active": true,
       "canonicalDefinition": ", CONSTRAINT pk_historico_operacional_v145 PRIMARY KEY(tenant_id,",
       "definitionChecksumSha256": "1e849759269004e5b2df06a6929b6b0c2a082f5a9d9fc947ac873a3b4b7bfbda",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "pk_numeracao_comercial",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0049_v147_ciclo_comercial_executavel.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT pk_numeracao_comercial PRIMARY KEY (tenant_id,",
+      "definitionChecksumSha256": "4317bdbbbc32698348e14bac491795e3539470dc9f26baec98756fa629899f4b",
       "dependencies": []
     },
     {
@@ -13436,6 +13628,24 @@
     },
     {
       "schema": "integrarp",
+      "name": "ix_commercial_activity_tenant_due",
+      "type": "index",
+      "module": "Commercial",
+      "originMigration": "0049_v147_ciclo_comercial_executavel.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE INDEX IF NOT EXISTS ix_commercial_activity_tenant_due ON integrarp.commercial_activity (tenant_id, agendada_em) WHERE concluida_em IS NULL AND cancelada_em IS NULL;",
+      "definitionChecksumSha256": "1079cd95392bc91845478c134cea9e54c6e061e3b2bc92920153aee6af4fadc5",
+      "dependencies": [
+        "integrarp.commercial_activity"
+      ]
+    },
+    {
+      "schema": "integrarp",
       "name": "ix_dashboard_configuracao_tenant",
       "type": "index",
       "module": "Database",
@@ -13468,6 +13678,24 @@
       "definitionChecksumSha256": "f354c0e3f874f2decf3490b00949ceafafe2bf06289f876982067e57b2793073",
       "dependencies": [
         "integrarp.dashboard_widget"
+      ]
+    },
+    {
+      "schema": "integrarp",
+      "name": "ix_discount_approval_tenant_status",
+      "type": "index",
+      "module": "Commercial",
+      "originMigration": "0049_v147_ciclo_comercial_executavel.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE INDEX IF NOT EXISTS ix_discount_approval_tenant_status ON integrarp.discount_approval_decision (tenant_id, status, criado_em DESC);",
+      "definitionChecksumSha256": "bcf8248ee902c3f3bd37321abe6546529c938f15c7eb53b24b5f40eb0ff94bae",
+      "dependencies": [
+        "integrarp.discount_approval_decision"
       ]
     },
     {

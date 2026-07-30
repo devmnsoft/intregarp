@@ -1,12 +1,12 @@
 -- Produto: IntegraRP
--- Versão: v1.45
+-- Versão: v1.47
 -- PostgreSQL: 16
 -- Schema: integrarp
 -- Arquivo principal: database/scriptcompleto.sql
--- Quantidade de migrations: 48
+-- Quantidade de migrations: 49
 -- Data UTC determinística: 2026-07-30T00:00:00Z
--- Checksum SHA-256: 65cb047b7575ecded9fb3c14127e00830e493be8704491929ccfda37f87b486f
--- Contrato: Banco Canônico Integrarp v1.45
+-- Checksum SHA-256: 69aacb92d174eba36247a4c46a8dcdf4c1b02892cdd7b74f672309b1f416f7e4
+-- Contrato: Banco Canônico Integrarp v1.47
 -- Execução:
 -- psql -X "$POSTGRES_URI" --set ON_ERROR_STOP=1 --file database/scriptcompleto.sql
 -- Gerado automaticamente; não editar os arquivos de saída.
@@ -16,7 +16,7 @@ DO $version_check$
 BEGIN
   IF current_setting('server_version_num')::integer < 160000
      OR current_setting('server_version_num')::integer >= 170000 THEN
-    RAISE EXCEPTION 'IntegraRP v1.45 requer PostgreSQL 16; encontrado %', current_setting('server_version');
+    RAISE EXCEPTION 'IntegraRP v1.47 requer PostgreSQL 16; encontrado %', current_setting('server_version');
   END IF;
 END
 $version_check$;
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS integrarp.schema_contract (
     CONSTRAINT ck_schema_contract_postgresql CHECK (postgresql_major = 16),
     CONSTRAINT ck_schema_contract_schema CHECK (schema_name = 'integrarp')
 );
-SELECT pg_advisory_lock(14520260730);
+SELECT pg_advisory_lock(14720260730);
 BEGIN;
 
 -- >>> 0001_initial_integrarp.sql
@@ -1713,6 +1713,21 @@ INSERT INTO integrarp.processo_definicao (nome, codigo, status) SELECT 'Checagem
 INSERT INTO integrarp.processo_definicao (nome, codigo, status) SELECT 'Precificação no Ponto de Venda', lower(regexp_replace('Precificação no Ponto de Venda', '[^a-zA-Z0-9]+', '-', 'g')), 'template' WHERE NOT EXISTS (SELECT 1 FROM integrarp.processo_definicao WHERE nome = 'Precificação no Ponto de Venda');
 
 -- <<< 0001_initial_integrarp.sql
+
+-- >>> compatibilidade estrutural canônica (não é migration histórica)
+ALTER TABLE IF EXISTS integrarp.processo_definicao ADD COLUMN IF NOT EXISTS processo_definicao_id uuid;
+ALTER TABLE IF EXISTS integrarp.processo_versao ADD COLUMN IF NOT EXISTS processo_versao_id uuid;
+ALTER TABLE IF EXISTS integrarp.processo_versao ADD COLUMN IF NOT EXISTS processo_definicao_id uuid;
+ALTER TABLE IF EXISTS integrarp.processo_elemento ADD COLUMN IF NOT EXISTS processo_elemento_id uuid;
+ALTER TABLE IF EXISTS integrarp.processo_elemento ADD COLUMN IF NOT EXISTS processo_versao_id uuid;
+ALTER TABLE IF EXISTS integrarp.processo_transicao ADD COLUMN IF NOT EXISTS processo_transicao_id uuid;
+ALTER TABLE IF EXISTS integrarp.processo_transicao ADD COLUMN IF NOT EXISTS processo_versao_id uuid;
+ALTER TABLE IF EXISTS integrarp.processo_instancia ADD COLUMN IF NOT EXISTS processo_instancia_id uuid;
+ALTER TABLE IF EXISTS integrarp.processo_instancia ADD COLUMN IF NOT EXISTS processo_definicao_id uuid;
+ALTER TABLE IF EXISTS integrarp.processo_instancia ADD COLUMN IF NOT EXISTS processo_versao_id uuid;
+ALTER TABLE IF EXISTS integrarp.processo_variavel ADD COLUMN IF NOT EXISTS processo_variavel_id uuid;
+ALTER TABLE IF EXISTS integrarp.processo_variavel ADD COLUMN IF NOT EXISTS processo_instancia_id uuid;
+-- <<< compatibilidade estrutural canônica
 
 -- >>> 0003_flow_bpmn_core.sql
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
@@ -8563,6 +8578,79 @@ ON CONFLICT(contract_name) DO UPDATE SET product_version=EXCLUDED.product_versio
 
 -- <<< 0048_v145_produto_operacional_360.sql
 
+-- >>> 0049_v147_ciclo_comercial_executavel.sql
+-- IntegraRP v1.47 — suporte transacional ao ciclo comercial executável.
+CREATE TABLE IF NOT EXISTS integrarp.numeracao_comercial (
+  tenant_id uuid NOT NULL,
+  tipo varchar(20) NOT NULL,
+  ano integer NOT NULL,
+  proximo_numero bigint NOT NULL DEFAULT 1,
+  atualizado_em timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT pk_numeracao_comercial PRIMARY KEY (tenant_id, tipo, ano),
+  CONSTRAINT ck_numeracao_comercial_tipo CHECK (tipo IN ('orcamento','pedido')),
+  CONSTRAINT ck_numeracao_comercial_valor CHECK (proximo_numero > 0)
+);
+
+CREATE TABLE IF NOT EXISTS integrarp.commercial_activity (
+  commercial_activity_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL,
+  oportunidade_id uuid NULL,
+  cliente_id uuid NULL,
+  responsavel_id uuid NOT NULL,
+  tipo varchar(24) NOT NULL,
+  assunto varchar(200) NOT NULL,
+  descricao text NULL,
+  agendada_em timestamptz NOT NULL,
+  concluida_em timestamptz NULL,
+  cancelada_em timestamptz NULL,
+  motivo_cancelamento text NULL,
+  row_version bigint NOT NULL DEFAULT 1,
+  criado_em timestamptz NOT NULL DEFAULT now(),
+  atualizado_em timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT ck_commercial_activity_tipo CHECK (tipo IN ('ligacao','reuniao','email','tarefa','follow_up','anotacao')),
+  CONSTRAINT ck_commercial_activity_version CHECK (row_version > 0)
+);
+CREATE INDEX IF NOT EXISTS ix_commercial_activity_tenant_due
+  ON integrarp.commercial_activity (tenant_id, agendada_em)
+  WHERE concluida_em IS NULL AND cancelada_em IS NULL;
+
+CREATE TABLE IF NOT EXISTS integrarp.commercial_idempotency (
+  tenant_id uuid NOT NULL,
+  operation varchar(80) NOT NULL,
+  idempotency_key varchar(160) NOT NULL,
+  resource_id uuid NOT NULL,
+  response_json jsonb NULL,
+  criado_em timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT pk_commercial_idempotency PRIMARY KEY (tenant_id, operation, idempotency_key)
+);
+
+CREATE TABLE IF NOT EXISTS integrarp.discount_approval_decision (
+  discount_approval_decision_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL,
+  orcamento_id uuid NOT NULL,
+  solicitante_id uuid NOT NULL,
+  aprovador_id uuid NULL,
+  percentual numeric(7,4) NOT NULL,
+  status varchar(16) NOT NULL DEFAULT 'pendente',
+  motivo text NULL,
+  decidido_em timestamptz NULL,
+  criado_em timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT ck_discount_approval_percent CHECK (percentual BETWEEN 0 AND 100),
+  CONSTRAINT ck_discount_approval_status CHECK (status IN ('pendente','aprovado','rejeitado')),
+  CONSTRAINT ck_discount_approval_rejection CHECK (status <> 'rejeitado' OR length(trim(motivo)) > 0)
+);
+CREATE INDEX IF NOT EXISTS ix_discount_approval_tenant_status
+  ON integrarp.discount_approval_decision (tenant_id, status, criado_em DESC);
+
+INSERT INTO integrarp.schema_contract (
+  contract_name, product_version, postgresql_major, schema_name, migration_count, manifest_generated_at_utc
+) VALUES ('Banco Canônico Integrarp v1.47', 'v1.47', 16, 'integrarp', 49, '2026-07-30T00:00:00Z'::timestamptz)
+ON CONFLICT (contract_name) DO UPDATE SET product_version=EXCLUDED.product_version,
+  migration_count=EXCLUDED.migration_count, manifest_generated_at_utc=EXCLUDED.manifest_generated_at_utc,
+  updated_at=now();
+
+-- <<< 0049_v147_ciclo_comercial_executavel.sql
+
 DO $final_validation$
 BEGIN
   IF to_regnamespace('integrarp') IS NULL THEN RAISE EXCEPTION 'Schema integrarp ausente'; END IF;
@@ -8573,4 +8661,4 @@ BEGIN
 END
 $final_validation$;
 COMMIT;
-SELECT pg_advisory_unlock(14520260730);
+SELECT pg_advisory_unlock(14720260730);

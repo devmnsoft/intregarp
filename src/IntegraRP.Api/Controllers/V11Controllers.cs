@@ -41,7 +41,7 @@ public sealed class AttachmentsController(IAttachmentUseCases useCases) : V11Con
 }
 
 [Route("api/legacy/notifications")]
-public sealed class NotificationsController(INotificationUseCases useCases) : V11ControllerBase
+public sealed class LegacyNotificationsController(INotificationUseCases useCases) : V11ControllerBase
 {
     [HttpPost] public async Task<IActionResult> Create([FromBody] NotificationCommand command, CancellationToken ct) => ToActionResult(this, await useCases.CreateAsync(command, ct));
     [HttpPost("{id:guid}/read")] public async Task<IActionResult> Read(Guid id, [FromBody] NotificationCommand command, CancellationToken ct) => ToActionResult(this, await useCases.MarkAsReadAsync(id, command, ct));

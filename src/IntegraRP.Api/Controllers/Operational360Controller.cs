@@ -1,4 +1,4 @@
-using System.Security.Claims;
+using IntegraRP.Api.Security;
 using IntegraRP.Application.Commercial;
 using IntegraRP.Contracts.Commercial;
 using Microsoft.AspNetCore.Authorization;
@@ -8,11 +8,11 @@ namespace IntegraRP.Api.Controllers;
 
 [ApiController]
 [Authorize]
-public sealed class Operational360Controller(CommercialOperationsUseCases useCases) : ControllerBase
+public sealed class Operational360Controller(CommercialOperationsUseCases useCases, ICurrentUserContext executionContext) : ControllerBase
 {
-    private Guid TenantId => RequiredClaim("tenant_id");
-    private Guid UserId => RequiredClaim(ClaimTypes.NameIdentifier, "sub");
-    private string CorrelationId => HttpContext.TraceIdentifier;
+    private Guid TenantId => RequireIdentity(executionContext.TenantId, "tenant");
+    private Guid UserId => RequireIdentity(executionContext.UserId, "usuário");
+    private string CorrelationId => executionContext.CorrelationId;
 
     [Authorize(Policy="customers.view")][HttpGet("api/customers/{customerId:guid}/contacts")]
     public async Task<IActionResult> Contacts(Guid customerId,CancellationToken ct)=>Ok(await useCases.ListContactsAsync(TenantId,customerId,ct));
@@ -55,6 +55,6 @@ public sealed class Operational360Controller(CommercialOperationsUseCases useCas
     [Authorize(Policy="quote-approvals.decide")][HttpPost("api/quotes/{id:guid}/reject")]
     public async Task<IActionResult> Reject(Guid id,QuoteDecisionRequest request,CancellationToken ct)=>Ok(await useCases.DecideQuoteAsync(TenantId,UserId,id,false,request,CorrelationId,ct));
 
-    private Guid RequiredClaim(params string[] names)
-    { foreach(var name in names) if(Guid.TryParse(User.FindFirst(name)?.Value,out var id)) return id; throw new UnauthorizedAccessException("Identidade autenticada inválida."); }
+    private static Guid RequireIdentity(Guid value, string field) =>
+        value != Guid.Empty ? value : throw new UnauthorizedAccessException($"Contexto de {field} ausente ou inválido.");
 }
