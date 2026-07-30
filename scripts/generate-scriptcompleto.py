@@ -38,11 +38,9 @@ for entry in entries:
     if re.search(r'\b(?:SET\s+(?:LOCAL\s+)?search_path|set_config\s*\(\s*[\'\"]search_path)',text,re.I): raise SystemExit(f"search_path proibido: {entry['arquivo']}")
     if re.search(r'(?<![\w])(?:public|integra|dbo)\.',text,re.I): raise SystemExit(f"Schema proibido: {entry['arquivo']}")
     parts.append((entry['arquivo'], f"-- >>> {entry['arquivo']}\n{text}\n-- <<< {entry['arquivo']}\n"))
-# A reconciliação 0047 precisa preceder 0003 em instalações limpas porque 0001 já
-# contém as tabelas legadas. Ela permanece também na posição 0047 para rastreabilidade.
-first, rest = parts[0], parts[1:]
-convergence = next(part for name, part in rest if name == '0047_v143_convergencia_executavel.sql')
-body='\n'.join([first[1], convergence] + [part for _, part in rest])
+# A instalação canônica respeita estritamente a ordem do manifesto. Reconciliações
+# históricas não são promovidas nem executadas duas vezes.
+body='\n'.join(part for _, part in parts)
 body_checksum=sha(body.encode())
 lock_key=145_2026_0730
 header=f'''-- Produto: IntegraRP
@@ -70,6 +68,18 @@ $version_check$;
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE SCHEMA IF NOT EXISTS integrarp;
+CREATE TABLE IF NOT EXISTS integrarp.schema_contract (
+    contract_name text PRIMARY KEY,
+    product_version text NOT NULL,
+    postgresql_major integer NOT NULL,
+    schema_name text NOT NULL,
+    migration_count integer NOT NULL,
+    manifest_generated_at_utc timestamptz NOT NULL,
+    installed_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now(),
+    CONSTRAINT ck_schema_contract_postgresql CHECK (postgresql_major = 16),
+    CONSTRAINT ck_schema_contract_schema CHECK (schema_name = 'integrarp')
+);
 SELECT pg_advisory_lock({lock_key});
 BEGIN;
 

@@ -2,16 +2,24 @@ using System.Data;
 using Dapper;
 using IntegraRP.Infrastructure.Data;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 
 namespace IntegraRP.Infrastructure.Repositories.Postgres;
 
 public sealed class PostgresConnectionFactory(IDbConnectionFactory inner, ILogger<PostgresConnectionFactory> logger)
 {
-    public async Task<IDbConnection> OpenAsync(CancellationToken cancellationToken)
+    public async Task<NpgsqlConnection> OpenAsync(CancellationToken cancellationToken)
     {
         try
         {
-            return await inner.OpenConnectionAsync(cancellationToken);
+            var connection = await inner.OpenConnectionAsync(cancellationToken);
+            if (connection is NpgsqlConnection postgresConnection)
+            {
+                return postgresConnection;
+            }
+
+            connection.Dispose();
+            throw new InvalidOperationException("A fábrica PostgreSQL deve retornar uma NpgsqlConnection.");
         }
         catch (Exception ex)
         {
