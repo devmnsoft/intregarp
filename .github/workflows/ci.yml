@@ -1,4 +1,4 @@
-name: IntegraRP CI v1.43 — Convergência Executável
+name: IntegraRP CI v1.44 — Fundação Verde
 
 on:
   push:
@@ -534,6 +534,6 @@ jobs:
     needs: [release-gate]
     steps:
       - uses: actions/checkout@v4
-      - run: mkdir -p artifacts/v143/database && cp database/scriptcompleto.sql database/script_completop.sql database/validate_scriptcompleto.sql database/validate_script_completop.sql database/schema_inventory.json database/migration_manifest.json artifacts/v143/database/
+      - run: mkdir -p artifacts/v144/database && cp database/scriptcompleto.sql database/script_completop.sql database/validate_scriptcompleto.sql database/validate_script_completop.sql database/schema_inventory.json database/migration_manifest.json artifacts/v144/database/
       - uses: actions/upload-artifact@v4
-        with: { name: "v143-diagnostic-${{ github.run_id }}", path: artifacts/v143, retention-days: 30 }
+        with: { name: "v144-diagnostic-${{ github.run_id }}", path: artifacts/v143, retention-days: 30 }
