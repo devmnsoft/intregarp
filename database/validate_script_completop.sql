@@ -1,8 +1,8 @@
 -- Produto: IntegraRP
--- Versao: v1.43
+-- Versao: v1.47
 -- PostgreSQL: 16
 -- Schema: integrarp
--- Validador executavel do contrato canônico v1.43.
+-- Validador executavel do contrato canônico v1.47.
 \set ON_ERROR_STOP on
 
 DO $validation$
@@ -17,13 +17,13 @@ BEGIN
         RAISE EXCEPTION 'Schema canônico integrarp ausente';
     END IF;
     IF to_regclass('integrarp.schema_contract') IS NULL THEN
-        RAISE EXCEPTION 'Contrato v1.43 ausente';
+        RAISE EXCEPTION 'Contrato v1.47 ausente';
     END IF;
     IF EXISTS (SELECT 1 FROM pg_catalog.pg_namespace WHERE nspname IN ('integra','dbo')) THEN
         RAISE EXCEPTION 'Schema proibido integra ou dbo detectado';
     END IF;
-    IF EXISTS (SELECT 1 FROM integrarp.schema_contract WHERE contract_name='Banco Canônico Integrarp v1.43' AND migration_count <> 47) THEN
-        RAISE EXCEPTION 'Quantidade de migrations do contrato v1.43 divergente';
+    IF EXISTS (SELECT 1 FROM integrarp.schema_contract WHERE contract_name='Banco Canônico Integrarp v1.47' AND migration_count <> 49) THEN
+        RAISE EXCEPTION 'Quantidade de migrations do contrato v1.47 divergente';
     END IF;
 
     SELECT string_agg(required.object_name, ', ' ORDER BY required.object_name)
@@ -33,7 +33,8 @@ BEGIN
         ('estoque_saldo'), ('estoque_movimento'), ('estoque_reserva'),
         ('tarefa_operacional'), ('auditoria_evento'), ('outbox_evento'),
         ('worker_tenant_job_lock'), ('worker_dead_letter'), ('processo_instancia'),
-        ('pedido_numeracao'), ('usuario_preferencia'), ('notificacao_usuario')
+        ('pedido_numeracao'), ('numeracao_comercial'), ('commercial_activity'),
+        ('commercial_idempotency'), ('discount_approval_decision'), ('usuario_preferencia'), ('notificacao_usuario')
       ) AS required(object_name)
      WHERE to_regclass('integrarp.' || required.object_name) IS NULL;
     IF missing IS NOT NULL THEN

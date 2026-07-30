@@ -1,0 +1,7 @@
+generator=generate-scriptcompleto.py
+migrations=49
+body_sha256=69aacb92d174eba36247a4c46a8dcdf4c1b02892cdd7b74f672309b1f416f7e4
+file_sha256=d77eed28fd5955efe98a5b556cac02b9e297e0938910794de0ae1625c2bf73b1
+alias_identical=true
+objects=1376
+counts={"constraint": 207, "function": 7, "index": 627, "table": 307, "trigger": 138, "view": 90}
