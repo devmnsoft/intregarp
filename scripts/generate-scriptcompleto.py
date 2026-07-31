@@ -34,6 +34,10 @@ if actual-known: raise SystemExit(f'Migrations extras: {sorted(actual-known)}')
 for entry in entries:
     if not entry['presente_no_script_completop']: continue
     text=normalized(MIG/entry['arquivo'])
+    # 0001 define a chave canônica tarefa.id; adia/corrige as views legadas sem alterar a migration histórica.
+    if entry['arquivo'] == '0003_flow_bpmn_core.sql':
+        text=text.replace('SELECT tenant_id, tarefa_id, codigo, titulo, status, prioridade, prazo_em FROM integrarp.tarefa', 'SELECT id AS tarefa_id, tenant_id, codigo, titulo, status, prioridade, prazo_em FROM integrarp.tarefa')
+        text=text.replace('count(DISTINCT t.tarefa_id)', 'count(DISTINCT t.id)')
     text='\n'.join(line for line in text.splitlines() if line.strip().upper() not in {'BEGIN;','COMMIT;'}) .strip()+'\n'
     if re.search(r'\b(?:SET\s+(?:LOCAL\s+)?search_path|set_config\s*\(\s*[\'\"]search_path)',text,re.I): raise SystemExit(f"search_path proibido: {entry['arquivo']}")
     if re.search(r'(?<![\w])(?:public|integra|dbo)\.',text,re.I): raise SystemExit(f"Schema proibido: {entry['arquivo']}")
@@ -62,16 +66,16 @@ historical_parts=[part for filename,part in parts if filename != '0001_initial_i
 if len(base_parts) != 1: raise SystemExit('Migration base 0001 não encontrada uma única vez.')
 body=base_parts[0]+'\n'+canonical_compatibility+'\n'+'\n'.join(historical_parts)
 body_checksum=sha(body.encode())
-lock_key=147_2026_0730
+lock_key=148_2026_0731
 header=f'''-- Produto: IntegraRP
--- Versão: v1.47
+-- Versão: v1.48
 -- PostgreSQL: 16
 -- Schema: integrarp
 -- Arquivo principal: database/scriptcompleto.sql
 -- Quantidade de migrations: {len(entries)}
 -- Data UTC determinística: {manifest['generatedAtUtc']}
 -- Checksum SHA-256: {body_checksum}
--- Contrato: Banco Canônico Integrarp v1.47
+-- Contrato: Banco Canônico Integrarp v1.48
 -- Execução:
 -- psql -X "$POSTGRES_URI" --set ON_ERROR_STOP=1 --file database/scriptcompleto.sql
 -- Gerado automaticamente; não editar os arquivos de saída.
@@ -81,7 +85,7 @@ DO $version_check$
 BEGIN
   IF current_setting('server_version_num')::integer < 160000
      OR current_setting('server_version_num')::integer >= 170000 THEN
-    RAISE EXCEPTION 'IntegraRP v1.47 requer PostgreSQL 16; encontrado %', current_setting('server_version');
+    RAISE EXCEPTION 'IntegraRP v1.48 requer PostgreSQL 16; encontrado %', current_setting('server_version');
   END IF;
 END
 $version_check$;
@@ -133,11 +137,11 @@ for entry in entries:
 # Keep the last canonical definition for repeated idempotent declarations.
 dedup={(o['type'],o['name']):o for o in objects}; objects=sorted(dedup.values(),key=lambda o:(o['type'],o['name']))
 counts={k:sum(o['type']==k for o in objects) for k in sorted({o['type'] for o in objects})}
-inventory={'contract':'Banco Canônico Integrarp v1.47','generatedAtUtc':manifest['generatedAtUtc'],'sourceManifest':'database/migration_manifest.json','schema':'integrarp','extensions':['pgcrypto'],'migrations':len(entries),'counts':counts,'objects':objects}
+inventory={'contract':'Banco Canônico Integrarp v1.48','generatedAtUtc':manifest['generatedAtUtc'],'sourceManifest':'database/migration_manifest.json','schema':'integrarp','extensions':['pgcrypto'],'migrations':len(entries),'counts':counts,'objects':objects}
 (DB/'schema_inventory.json').write_text(json.dumps(inventory,ensure_ascii=False,indent=2)+'\n',encoding='utf-8',newline='\n')
-contract={'$schema':'https://json-schema.org/draft/2020-12/schema','contract':'Banco Canônico Integrarp v1.47','productVersion':'v1.47','postgresqlMajor':16,'schemas':['integrarp'],'extensions':['pgcrypto'],'types':[],'sequences':[o for o in objects if o['type']=='sequence'],'tables':[o for o in objects if o['type']=='table'],'views':[o for o in objects if o['type'] in ('view','materialized_view')],'functions':[o for o in objects if o['type']=='function'],'triggers':[o for o in objects if o['type']=='trigger'],'constraints':[o for o in objects if o['type']=='constraint'],'indexes':[o for o in objects if o['type']=='index']}
+contract={'$schema':'https://json-schema.org/draft/2020-12/schema','contract':'Banco Canônico Integrarp v1.48','productVersion':'v1.48','postgresqlMajor':16,'schemas':['integrarp'],'extensions':['pgcrypto'],'types':[],'sequences':[o for o in objects if o['type']=='sequence'],'tables':[o for o in objects if o['type']=='table'],'views':[o for o in objects if o['type'] in ('view','materialized_view')],'functions':[o for o in objects if o['type']=='function'],'triggers':[o for o in objects if o['type']=='trigger'],'constraints':[o for o in objects if o['type']=='constraint'],'indexes':[o for o in objects if o['type']=='index']}
 (DB/'schema_contract.json').write_text(json.dumps(contract,ensure_ascii=False,indent=2)+'\n',encoding='utf-8',newline='\n')
-artifact=ROOT/'artifacts/v147/database'; artifact.mkdir(parents=True,exist_ok=True)
+artifact=ROOT/'artifacts/v148/database'; artifact.mkdir(parents=True,exist_ok=True)
 log=f"generator=generate-scriptcompleto.py\nmigrations={len(entries)}\nbody_sha256={body_checksum}\nfile_sha256={sha(content)}\nalias_identical=true\nobjects={len(objects)}\ncounts={json.dumps(counts,sort_keys=True)}\n"
 (artifact/'generation.log').write_text(log,encoding='utf-8',newline='\n')
 (artifact/'scriptcompleto.sha256').write_text(f"{sha(content)}  database/scriptcompleto.sql\n{sha(content)}  database/script_completop.sql\n",encoding='utf-8',newline='\n')

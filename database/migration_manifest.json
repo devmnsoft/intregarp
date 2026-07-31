@@ -541,8 +541,19 @@
       "status": "versionada",
       "observacoes": "Migration aditiva v1.47; migrations 0001 a 0048 permanecem congeladas.",
       "checksum_sha256": "c80462a3d77fe861f750c35602fd7806f357703d6eaee73c8a0b701918ddaeda"
+    },
+    {
+      "ordem": 50,
+      "arquivo": "0050_v148_venda_execucao_vertical.sql",
+      "versao": "0050_v148_venda_execucao_vertical",
+      "descricao": "Venda à Execução Vertical: CRM, orçamento, pedido e operação assistida",
+      "modulo": "Commercial",
+      "presente_no_script_completop": true,
+      "status": "versionada",
+      "observacoes": "Migration aditiva v1.48; migrations 0001 a 0049 permanecem congeladas.",
+      "checksum_sha256": "b1b25f06bd9626f93a2b0e82e3a59c8f6c6b591659e874d700a9caca054e83c5"
     }
   ],
   "postgresql": "16",
-  "generatedAtUtc": "2026-07-30T00:00:00Z"
+  "generatedAtUtc": "2026-07-31T00:00:00Z"
 }
