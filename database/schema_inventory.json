@@ -1,16 +1,16 @@
 {
-  "contract": "Banco Canônico Integrarp v1.48",
+  "contract": "Banco Canônico Integrarp v1.49",
   "generatedAtUtc": "2026-07-31T00:00:00Z",
   "sourceManifest": "database/migration_manifest.json",
   "schema": "integrarp",
   "extensions": [
     "pgcrypto"
   ],
-  "migrations": 50,
+  "migrations": 51,
   "counts": {
     "constraint": 207,
     "function": 7,
-    "index": 633,
+    "index": 636,
     "table": 310,
     "trigger": 138,
     "view": 90
@@ -12766,6 +12766,42 @@
     },
     {
       "schema": "integrarp",
+      "name": "ix_tarefa_tenant_processo_etapa",
+      "type": "index",
+      "module": "Commercial",
+      "originMigration": "0051_v149_orcamento_pedido_operacao.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE INDEX IF NOT EXISTS ix_tarefa_tenant_processo_etapa ON integrarp.tarefa (tenant_id, processo_instancia_id, etapa_codigo) WHERE excluido_em IS NULL;",
+      "definitionChecksumSha256": "6bbecd915b53c64af4c4dcf76538b83dc13f6d30d6535e604ea6c892d36926a0",
+      "dependencies": [
+        "integrarp.tarefa"
+      ]
+    },
+    {
+      "schema": "integrarp",
+      "name": "ix_tarefa_tenant_responsavel_status",
+      "type": "index",
+      "module": "Commercial",
+      "originMigration": "0051_v149_orcamento_pedido_operacao.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE INDEX IF NOT EXISTS ix_tarefa_tenant_responsavel_status ON integrarp.tarefa (tenant_id, responsavel_usuario_id, status) WHERE excluido_em IS NULL;",
+      "definitionChecksumSha256": "3ddf90fe3cd03e3f8eaac317cadda7178570b33b931a0f41ad3d788412f3d098",
+      "dependencies": [
+        "integrarp.tarefa"
+      ]
+    },
+    {
+      "schema": "integrarp",
       "name": "ix_tarefa_tenant_status",
       "type": "index",
       "module": "Flow",
@@ -12796,6 +12832,24 @@
       "active": true,
       "canonicalDefinition": "CREATE INDEX IF NOT EXISTS ix_tarefa_tenant_status_responsavel ON integrarp.tarefa (tenant_id, status, responsavel_usuario_id)';",
       "definitionChecksumSha256": "86a90758363b1fea72395b88ea9d448b9c42dcafab9419f5c6a56175171326aa",
+      "dependencies": [
+        "integrarp.tarefa"
+      ]
+    },
+    {
+      "schema": "integrarp",
+      "name": "ix_tarefa_tenant_status_vencimento",
+      "type": "index",
+      "module": "Commercial",
+      "originMigration": "0051_v149_orcamento_pedido_operacao.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE INDEX IF NOT EXISTS ix_tarefa_tenant_status_vencimento ON integrarp.tarefa (tenant_id, status, vencimento_em) WHERE excluido_em IS NULL;",
+      "definitionChecksumSha256": "f0d14c1232904089fa50763cefc0c890a872000d86c4cf782683473a8e7868f1",
       "dependencies": [
         "integrarp.tarefa"
       ]
@@ -22631,15 +22685,15 @@
       "name": "vw_flow_tarefas_abertas",
       "type": "view",
       "module": "Commercial",
-      "originMigration": "0050_v148_venda_execucao_vertical.sql",
+      "originMigration": "0051_v149_orcamento_pedido_operacao.sql",
       "usedBy": [
         "database/scriptcompleto.sql"
       ],
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CREATE OR REPLACE VIEW integrarp.vw_flow_tarefas_abertas AS SELECT id AS tarefa_id, tenant_id, codigo, titulo, status, prioridade, prazo_em FROM integrarp.tarefa WHERE excluido_em IS NULL AND status IN ('aberta', 'atribuida', 'em_andamento');",
-      "definitionChecksumSha256": "6f54821168ae9ff14884a4c30b116749677af7e81b1a50c2c1cdf26fed410878",
+      "canonicalDefinition": "CREATE OR REPLACE VIEW integrarp.vw_flow_tarefas_abertas AS SELECT id AS tarefa_id, tenant_id, codigo, titulo, status, prioridade, vencimento_em AS prazo_em FROM integrarp.tarefa WHERE excluido_em IS NULL AND status IN ('pendente', 'atribuida', 'em_execucao', 'pausada');",
+      "definitionChecksumSha256": "bb457c429ad79f9199f949afb8de2fec43371d06e246083415a915e483a5c1d0",
       "dependencies": []
     },
     {
@@ -22647,15 +22701,15 @@
       "name": "vw_flow_tarefas_atrasadas",
       "type": "view",
       "module": "Commercial",
-      "originMigration": "0050_v148_venda_execucao_vertical.sql",
+      "originMigration": "0051_v149_orcamento_pedido_operacao.sql",
       "usedBy": [
         "database/scriptcompleto.sql"
       ],
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CREATE OR REPLACE VIEW integrarp.vw_flow_tarefas_atrasadas AS SELECT id AS tarefa_id, tenant_id, codigo, titulo, status, prioridade, prazo_em FROM integrarp.tarefa WHERE excluido_em IS NULL AND status <> 'concluida' AND prazo_em < now();",
-      "definitionChecksumSha256": "14d2371a4603881fed0f029bf1e9932ecd473762d45197fb8286bd67cc121671",
+      "canonicalDefinition": "CREATE OR REPLACE VIEW integrarp.vw_flow_tarefas_atrasadas AS SELECT id AS tarefa_id, tenant_id, codigo, titulo, status, prioridade, vencimento_em AS prazo_em FROM integrarp.tarefa WHERE excluido_em IS NULL AND status IN ('pendente', 'atribuida', 'em_execucao', 'pausada') AND vencimento_em < now();",
+      "definitionChecksumSha256": "2dc185786574918c674bb5e76dc28a919f14ed066c4720d23bc965be4e749039",
       "dependencies": []
     },
     {
