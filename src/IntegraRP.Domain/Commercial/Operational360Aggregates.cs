@@ -5,6 +5,40 @@ public enum OpportunityStage { New, Qualification, Diagnosis, Proposal, Negotiat
 public enum QuoteStatus { Draft, PendingApproval, Approved, Rejected, Sent, Accepted, Refused, Expired, Converted, Cancelled }
 public enum OperationalTaskStatus { Pending, Assigned, InProgress, Paused, Completed, Cancelled }
 
+public static class OpportunityStateMachine
+{
+    private static readonly IReadOnlyDictionary<OpportunityStage, IReadOnlySet<OpportunityStage>> Transitions =
+        new Dictionary<OpportunityStage, IReadOnlySet<OpportunityStage>>
+        {
+            [OpportunityStage.New] = OpenStagesExcept(OpportunityStage.New),
+            [OpportunityStage.Qualification] = OpenStagesExcept(OpportunityStage.Qualification),
+            [OpportunityStage.Diagnosis] = OpenStagesExcept(OpportunityStage.Diagnosis),
+            [OpportunityStage.Proposal] = OpenStagesExcept(OpportunityStage.Proposal),
+            [OpportunityStage.Negotiation] = OpenStagesExcept(OpportunityStage.Negotiation),
+            [OpportunityStage.Won] = new HashSet<OpportunityStage>(),
+            [OpportunityStage.Lost] = new HashSet<OpportunityStage>(),
+            [OpportunityStage.Cancelled] = new HashSet<OpportunityStage>()
+        };
+
+    public static bool IsClosed(OpportunityStage stage) =>
+        stage is OpportunityStage.Won or OpportunityStage.Lost or OpportunityStage.Cancelled;
+
+    public static void EnsureOpenTransition(OpportunityStage current, OpportunityStage target)
+    {
+        if (IsClosed(current))
+            throw new InvalidOperationException("Oportunidade encerrada é imutável.");
+        if (IsClosed(target))
+            throw new InvalidOperationException("Utilize a operação específica para ganhar, perder ou cancelar a oportunidade.");
+        if (!Transitions[current].Contains(target))
+            throw new InvalidOperationException($"Transição de {current} para {target} não é permitida.");
+    }
+
+    private static IReadOnlySet<OpportunityStage> OpenStagesExcept(OpportunityStage current) =>
+        Enum.GetValues<OpportunityStage>()
+            .Where(stage => !IsClosed(stage) && stage != current)
+            .ToHashSet();
+}
+
 public sealed record CustomerContact(Guid Id, string Name, string? Role, string? Email, string? Phone, bool WhatsApp, bool IsPrimary);
 public sealed record CustomerAddress(Guid Id, string Type, string? PostalCode, string Street, string? Number, string? Complement,
     string? District, string City, string? State, bool Billing, bool Delivery, bool IsPrimary);
@@ -100,15 +134,15 @@ public sealed class CommercialOpportunity
     }
     public void Rename(string value) { EnsureOpen(); Name = Required(value); Touch(); }
     public void AssignOwner(Guid ownerId) { EnsureOpen(); OwnerId = ownerId != Guid.Empty ? ownerId : throw new ArgumentException("Responsável obrigatório."); Touch(); }
-    public void ChangeStage(OpportunityStage stage) { EnsureOpen(); Stage = stage; Touch(); }
+    public void ChangeStage(OpportunityStage stage) { OpportunityStateMachine.EnsureOpenTransition(Stage, stage); Stage = stage; Touch(); }
     public void ChangeProbability(int value) { EnsureOpen(); Probability = value is >= 0 and <= 100 ? value : throw new ArgumentOutOfRangeException(nameof(value)); Touch(); }
     public void ChangeExpectedValue(decimal value) { EnsureOpen(); ExpectedValue = value >= 0 ? value : throw new ArgumentOutOfRangeException(nameof(value)); Touch(); }
     public void SetExpectedCloseDate(DateOnly value) { EnsureOpen(); ExpectedCloseDate = value; Touch(); }
-    public void SetNextAction(string action, DateTimeOffset dueAt) { EnsureOpen(); NextAction = Required(action); NextActionAt = dueAt; Touch(); }
+    public void SetNextAction(string action, DateTimeOffset dueAt) { EnsureOpen(); if (dueAt <= DateTimeOffset.UtcNow) throw new ArgumentException("O prazo da próxima ação deve estar no futuro.", nameof(dueAt)); NextAction = Required(action); NextActionAt = dueAt; Touch(); }
     public void MarkAsWon() { EnsureOpen(); Stage = OpportunityStage.Won; Probability = 100; Touch(); }
     public void MarkAsLost(string reason) { EnsureOpen(); LossReason = Required(reason); Stage = OpportunityStage.Lost; Probability = 0; Touch(); }
-    public void Cancel() { EnsureOpen(); Stage = OpportunityStage.Cancelled; Touch(); }
-    private void EnsureOpen() { if (Stage is OpportunityStage.Won or OpportunityStage.Lost or OpportunityStage.Cancelled) throw new InvalidOperationException("Oportunidade encerrada é imutável."); }
+    public void Cancel(string reason) { EnsureOpen(); LossReason = Required(reason); Stage = OpportunityStage.Cancelled; Probability = 0; Touch(); }
+    private void EnsureOpen() { if (OpportunityStateMachine.IsClosed(Stage)) throw new InvalidOperationException("Oportunidade encerrada é imutável."); }
     private void Touch() => RowVersion++;
     private static string Required(string value) => string.IsNullOrWhiteSpace(value) ? throw new ArgumentException("Valor obrigatório.") : value.Trim();
 }
