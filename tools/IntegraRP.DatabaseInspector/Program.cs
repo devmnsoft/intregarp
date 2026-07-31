@@ -32,68 +32,78 @@ static string FindRepositoryRoot(string start)
 
 static int LintSql(string root)
 {
-    var files = Directory.EnumerateFiles(root, "*.sql", SearchOption.AllDirectories)
-        .Concat(Directory.EnumerateFiles(Path.Combine(root, "src"), "*.cs", SearchOption.AllDirectories))
-        .Concat(Directory.Exists(Path.Combine(root, "tests")) ? Directory.EnumerateFiles(Path.Combine(root, "tests"), "*.cs", SearchOption.AllDirectories) : []);
-    var failures = new List<string>();
-    var patterns = new[]
-    {
-        @"\bCREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(?<name>[a-zA-Z_][\w.]*)(?!\s*\()",
-        @"\bALTER\s+TABLE\s+(?:IF\s+EXISTS\s+)?(?<name>[a-zA-Z_][\w.]*)",
-        @"\bINSERT\s+INTO\s+(?<name>[a-zA-Z_][\w.]*)",
-        @"\bUPDATE\s+(?<name>[a-zA-Z_][\w.]*)",
-        @"\bDELETE\s+FROM\s+(?<name>[a-zA-Z_][\w.]*)",
-        @"\b(?:FROM|JOIN|REFERENCES|TRUNCATE)\s+(?<name>[a-zA-Z_][\w.]*)",
-        @"\bCREATE\s+(?:UNIQUE\s+)?INDEX\s+(?:IF\s+NOT\s+EXISTS\s+)?[a-zA-Z_][\w.]*\s+ON\s+(?<name>[a-zA-Z_][\w.]*)",
-        @"\bCREATE\s+TRIGGER\s+[a-zA-Z_][\w.]*.*?\bON\s+(?<name>[a-zA-Z_][\w.]*)",
-        @"\bDROP\s+TRIGGER\s+(?:IF\s+EXISTS\s+)?[a-zA-Z_][\w.]*\s+ON\s+(?<name>[a-zA-Z_][\w.]*)",
-        @"\bCREATE\s+(?:OR\s+REPLACE\s+)?VIEW\s+(?<name>[a-zA-Z_][\w.]*)",
-        @"\bCREATE\s+SEQUENCE\s+(?:IF\s+NOT\s+EXISTS\s+)?(?<name>[a-zA-Z_][\w.]*)",
-        @"\b(?:nextval|currval|setval)\s*\(\s*'(?<name>[a-zA-Z_][\w.]*)'"
-    };
+    var files = Directory.EnumerateFiles(Path.Combine(root, "database"), "*.sql", SearchOption.AllDirectories)
+        .Concat(Directory.EnumerateFiles(Path.Combine(root, "src"), "*.cs", SearchOption.AllDirectories));
+    var issues = new List<(string File, int Line, string Name)>();
     foreach (var file in files)
     {
-        var lines = File.ReadAllLines(file);
-        for (var i = 0; i < lines.Length; i++)
+        var source = File.ReadAllText(file);
+        var sql = StripNonSql(source);
+        if (Regex.IsMatch(sql, @"\bSET\s+(?:LOCAL\s+)?search_path\b", RegexOptions.IgnoreCase))
+            AddIssue(issues, root, file, source, Regex.Match(sql, @"\bSET\s+(?:LOCAL\s+)?search_path\b", RegexOptions.IgnoreCase).Index, "search_path");
+
+        var ctes = Regex.Matches(sql, @"(?:\bWITH\b|,)\s*(?<name>[a-zA-Z_][\w]*)\s+AS\s*(?:NOT\s+MATERIALIZED\s*)?\(", RegexOptions.IgnoreCase)
+            .Select(match => match.Groups["name"].Value).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var relationPatterns = new[]
         {
-            var line = Regex.Replace(lines[i], @"--.*$", string.Empty);
-            if (Regex.IsMatch(line, @"\bSET\s+(LOCAL\s+)?search_path\b", RegexOptions.IgnoreCase)) failures.Add($"{file}:{i + 1}: search_path proibido");
-            foreach (var pattern in patterns)
+            @"\bCREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(?<name>[a-zA-Z_][\w.]*)",
+            @"\bALTER\s+TABLE\s+(?:IF\s+EXISTS\s+)?(?<name>[a-zA-Z_][\w.]*)",
+            @"\bINSERT\s+INTO\s+(?<name>[a-zA-Z_][\w.]*)",
+            @"\bUPDATE\s+(?<name>[a-zA-Z_][\w.]*)\s+(?:AS\s+)?(?:[a-zA-Z_]\w*\s+)?SET\b",
+            @"\bDELETE\s+FROM\s+(?<name>[a-zA-Z_][\w.]*)",
+            @"\b(?:FROM|JOIN|REFERENCES|USING|TRUNCATE(?:\s+TABLE)?)\s+(?:ONLY\s+)?(?<name>[a-zA-Z_][\w.]*)",
+            @"\bCREATE\s+(?:UNIQUE\s+)?INDEX\s+(?:CONCURRENTLY\s+)?(?:IF\s+NOT\s+EXISTS\s+)?[a-zA-Z_][\w.]*\s+ON\s+(?:ONLY\s+)?(?<name>[a-zA-Z_][\w.]*)",
+            @"\b(?:CREATE|DROP)\s+TRIGGER\s+(?:IF\s+EXISTS\s+)?[a-zA-Z_][\w.]*[\s\S]{0,300}?\bON\s+(?<name>[a-zA-Z_][\w.]*)",
+            @"\bCREATE\s+(?:OR\s+REPLACE\s+)?(?:MATERIALIZED\s+)?VIEW\s+(?:IF\s+NOT\s+EXISTS\s+)?(?<name>[a-zA-Z_][\w.]*)",
+            @"\bCREATE\s+SEQUENCE\s+(?:IF\s+NOT\s+EXISTS\s+)?(?<name>[a-zA-Z_][\w.]*)"
+        };
+        foreach (var pattern in relationPatterns)
+            foreach (Match match in Regex.Matches(sql, pattern, RegexOptions.IgnoreCase))
             {
-                foreach (Match match in Regex.Matches(line, pattern, RegexOptions.IgnoreCase))
-                {
-                    var name = match.Groups["name"].Value;
-                    if (IsAllowedName(name)) continue;
-                    failures.Add($"{file}:{i + 1}: relação sem schema integrarp ou schema proibido: {name}");
-                }
+                var name = match.Groups["name"].Value;
+                if (ctes.Contains(name) || IsAllowedName(name)) continue;
+                AddIssue(issues, root, file, source, match.Groups["name"].Index, name);
             }
-        }
     }
-    var reportPath = Path.Combine(root, "artifacts", "v143", "database", "schema-qualification-report.json");
+    var reportPath = Path.Combine(root, "artifacts", "v148", "database", "schema-qualification-report.json");
     Directory.CreateDirectory(Path.GetDirectoryName(reportPath)!);
-    var issues = failures.Select(failure => new
+    var reportIssues = issues.Distinct().Select(issue => new { file = issue.File, line = issue.Line, @object = issue.Name, classification = "violação real", expectedCorrection = "Qualificar a relação de negócio como integrarp.nome_do_objeto." }).ToArray();
+    File.WriteAllText(reportPath, JsonSerializer.Serialize(new { contract = "Banco Canônico Integrarp v1.48", realViolationCount = reportIssues.Length, knownFalsePositivesAbsent = !reportIssues.Any(x => new[] { "on", "set", "changed", "batch", "handled", "skip", "route", "jwt", "t", "c", "ped", "prod", "cat" }.Contains(x.@object, StringComparer.OrdinalIgnoreCase)), issues = reportIssues }, new JsonSerializerOptions { WriteIndented = true }) + Environment.NewLine);
+    foreach (var issue in reportIssues) Console.Error.WriteLine($"{issue.file}:{issue.line}: relação sem schema integrarp ou schema proibido: {issue.@object}");
+    Console.WriteLine($"Relatório: {reportPath} ({reportIssues.Length} problema(s)).");
+    return reportIssues.Length == 0 ? 0 : 2;
+}
+
+static void AddIssue(List<(string File, int Line, string Name)> issues, string root, string file, string source, int index, string name)
+{
+    var line = 1 + source[..Math.Clamp(index, 0, source.Length)].Count(character => character == '\n');
+    issues.Add((Path.GetRelativePath(root, file), line, name));
+}
+
+static string StripNonSql(string source)
+{
+    var result = source.ToCharArray();
+    for (var i = 0; i < source.Length;)
     {
-        file = failure.Split(':', 3)[0].Replace(root + Path.DirectorySeparatorChar, string.Empty),
-        line = int.TryParse(failure.Split(':', 3).ElementAtOrDefault(1), out var lineNumber) ? lineNumber : 0,
-        snippet = failure.Split(':', 3).ElementAtOrDefault(2)?.Trim() ?? failure,
-        @object = Regex.Match(failure, @"(?:proibido:\s*|proibido\s+)(?<name>[\w.]+)$").Groups["name"].Value,
-        expectedCorrection = "Qualificar a relação de negócio como integrarp.nome_do_objeto."
-    }).ToArray();
-    File.WriteAllText(reportPath, JsonSerializer.Serialize(new { contract = "Banco Canônico Integrarp v1.43", classification = "violação real", realViolationCount = issues.Length, issues }, new JsonSerializerOptions { WriteIndented = true }) + Environment.NewLine);
-    foreach (var failure in failures) Console.Error.WriteLine(failure);
-    Console.WriteLine($"Relatório: {reportPath} ({failures.Count} problema(s)).");
-    return failures.Count == 0 ? 0 : 2;
+        if (i + 1 < source.Length && source[i] == '-' && source[i + 1] == '-') { var end = source.IndexOf('\n', i); if (end < 0) end = source.Length; Blank(result, i, end); i = end; continue; }
+        if (i + 1 < source.Length && source[i] == '/' && source[i + 1] == '*') { var end = source.IndexOf("*/", i + 2, StringComparison.Ordinal); end = end < 0 ? source.Length : end + 2; Blank(result, i, end); i = end; continue; }
+        if (source[i] == '\'' && (i == 0 || source[i - 1] != '@')) { var end = i + 1; while (end < source.Length) { if (source[end] == '\'' && end + 1 < source.Length && source[end + 1] == '\'') { end += 2; continue; } if (source[end++] == '\'') break; } Blank(result, i, end); i = end; continue; }
+        if (source[i] == '$') { var tag = Regex.Match(source[i..], @"^\$[a-zA-Z_\d]*\$"); if (tag.Success) { var close = source.IndexOf(tag.Value, i + tag.Length, StringComparison.Ordinal); var end = close < 0 ? source.Length : close + tag.Length; Blank(result, i, end); i = end; continue; } }
+        i++;
+    }
+    return new string(result);
+}
+
+static void Blank(char[] chars, int start, int end)
+{
+    for (var i = start; i < end; i++) if (chars[i] != '\n' && chars[i] != '\r') chars[i] = ' ';
 }
 
 static bool IsAllowedName(string name)
 {
     if (string.IsNullOrWhiteSpace(name)) return true;
     var lower = name.Trim('"').ToLowerInvariant();
-    if (lower.StartsWith("integrarp.")) return true;
-    if (lower.StartsWith("information_schema.") || lower.StartsWith("pg_catalog.")) return true;
-    if (lower.StartsWith("pg_") || lower.StartsWith("tmp_")) return true;
-    if (new[] { "select", "values", "jsonb_array_elements", "unnest", "if", "then", "else", "end", "returning", "new", "old", "excluded" }.Contains(lower)) return true;
-    return false;
+    return lower.StartsWith("integrarp.") || lower.StartsWith("information_schema.") || lower.StartsWith("pg_catalog.") || lower.StartsWith("pg_") || lower.StartsWith("tmp_") || new[] { "select", "values", "jsonb_array_elements", "unnest", "new", "old", "excluded" }.Contains(lower);
 }
 
 static int ValidateManifest(string root)

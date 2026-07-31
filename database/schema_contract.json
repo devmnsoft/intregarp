@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "contract": "Banco Canônico Integrarp v1.47",
-  "productVersion": "v1.47",
+  "contract": "Banco Canônico Integrarp v1.48",
+  "productVersion": "v1.48",
   "postgresqlMajor": 16,
   "schemas": [
     "integrarp"
@@ -830,6 +830,22 @@
     },
     {
       "schema": "integrarp",
+      "name": "commercial_history",
+      "type": "table",
+      "module": "Commercial",
+      "originMigration": "0050_v148_venda_execucao_vertical.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.commercial_history ( id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, aggregate_type text NOT NULL, aggregate_id uuid NOT NULL, event_type text NOT NULL, actor_user_id uuid NULL, details_json jsonb NOT NULL DEFAULT '{}'::jsonb, correlation_id text NOT NULL, criado_em timestamptz NOT NULL DEFAULT now() );",
+      "definitionChecksumSha256": "8060afeeecea11fc3a1c6b6d82885652c92a0ac9d5ef497a801d809d6d66a6ac",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
       "name": "commercial_idempotency",
       "type": "table",
       "module": "Commercial",
@@ -1162,6 +1178,22 @@
       "active": true,
       "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.fatura_item (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, fatura_id uuid NOT NULL, descricao text NOT NULL, quantidade numeric(18,3) NOT NULL, valor_unitario numeric(18,2) NOT NULL, total numeric(18,2) NOT NULL, status text NOT NULL DEFAULT 'ativo', criado_em timestamptz NOT NULL DEFAULT now(), criado_por_usuario_id uuid NULL, atualizado_em timestamptz NOT NULL DEFAULT now(), atualizado_por_usuario_id uuid NULL, excluido_em timestamptz NULL, metadata_json jsonb NULL);",
       "definitionChecksumSha256": "0652901c4954a5f2d28213ae2ac0455a88f0f0060d9c9fd70adaab033bc700c9",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "faturamento_pendente",
+      "type": "table",
+      "module": "Commercial",
+      "originMigration": "0050_v148_venda_execucao_vertical.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.faturamento_pendente ( id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, pedido_id uuid NOT NULL, processo_instancia_id uuid NULL, tarefa_id uuid NULL, status text NOT NULL DEFAULT 'pendente', criado_por_usuario_id uuid NULL, criado_em timestamptz NOT NULL DEFAULT now(), atualizado_em timestamptz NOT NULL DEFAULT now(), row_version bigint NOT NULL DEFAULT 1, UNIQUE (tenant_id, pedido_id) );",
+      "definitionChecksumSha256": "c32e8bd6ab961db7eeec01136036138736d5f95a642328ae2bb2435dbf0e6423",
       "dependencies": []
     },
     {
@@ -4206,6 +4238,22 @@
     },
     {
       "schema": "integrarp",
+      "name": "tarefa_checklist_item",
+      "type": "table",
+      "module": "Commercial",
+      "originMigration": "0050_v148_venda_execucao_vertical.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.tarefa_checklist_item ( id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, tarefa_id uuid NOT NULL, titulo text NOT NULL, obrigatorio boolean NOT NULL DEFAULT true, concluido boolean NOT NULL DEFAULT false, concluido_por_usuario_id uuid NULL, concluido_em timestamptz NULL, ordem integer NOT NULL DEFAULT 0, criado_em timestamptz NOT NULL DEFAULT now(), atualizado_em timestamptz NOT NULL DEFAULT now(), row_version bigint NOT NULL DEFAULT 1, UNIQUE (tenant_id, tarefa_id, id) );",
+      "definitionChecksumSha256": "9c879b94aecd47ffea6772b8834f3456d3bc0d1d2ce50b5a6f9d162e874062ea",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
       "name": "tarefa_comentario",
       "type": "table",
       "module": "Database",
@@ -5554,32 +5602,32 @@
       "schema": "integrarp",
       "name": "vw_flow_tarefas_abertas",
       "type": "view",
-      "module": "Flow",
-      "originMigration": "0003_flow_bpmn_core.sql",
+      "module": "Commercial",
+      "originMigration": "0050_v148_venda_execucao_vertical.sql",
       "usedBy": [
         "database/scriptcompleto.sql"
       ],
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CREATE OR REPLACE VIEW integrarp.vw_flow_tarefas_abertas AS SELECT tenant_id, tarefa_id, codigo, titulo, status, prioridade, prazo_em FROM integrarp.tarefa WHERE excluido_em IS NULL AND status IN ('aberta','atribuida','em_andamento');",
-      "definitionChecksumSha256": "7dbb237b0d2df3b339ceba12163d2c830f8d51cb91a9bb4b9de01505ae39b218",
+      "canonicalDefinition": "CREATE OR REPLACE VIEW integrarp.vw_flow_tarefas_abertas AS SELECT id AS tarefa_id, tenant_id, codigo, titulo, status, prioridade, prazo_em FROM integrarp.tarefa WHERE excluido_em IS NULL AND status IN ('aberta', 'atribuida', 'em_andamento');",
+      "definitionChecksumSha256": "6f54821168ae9ff14884a4c30b116749677af7e81b1a50c2c1cdf26fed410878",
       "dependencies": []
     },
     {
       "schema": "integrarp",
       "name": "vw_flow_tarefas_atrasadas",
       "type": "view",
-      "module": "Flow",
-      "originMigration": "0003_flow_bpmn_core.sql",
+      "module": "Commercial",
+      "originMigration": "0050_v148_venda_execucao_vertical.sql",
       "usedBy": [
         "database/scriptcompleto.sql"
       ],
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CREATE OR REPLACE VIEW integrarp.vw_flow_tarefas_atrasadas AS SELECT tenant_id, tarefa_id, codigo, titulo, status, prioridade, prazo_em FROM integrarp.tarefa WHERE excluido_em IS NULL AND status <> 'concluida' AND prazo_em < now();",
-      "definitionChecksumSha256": "2551dc1cdb3ac4a0c87b8b9b49e63b1f47351605baddb786cdce68b00c455414",
+      "canonicalDefinition": "CREATE OR REPLACE VIEW integrarp.vw_flow_tarefas_atrasadas AS SELECT id AS tarefa_id, tenant_id, codigo, titulo, status, prioridade, prazo_em FROM integrarp.tarefa WHERE excluido_em IS NULL AND status <> 'concluida' AND prazo_em < now();",
+      "definitionChecksumSha256": "14d2371a4603881fed0f029bf1e9932ecd473762d45197fb8286bd67cc121671",
       "dependencies": []
     },
     {
@@ -13646,6 +13694,42 @@
     },
     {
       "schema": "integrarp",
+      "name": "ix_commercial_activity_vencidas",
+      "type": "index",
+      "module": "Commercial",
+      "originMigration": "0050_v148_venda_execucao_vertical.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE INDEX IF NOT EXISTS ix_commercial_activity_vencidas ON integrarp.commercial_activity (tenant_id, agendada_para) WHERE excluido_em IS NULL AND status = 'agendada';",
+      "definitionChecksumSha256": "53d0881b96cd3f4fc069be2fc57caac29ff029e0b6256f59332e01fca694b98a",
+      "dependencies": [
+        "integrarp.commercial_activity"
+      ]
+    },
+    {
+      "schema": "integrarp",
+      "name": "ix_commercial_history_timeline",
+      "type": "index",
+      "module": "Commercial",
+      "originMigration": "0050_v148_venda_execucao_vertical.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE INDEX IF NOT EXISTS ix_commercial_history_timeline ON integrarp.commercial_history (tenant_id, aggregate_type, aggregate_id, criado_em DESC);",
+      "definitionChecksumSha256": "79d9b6aa280cb5b824b24611c7137be8dc2d7166924ae56654645d631163adb1",
+      "dependencies": [
+        "integrarp.commercial_history"
+      ]
+    },
+    {
+      "schema": "integrarp",
       "name": "ix_dashboard_configuracao_tenant",
       "type": "index",
       "module": "Database",
@@ -14020,6 +14104,24 @@
       "definitionChecksumSha256": "1a2a2d6a77992be0a090c2557d91e62f87b463856827e17ecfad9993655b08fa",
       "dependencies": [
         "integrarp.fatura"
+      ]
+    },
+    {
+      "schema": "integrarp",
+      "name": "ix_faturamento_pendente_fila",
+      "type": "index",
+      "module": "Commercial",
+      "originMigration": "0050_v148_venda_execucao_vertical.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE INDEX IF NOT EXISTS ix_faturamento_pendente_fila ON integrarp.faturamento_pendente (tenant_id, criado_em) WHERE status = 'pendente';",
+      "definitionChecksumSha256": "c2f083d228221ccc4e4b84caa7239a00a9d172741c9d707d64f3aaca505f3da3",
+      "dependencies": [
+        "integrarp.faturamento_pendente"
       ]
     },
     {
@@ -20792,6 +20894,24 @@
     },
     {
       "schema": "integrarp",
+      "name": "ix_tarefa_checklist_pendente",
+      "type": "index",
+      "module": "Commercial",
+      "originMigration": "0050_v148_venda_execucao_vertical.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE INDEX IF NOT EXISTS ix_tarefa_checklist_pendente ON integrarp.tarefa_checklist_item (tenant_id, tarefa_id, ordem) WHERE NOT concluido;",
+      "definitionChecksumSha256": "86fa6345dfb3ec8db0ee1451dae3e113a4e95e9949ca4ede0ae2f65460593b4c",
+      "dependencies": [
+        "integrarp.tarefa_checklist_item"
+      ]
+    },
+    {
+      "schema": "integrarp",
       "name": "ix_tarefa_comentario_criado_em",
       "type": "index",
       "module": "Database",
@@ -22268,6 +22388,24 @@
     },
     {
       "schema": "integrarp",
+      "name": "ux_discount_approval_decision_orcamento",
+      "type": "index",
+      "module": "Commercial",
+      "originMigration": "0050_v148_venda_execucao_vertical.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE UNIQUE INDEX IF NOT EXISTS ux_discount_approval_decision_orcamento ON integrarp.discount_approval_decision (tenant_id, orcamento_id) WHERE orcamento_id IS NOT NULL;",
+      "definitionChecksumSha256": "ff221a147477573ca90de269b2ec987617418d907e5e2b7ded125eacee9be07d",
+      "dependencies": [
+        "integrarp.discount_approval_decision"
+      ]
+    },
+    {
+      "schema": "integrarp",
       "name": "ux_estoque_local_tenant_codigo",
       "type": "index",
       "module": "Database",
@@ -22714,6 +22852,24 @@
       "definitionChecksumSha256": "f43a638bd64f573796c6d2af8aae59f8bfdd6f262446a6de93415d7cc6e71ef1",
       "dependencies": [
         "integrarp.pedido_item"
+      ]
+    },
+    {
+      "schema": "integrarp",
+      "name": "ux_pedido_orcamento",
+      "type": "index",
+      "module": "Commercial",
+      "originMigration": "0050_v148_venda_execucao_vertical.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE UNIQUE INDEX IF NOT EXISTS ux_pedido_orcamento ON integrarp.pedido (tenant_id, orcamento_id) WHERE orcamento_id IS NOT NULL;",
+      "definitionChecksumSha256": "380a5408b44dc32dd324eda0b69148cea813f6beb6d44594c94bab492e0e718a",
+      "dependencies": [
+        "integrarp.pedido"
       ]
     },
     {
