@@ -38,7 +38,9 @@ static int LintSql(string root)
     foreach (var file in files)
     {
         var source = File.ReadAllText(file);
-        var sql = StripNonSql(source);
+        var sql = file.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)
+            ? ExtractSqlFromCSharp(source)
+            : StripSqlCommentsAndLiterals(source);
         if (Regex.IsMatch(sql, @"\bSET\s+(?:LOCAL\s+)?search_path\b", RegexOptions.IgnoreCase))
             AddIssue(issues, root, file, source, Regex.Match(sql, @"\bSET\s+(?:LOCAL\s+)?search_path\b", RegexOptions.IgnoreCase).Index, "search_path");
 
@@ -51,7 +53,8 @@ static int LintSql(string root)
             @"\bINSERT\s+INTO\s+(?<name>[a-zA-Z_][\w.]*)",
             @"\bUPDATE\s+(?<name>[a-zA-Z_][\w.]*)\s+(?:AS\s+)?(?:[a-zA-Z_]\w*\s+)?SET\b",
             @"\bDELETE\s+FROM\s+(?<name>[a-zA-Z_][\w.]*)",
-            @"\b(?:FROM|JOIN|REFERENCES|USING|TRUNCATE(?:\s+TABLE)?)\s+(?:ONLY\s+)?(?<name>[a-zA-Z_][\w.]*)",
+            @"\b(?:FROM|JOIN|REFERENCES|TRUNCATE(?:\s+TABLE)?)\s+(?:ONLY\s+)?(?<name>[a-zA-Z_][\w.]*)",
+            @"\bDELETE\s+FROM\s+integrarp\.[a-zA-Z_][\w.]*[\s\S]{0,500}?\bUSING\s+(?:ONLY\s+)?(?<name>[a-zA-Z_][\w.]*)",
             @"\bCREATE\s+(?:UNIQUE\s+)?INDEX\s+(?:CONCURRENTLY\s+)?(?:IF\s+NOT\s+EXISTS\s+)?[a-zA-Z_][\w.]*\s+ON\s+(?:ONLY\s+)?(?<name>[a-zA-Z_][\w.]*)",
             @"\b(?:CREATE|DROP)\s+TRIGGER\s+(?:IF\s+EXISTS\s+)?[a-zA-Z_][\w.]*[\s\S]{0,300}?\bON\s+(?<name>[a-zA-Z_][\w.]*)",
             @"\bCREATE\s+(?:OR\s+REPLACE\s+)?(?:MATERIALIZED\s+)?VIEW\s+(?:IF\s+NOT\s+EXISTS\s+)?(?<name>[a-zA-Z_][\w.]*)",
@@ -65,10 +68,10 @@ static int LintSql(string root)
                 AddIssue(issues, root, file, source, match.Groups["name"].Index, name);
             }
     }
-    var reportPath = Path.Combine(root, "artifacts", "v148", "database", "schema-qualification-report.json");
+    var reportPath = Path.Combine(root, "artifacts", "v149", "database", "schema-qualification-report.json");
     Directory.CreateDirectory(Path.GetDirectoryName(reportPath)!);
     var reportIssues = issues.Distinct().Select(issue => new { file = issue.File, line = issue.Line, @object = issue.Name, classification = "violação real", expectedCorrection = "Qualificar a relação de negócio como integrarp.nome_do_objeto." }).ToArray();
-    File.WriteAllText(reportPath, JsonSerializer.Serialize(new { contract = "Banco Canônico Integrarp v1.48", realViolationCount = reportIssues.Length, knownFalsePositivesAbsent = !reportIssues.Any(x => new[] { "on", "set", "changed", "batch", "handled", "skip", "route", "jwt", "t", "c", "ped", "prod", "cat" }.Contains(x.@object, StringComparer.OrdinalIgnoreCase)), issues = reportIssues }, new JsonSerializerOptions { WriteIndented = true }) + Environment.NewLine);
+    File.WriteAllText(reportPath, JsonSerializer.Serialize(new { contract = "Banco Canônico Integrarp v1.49", realViolationCount = reportIssues.Length, knownFalsePositivesAbsent = !reportIssues.Any(x => new[] { "on", "set", "changed", "batch", "handled", "skip", "route", "jwt", "gin", "case", "correlation_id", "var", "t", "c", "ped", "prod", "cat" }.Contains(x.@object, StringComparer.OrdinalIgnoreCase)), issues = reportIssues }, new JsonSerializerOptions { WriteIndented = true }) + Environment.NewLine);
     foreach (var issue in reportIssues) Console.Error.WriteLine($"{issue.file}:{issue.line}: relação sem schema integrarp ou schema proibido: {issue.@object}");
     Console.WriteLine($"Relatório: {reportPath} ({reportIssues.Length} problema(s)).");
     return reportIssues.Length == 0 ? 0 : 2;
@@ -80,7 +83,21 @@ static void AddIssue(List<(string File, int Line, string Name)> issues, string r
     issues.Add((Path.GetRelativePath(root, file), line, name));
 }
 
-static string StripNonSql(string source)
+static string ExtractSqlFromCSharp(string source)
+{
+    var result = source.Select(character => character is '\n' or '\r' ? character : ' ').ToArray();
+    const string literalPattern = "(?:\\$?@|@\\$?)\"(?:\"\"|[^\"])*\"|\\$?\"\"\"[\\s\\S]*?\"\"\"|\\$?\"(?:\\\\.|[^\"\\\\])*\"";
+    foreach (Match literal in Regex.Matches(source, literalPattern))
+    {
+        if (!Regex.IsMatch(literal.Value, @"\b(?:SELECT|INSERT|UPDATE|DELETE|CREATE|ALTER|DROP|WITH|CALL|DO)\b", RegexOptions.IgnoreCase))
+            continue;
+        for (var index = literal.Index; index < literal.Index + literal.Length; index++)
+            result[index] = source[index];
+    }
+    return StripSqlCommentsAndLiterals(new string(result));
+}
+
+static string StripSqlCommentsAndLiterals(string source)
 {
     var result = source.ToCharArray();
     for (var i = 0; i < source.Length;)
@@ -88,7 +105,7 @@ static string StripNonSql(string source)
         if (i + 1 < source.Length && source[i] == '-' && source[i + 1] == '-') { var end = source.IndexOf('\n', i); if (end < 0) end = source.Length; Blank(result, i, end); i = end; continue; }
         if (i + 1 < source.Length && source[i] == '/' && source[i + 1] == '*') { var end = source.IndexOf("*/", i + 2, StringComparison.Ordinal); end = end < 0 ? source.Length : end + 2; Blank(result, i, end); i = end; continue; }
         if (source[i] == '\'' && (i == 0 || source[i - 1] != '@')) { var end = i + 1; while (end < source.Length) { if (source[end] == '\'' && end + 1 < source.Length && source[end + 1] == '\'') { end += 2; continue; } if (source[end++] == '\'') break; } Blank(result, i, end); i = end; continue; }
-        if (source[i] == '$') { var tag = Regex.Match(source[i..], @"^\$[a-zA-Z_\d]*\$"); if (tag.Success) { var close = source.IndexOf(tag.Value, i + tag.Length, StringComparison.Ordinal); var end = close < 0 ? source.Length : close + tag.Length; Blank(result, i, end); i = end; continue; } }
+        // Dollar-quoted PL/pgSQL bodies contain executable SQL and must remain visible.
         i++;
     }
     return new string(result);

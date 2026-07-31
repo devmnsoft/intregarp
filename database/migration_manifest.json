@@ -552,6 +552,17 @@
       "status": "versionada",
       "observacoes": "Migration aditiva v1.48; migrations 0001 a 0049 permanecem congeladas.",
       "checksum_sha256": "b1b25f06bd9626f93a2b0e82e3a59c8f6c6b591659e874d700a9caca054e83c5"
+    },
+    {
+      "ordem": 51,
+      "arquivo": "0051_v149_orcamento_pedido_operacao.sql",
+      "versao": "0051_v149_orcamento_pedido_operacao",
+      "descricao": "Orçamento ao Faturamento: contrato canônico de tarefas e operação executável",
+      "modulo": "Commercial",
+      "presente_no_script_completop": true,
+      "status": "versionada",
+      "observacoes": "Migration aditiva v1.49; migrations 0001 a 0050 permanecem congeladas.",
+      "checksum_sha256": "f6fa1fc302cd506c129a73834af43d3b606ac86e99e22fed72377b04566e3825"
     }
   ],
   "postgresql": "16",

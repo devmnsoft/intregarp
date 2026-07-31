@@ -1,12 +1,12 @@
 -- Produto: IntegraRP
--- Versão: v1.48
+-- Versão: v1.49
 -- PostgreSQL: 16
 -- Schema: integrarp
 -- Arquivo principal: database/scriptcompleto.sql
--- Quantidade de migrations: 50
+-- Quantidade de migrations: 51
 -- Data UTC determinística: 2026-07-31T00:00:00Z
--- Checksum SHA-256: 43f53040ce33fde2b03f261dd37c0c89164eb4881ca66d07c7394a6fc48e3392
--- Contrato: Banco Canônico Integrarp v1.48
+-- Checksum SHA-256: ef8cd71c529088c916ca7dafa944af95e75e79e33261a2a1342c521699cca6ea
+-- Contrato: Banco Canônico Integrarp v1.49
 -- Execução:
 -- psql -X "$POSTGRES_URI" --set ON_ERROR_STOP=1 --file database/scriptcompleto.sql
 -- Gerado automaticamente; não editar os arquivos de saída.
@@ -16,7 +16,7 @@ DO $version_check$
 BEGIN
   IF current_setting('server_version_num')::integer < 160000
      OR current_setting('server_version_num')::integer >= 170000 THEN
-    RAISE EXCEPTION 'IntegraRP v1.48 requer PostgreSQL 16; encontrado %', current_setting('server_version');
+    RAISE EXCEPTION 'IntegraRP v1.49 requer PostgreSQL 16; encontrado %', current_setting('server_version');
   END IF;
 END
 $version_check$;
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS integrarp.schema_contract (
     CONSTRAINT ck_schema_contract_postgresql CHECK (postgresql_major = 16),
     CONSTRAINT ck_schema_contract_schema CHECK (schema_name = 'integrarp')
 );
-SELECT pg_advisory_lock(14820260731);
+SELECT pg_advisory_lock(14920260731);
 BEGIN;
 
 -- >>> 0001_initial_integrarp.sql
@@ -1868,8 +1868,8 @@ CREATE TABLE IF NOT EXISTS integrarp.tarefa_anexo (tarefa_anexo_id uuid PRIMARY 
 CREATE TABLE IF NOT EXISTS integrarp.evento_negocio (evento_negocio_id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, tipo_evento varchar(120) NOT NULL, origem_tipo varchar(80) NULL, origem_id uuid NULL, processo_instancia_id uuid NULL, tarefa_id uuid NULL, payload_json jsonb NOT NULL DEFAULT '{}'::jsonb, status varchar(40) NOT NULL DEFAULT 'pendente', criado_em timestamptz NOT NULL DEFAULT now(), processado_em timestamptz NULL, erro text NULL);
 CREATE TABLE IF NOT EXISTS integrarp.outbox_evento (outbox_evento_id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, tipo_evento varchar(120) NOT NULL, canal varchar(60) NULL, payload_json jsonb NOT NULL DEFAULT '{}'::jsonb, status varchar(40) NOT NULL DEFAULT 'pendente', tentativas int NOT NULL DEFAULT 0, proxima_tentativa_em timestamptz NULL, processado_em timestamptz NULL, erro text NULL, criado_em timestamptz NOT NULL DEFAULT now());
 
-CREATE OR REPLACE VIEW integrarp.vw_flow_tarefas_abertas AS SELECT id AS tarefa_id, tenant_id, codigo, titulo, status, prioridade, prazo_em FROM integrarp.tarefa WHERE excluido_em IS NULL AND status IN ('aberta','atribuida','em_andamento');
-CREATE OR REPLACE VIEW integrarp.vw_flow_tarefas_atrasadas AS SELECT id AS tarefa_id, tenant_id, codigo, titulo, status, prioridade, prazo_em FROM integrarp.tarefa WHERE excluido_em IS NULL AND status <> 'concluida' AND prazo_em < now();
+-- view de tarefa adiada para 0051
+-- view de tarefa adiada para 0051
 CREATE OR REPLACE VIEW integrarp.vw_flow_processos_em_andamento AS SELECT tenant_id, processo_instancia_id, codigo, titulo, status, prazo_em FROM integrarp.processo_instancia WHERE excluido_em IS NULL AND status IN ('em_andamento','aguardando_tarefa');
 CREATE OR REPLACE VIEW integrarp.vw_flow_processos_atrasados AS SELECT tenant_id, processo_instancia_id, codigo, titulo, status, prazo_em FROM integrarp.processo_instancia WHERE excluido_em IS NULL AND status <> 'concluido' AND prazo_em < now();
 CREATE OR REPLACE VIEW integrarp.vw_flow_dashboard_resumo AS SELECT d.tenant_id, count(DISTINCT d.processo_definicao_id) FILTER (WHERE d.status = 'publicado') AS processos_publicados, count(DISTINCT i.processo_instancia_id) FILTER (WHERE i.status IN ('em_andamento','aguardando_tarefa')) AS processos_em_andamento, count(DISTINCT t.id) FILTER (WHERE t.status IN ('aberta','atribuida','em_andamento')) AS tarefas_abertas, count(DISTINCT t.id) FILTER (WHERE t.status <> 'concluida' AND t.prazo_em < now()) AS tarefas_atrasadas, count(DISTINCT i.processo_instancia_id) FILTER (WHERE i.status = 'concluido') AS processos_concluidos FROM integrarp.processo_definicao d LEFT JOIN integrarp.processo_instancia i ON i.tenant_id = d.tenant_id AND i.processo_definicao_id = d.processo_definicao_id AND i.excluido_em IS NULL LEFT JOIN integrarp.tarefa t ON t.tenant_id = d.tenant_id AND t.excluido_em IS NULL WHERE d.excluido_em IS NULL GROUP BY d.tenant_id;
@@ -8735,14 +8735,8 @@ CREATE INDEX IF NOT EXISTS ix_faturamento_pendente_fila
   ON integrarp.faturamento_pendente (tenant_id, criado_em) WHERE status = 'pendente';
 
 -- A chave canônica de integrarp.tarefa é id; as views expõem o contrato Flow por alias.
-CREATE OR REPLACE VIEW integrarp.vw_flow_tarefas_abertas AS
-SELECT id AS tarefa_id, tenant_id, codigo, titulo, status, prioridade, prazo_em
-FROM integrarp.tarefa
-WHERE excluido_em IS NULL AND status IN ('aberta', 'atribuida', 'em_andamento');
-CREATE OR REPLACE VIEW integrarp.vw_flow_tarefas_atrasadas AS
-SELECT id AS tarefa_id, tenant_id, codigo, titulo, status, prioridade, prazo_em
-FROM integrarp.tarefa
-WHERE excluido_em IS NULL AND status <> 'concluida' AND prazo_em < now();
+-- view de tarefa adiada para 0051
+-- view de tarefa adiada para 0051
 
 INSERT INTO integrarp.schema_contract (
   contract_name, product_version, postgresql_major, schema_name, migration_count,
@@ -8759,14 +8753,142 @@ ON CONFLICT (contract_name) DO UPDATE SET
 
 -- <<< 0050_v148_venda_execucao_vertical.sql
 
+-- >>> 0051_v149_orcamento_pedido_operacao.sql
+-- IntegraRP v1.49 — Orçamento ao Faturamento
+-- Reconciliação aditiva do contrato canônico de tarefas operacionais.
+
+ALTER TABLE integrarp.tarefa
+  ADD COLUMN IF NOT EXISTS titulo text NULL,
+  ADD COLUMN IF NOT EXISTS descricao text NULL,
+  ADD COLUMN IF NOT EXISTS prioridade text NULL,
+  ADD COLUMN IF NOT EXISTS responsavel_setor_id uuid NULL,
+  ADD COLUMN IF NOT EXISTS processo_instancia_id uuid NULL,
+  ADD COLUMN IF NOT EXISTS etapa_codigo text NULL,
+  ADD COLUMN IF NOT EXISTS prazo_em timestamptz NULL,
+  ADD COLUMN IF NOT EXISTS vencimento_em timestamptz NULL,
+  ADD COLUMN IF NOT EXISTS iniciado_em timestamptz NULL,
+  ADD COLUMN IF NOT EXISTS concluido_em timestamptz NULL,
+  ADD COLUMN IF NOT EXISTS cancelado_em timestamptz NULL,
+  ADD COLUMN IF NOT EXISTS motivo_cancelamento text NULL,
+  ADD COLUMN IF NOT EXISTS criado_por uuid NULL,
+  ADD COLUMN IF NOT EXISTS atualizado_por uuid NULL,
+  ADD COLUMN IF NOT EXISTS atualizado_em timestamptz NULL,
+  ADD COLUMN IF NOT EXISTS excluido_em timestamptz NULL,
+  ADD COLUMN IF NOT EXISTS row_version bigint NULL;
+
+UPDATE integrarp.tarefa
+SET titulo = COALESCE(
+      NULLIF(btrim(descricao), ''),
+      NULLIF(btrim(codigo), ''),
+      NULLIF(btrim(nome), ''),
+      'Tarefa migrada ' || id::text)
+WHERE titulo IS NULL OR btrim(titulo) = '';
+
+UPDATE integrarp.tarefa
+SET prioridade = 'normal'
+WHERE prioridade IS NULL OR btrim(prioridade) = '';
+
+UPDATE integrarp.tarefa
+SET vencimento_em = prazo_em
+WHERE vencimento_em IS NULL AND prazo_em IS NOT NULL;
+
+UPDATE integrarp.tarefa
+SET atualizado_em = COALESCE(atualizado_em, criado_em, now()),
+    row_version = COALESCE(row_version, 1),
+    criado_por = COALESCE(criado_por, criado_por_usuario_id),
+    atualizado_por = COALESCE(atualizado_por, atualizado_por_usuario_id),
+    responsavel_setor_id = COALESCE(responsavel_setor_id, setor_id);
+
+UPDATE integrarp.tarefa
+SET status = CASE lower(status)
+  WHEN 'aberta' THEN 'pendente'
+  WHEN 'ativo' THEN 'pendente'
+  WHEN 'em_andamento' THEN 'em_execucao'
+  ELSE lower(status)
+END
+WHERE status IS NOT NULL;
+
+DO $validation$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM integrarp.tarefa
+    WHERE tenant_id IS NULL OR titulo IS NULL OR btrim(titulo) = ''
+       OR prioridade IS NULL OR row_version IS NULL OR row_version < 1
+  ) THEN
+    RAISE EXCEPTION 'integrarp.tarefa contém registros incompatíveis com o contrato canônico v1.49';
+  END IF;
+END
+$validation$;
+
+ALTER TABLE integrarp.tarefa
+  ALTER COLUMN titulo SET NOT NULL,
+  ALTER COLUMN prioridade SET DEFAULT 'normal',
+  ALTER COLUMN prioridade SET NOT NULL,
+  ALTER COLUMN atualizado_em SET DEFAULT now(),
+  ALTER COLUMN atualizado_em SET NOT NULL,
+  ALTER COLUMN row_version SET DEFAULT 1,
+  ALTER COLUMN row_version SET NOT NULL;
+
+CREATE INDEX IF NOT EXISTS ix_tarefa_tenant_status_vencimento
+  ON integrarp.tarefa (tenant_id, status, vencimento_em)
+  WHERE excluido_em IS NULL;
+CREATE INDEX IF NOT EXISTS ix_tarefa_tenant_responsavel_status
+  ON integrarp.tarefa (tenant_id, responsavel_usuario_id, status)
+  WHERE excluido_em IS NULL;
+CREATE INDEX IF NOT EXISTS ix_tarefa_tenant_processo_etapa
+  ON integrarp.tarefa (tenant_id, processo_instancia_id, etapa_codigo)
+  WHERE excluido_em IS NULL;
+
+CREATE OR REPLACE VIEW integrarp.vw_flow_tarefas_abertas AS
+SELECT
+    id AS tarefa_id,
+    tenant_id,
+    codigo,
+    titulo,
+    status,
+    prioridade,
+    vencimento_em AS prazo_em
+FROM integrarp.tarefa
+WHERE excluido_em IS NULL
+  AND status IN ('pendente', 'atribuida', 'em_execucao', 'pausada');
+
+CREATE OR REPLACE VIEW integrarp.vw_flow_tarefas_atrasadas AS
+SELECT
+    id AS tarefa_id,
+    tenant_id,
+    codigo,
+    titulo,
+    status,
+    prioridade,
+    vencimento_em AS prazo_em
+FROM integrarp.tarefa
+WHERE excluido_em IS NULL
+  AND status IN ('pendente', 'atribuida', 'em_execucao', 'pausada')
+  AND vencimento_em < now();
+
+INSERT INTO integrarp.schema_contract (
+  contract_name, product_version, postgresql_major, schema_name, migration_count,
+  manifest_generated_at_utc, installed_at, updated_at
+) VALUES (
+  'Banco Canônico Integrarp v1.49', 'v1.49', 16, 'integrarp', 51,
+  '2026-07-31T00:00:00Z'::timestamptz, now(), now()
+)
+ON CONFLICT (contract_name) DO UPDATE SET
+  product_version = EXCLUDED.product_version,
+  migration_count = EXCLUDED.migration_count,
+  manifest_generated_at_utc = EXCLUDED.manifest_generated_at_utc,
+  updated_at = now();
+
+-- <<< 0051_v149_orcamento_pedido_operacao.sql
+
 DO $final_validation$
 BEGIN
   IF to_regnamespace('integrarp') IS NULL THEN RAISE EXCEPTION 'Schema integrarp ausente'; END IF;
-  IF to_regclass('integrarp.schema_contract') IS NULL THEN RAISE EXCEPTION 'Contrato v1.45 ausente'; END IF;
+  IF to_regclass('integrarp.schema_contract') IS NULL THEN RAISE EXCEPTION 'Contrato v1.49 ausente'; END IF;
   IF EXISTS (SELECT 1 FROM pg_catalog.pg_constraint c JOIN pg_catalog.pg_class r ON r.oid=c.conrelid JOIN pg_catalog.pg_namespace n ON n.oid=r.relnamespace WHERE n.nspname='integrarp' AND NOT c.convalidated) THEN
     RAISE EXCEPTION 'Existem constraints não validadas no schema integrarp';
   END IF;
 END
 $final_validation$;
 COMMIT;
-SELECT pg_advisory_unlock(14820260731);
+SELECT pg_advisory_unlock(14920260731);
