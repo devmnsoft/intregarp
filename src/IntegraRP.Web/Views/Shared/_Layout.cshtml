@@ -16,6 +16,7 @@
   @await RenderSectionAsync("Styles", false)
 </head>
 <body>
+  <div class="visually-hidden" aria-hidden="true">@Html.AntiForgeryToken()</div>
   <a class="skip-link" href="#conteudo-principal">Pular para o conteúdo</a>
   <div class="app-shell" data-shell>
     @await Html.PartialAsync("_MobileNavigation")

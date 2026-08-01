@@ -1,11 +1,15 @@
 using System.Net.Http.Headers;
+using IntegraRP.Web.Services.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IntegraRP.Web.Controllers;
 
 [ApiController]
 [Route("api")]
-public sealed class ApiProxyController(IHttpClientFactory httpClientFactory, ILogger<ApiProxyController> logger) : ControllerBase
+public sealed class ApiProxyController(
+    IHttpClientFactory httpClientFactory,
+    IIdentitySessionStore sessions,
+    ILogger<ApiProxyController> logger) : ControllerBase
 {
     private static readonly string[] AllowedPrefixes =
     [
@@ -74,7 +78,17 @@ public sealed class ApiProxyController(IHttpClientFactory httpClientFactory, ILo
             var target = path + Request.QueryString;
             using var request = new HttpRequestMessage(new HttpMethod(Request.Method), target);
 
-            ForwardHeader("Authorization", request.Headers);
+            var sessionId = User.FindFirst("session_id")?.Value;
+            var tokens = sessionId is null ? null : await sessions.GetAsync(sessionId, cancellationToken);
+            if (tokens is null)
+            {
+                return Problem(
+                    title: "Sessão expirada",
+                    detail: "Entre novamente para continuar.",
+                    statusCode: StatusCodes.Status401Unauthorized);
+            }
+
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokens.AccessToken);
             ForwardHeader("X-Correlation-Id", request.Headers);
             ForwardHeader("X-Tenant-Id", request.Headers);
 

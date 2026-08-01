@@ -87,11 +87,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+      - run: npm ci
       - run: test -s src/IntegraRP.Web/wwwroot/lib/bootstrap/css/bootstrap.min.css
       - run: test -s src/IntegraRP.Web/wwwroot/lib/bootstrap/js/bootstrap.bundle.min.js
       - run: test -s src/IntegraRP.Web/wwwroot/lib/bootstrap-icons/font/bootstrap-icons.css
       - run: rg -q "Bootstrap v5" src/IntegraRP.Web/wwwroot/lib/bootstrap/css/bootstrap.min.css
-      - run: test -f src/IntegraRP.Web/wwwroot/lib/bootstrap/LICENSE && test -f src/IntegraRP.Web/wwwroot/lib/bootstrap-icons/LICENSE
+      - run: test -f src/IntegraRP.Web/wwwroot/lib/bootstrap/LICENSE && test -f src/IntegraRP.Web/wwwroot/lib/bootstrap-icons/LICENSE.md
 
   database-clean:
     runs-on: ubuntu-latest
