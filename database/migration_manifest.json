@@ -574,8 +574,19 @@
       "status": "versionada",
       "observacoes": "Migration aditiva v1.50; migrations 0001 a 0051 permanecem congeladas.",
       "checksum_sha256": "4532653030c0a2f95617e249c4dd205eb9c8f27a2d8c69447fc057e2eefa932f"
+    },
+    {
+      "ordem": 53,
+      "arquivo": "0053_v151_product_experience_operacao.sql",
+      "versao": "0053_v151_product_experience_operacao",
+      "descricao": "Product Experience 2.0: prazo operacional derivado das tarefas abertas do processo",
+      "modulo": "Flow",
+      "presente_no_script_completop": true,
+      "status": "versionada",
+      "observacoes": "Migration aditiva v1.51; migrations 0001 a 0052 permanecem congeladas.",
+      "checksum_sha256": "4e4db89616473e107d1bee602ef705dd37517c84ddc1d77ea1ff2d65f2470f24"
     }
   ],
   "postgresql": "16",
-  "generatedAtUtc": "2026-07-31T00:00:00Z"
+  "generatedAtUtc": "2026-08-01T00:00:00Z"
 }

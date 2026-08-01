@@ -1,5 +1,6 @@
 using IntegraRP.Application.Runtime;
 using Microsoft.Extensions.Logging.Abstractions;
+using Xunit;
 
 namespace IntegraRP.Tests;
 
@@ -44,8 +45,11 @@ public sealed class V114OperationalSecurityTests
         public IReadOnlySet<string> Roles { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         public IReadOnlySet<string> Permissions { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         public Guid? SectorId => null;
+        public Guid? SessionId => null;
         public bool IsSuperAdmin => false;
-        public string? CorrelationId => "test-correlation";
+        public string CorrelationId => "test-correlation";
+        public string? IpAddress => "127.0.0.1";
+        public string? UserAgent => "IntegraRP.Tests";
     }
 
     private sealed class FakeOperationalRepository : IOperationalRuntimeRepository

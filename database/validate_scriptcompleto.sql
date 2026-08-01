@@ -87,3 +87,14 @@ SELECT produto_id, local_codigo, saldo_fisico, saldo_reservado
 SELECT id, numero, status, total FROM integrarp.pedido WHERE tenant_id IS NOT NULL ORDER BY criado_em DESC LIMIT 1;
 SELECT id, status, prioridade FROM integrarp.tarefa_operacional WHERE tenant_id IS NOT NULL ORDER BY criado_em DESC LIMIT 1;
 SELECT id, status, tentativas FROM integrarp.outbox_evento WHERE tenant_id IS NOT NULL ORDER BY criado_em DESC LIMIT 1;
+
+DO $v151_validation$
+BEGIN
+  IF pg_get_viewdef('integrarp.vw_flow_processos_em_andamento'::regclass, true) LIKE '%i.prazo_em%' THEN
+    RAISE EXCEPTION 'View de processos ainda consulta prazo inexistente na instância';
+  END IF;
+  IF pg_get_viewdef('integrarp.vw_flow_processos_em_andamento'::regclass, true) NOT LIKE '%min(t.vencimento_em)%' THEN
+    RAISE EXCEPTION 'View de processos não deriva o prazo das tarefas abertas';
+  END IF;
+END
+$v151_validation$;
