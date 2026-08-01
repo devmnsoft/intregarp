@@ -13,7 +13,7 @@
     {
       var active = item.Controller.Equals(currentController, StringComparison.OrdinalIgnoreCase);
       <a class="nav-item @(active ? "active" : string.Empty)" asp-controller="@item.Controller" asp-action="@item.Action" aria-current="@(active ? "page" : null)">
-        <i class="bi @item.Icon" aria-hidden="true"></i><span>@item.Text</span>
+        <app-icon name="@item.Icon" /><span>@item.Text</span>
         @if (item.Badge is not null) { <span class="nav-badge nav-badge-@item.Badge.Variant">@item.Badge.Text</span> }
       </a>
     }
