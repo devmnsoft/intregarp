@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-labelledby="title">
+  <title id="title">IntegraRP</title>
+  <rect width="48" height="48" rx="10" fill="#2563EB"/>
+  <path d="M13 15h9v6h-3v6h10v-6h-3v-6h9v9h-3v9H16v-9h-3V15Z" fill="#fff"/>
+  <circle cx="17.5" cy="18.5" r="2.5" fill="#7DD3FC"/><circle cx="30.5" cy="18.5" r="2.5" fill="#86EFAC"/>
+</svg>

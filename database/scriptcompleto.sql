@@ -1870,7 +1870,7 @@ CREATE TABLE IF NOT EXISTS integrarp.outbox_evento (outbox_evento_id uuid PRIMAR
 
 -- view de tarefa adiada para 0051
 -- view de tarefa adiada para 0051
-CREATE OR REPLACE VIEW integrarp.vw_flow_processos_em_andamento AS SELECT tenant_id, processo_instancia_id, codigo, titulo, status, prazo_em FROM integrarp.processo_instancia WHERE excluido_em IS NULL AND status IN ('em_andamento','aguardando_tarefa');
+CREATE OR REPLACE VIEW integrarp.vw_flow_processos_em_andamento AS SELECT i.tenant_id, i.processo_instancia_id, i.codigo, d.nome AS titulo, i.status, i.prazo_em FROM integrarp.processo_instancia AS i JOIN integrarp.processo_definicao AS d ON d.tenant_id = i.tenant_id AND d.processo_definicao_id = i.processo_definicao_id AND d.excluido_em IS NULL WHERE i.excluido_em IS NULL AND i.status IN ('em_andamento','aguardando_tarefa');
 CREATE OR REPLACE VIEW integrarp.vw_flow_processos_atrasados AS SELECT tenant_id, processo_instancia_id, codigo, titulo, status, prazo_em FROM integrarp.processo_instancia WHERE excluido_em IS NULL AND status <> 'concluido' AND prazo_em < now();
 CREATE OR REPLACE VIEW integrarp.vw_flow_dashboard_resumo AS SELECT d.tenant_id, count(DISTINCT d.processo_definicao_id) FILTER (WHERE d.status = 'publicado') AS processos_publicados, count(DISTINCT i.processo_instancia_id) FILTER (WHERE i.status IN ('em_andamento','aguardando_tarefa')) AS processos_em_andamento, count(DISTINCT t.id) FILTER (WHERE t.status IN ('aberta','atribuida','em_andamento')) AS tarefas_abertas, count(DISTINCT t.id) FILTER (WHERE t.status <> 'concluida' AND t.prazo_em < now()) AS tarefas_atrasadas, count(DISTINCT i.processo_instancia_id) FILTER (WHERE i.status = 'concluido') AS processos_concluidos FROM integrarp.processo_definicao d LEFT JOIN integrarp.processo_instancia i ON i.tenant_id = d.tenant_id AND i.processo_definicao_id = d.processo_definicao_id AND i.excluido_em IS NULL LEFT JOIN integrarp.tarefa t ON t.tenant_id = d.tenant_id AND t.excluido_em IS NULL WHERE d.excluido_em IS NULL GROUP BY d.tenant_id;
 
@@ -8892,3 +8892,26 @@ END
 $final_validation$;
 COMMIT;
 SELECT pg_advisory_unlock(14920260731);
+
+
+-- Migration 0052_v150_premium_product_experience.sql
+-- IntegraRP v1.50 — correção aditiva do contrato de leitura do Flow.
+-- O nome canônico pertence à definição; a view não depende do título da instância.
+CREATE OR REPLACE VIEW integrarp.vw_flow_processos_em_andamento AS
+SELECT
+    i.tenant_id,
+    i.processo_instancia_id,
+    i.codigo,
+    d.nome AS titulo,
+    i.status,
+    i.prazo_em
+FROM integrarp.processo_instancia AS i
+JOIN integrarp.processo_definicao AS d
+  ON d.tenant_id = i.tenant_id
+ AND d.processo_definicao_id = i.processo_definicao_id
+ AND d.excluido_em IS NULL
+WHERE i.excluido_em IS NULL
+  AND i.status IN ('em_andamento', 'aguardando_tarefa');
+
+COMMENT ON VIEW integrarp.vw_flow_processos_em_andamento IS
+  'Processos ativos com título obtido da definição canônica.';

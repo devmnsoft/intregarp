@@ -17,10 +17,21 @@ public abstract class IntegraControllerBase : ControllerBase
     protected ObjectResult ProblemFrom(Exception exception, ILogger logger, string context)
     {
         logger.LogError(exception, "Erro em {Context}. CorrelationId={CorrelationId}", context, HttpContext.TraceIdentifier);
-        return Problem(
-            title: "Erro interno",
-            detail: "Não foi possível concluir a operação. Informe o correlation_id ao suporte.",
-            statusCode: StatusCodes.Status500InternalServerError,
-            extensions: new Dictionary<string, object?> { ["code"] = "internal_error", ["correlation_id"] = HttpContext.TraceIdentifier });
+        var details = new ProblemDetails
+        {
+            Status = StatusCodes.Status500InternalServerError,
+            Title = "Erro interno",
+            Detail = "Não foi possível concluir a operação. Informe o correlation_id ao suporte.",
+            Type = "https://httpstatuses.com/500",
+            Instance = HttpContext.Request.Path
+        };
+        details.Extensions["code"] = "internal_error";
+        details.Extensions["correlation_id"] = HttpContext.TraceIdentifier;
+
+        return new ObjectResult(details)
+        {
+            StatusCode = details.Status,
+            ContentTypes = { "application/problem+json" }
+        };
     }
 }
