@@ -1,9 +1,10 @@
 {
   "name": "integrarp-web-assets",
   "private": true,
-  "version": "1.51.0",
+  "version": "1.52.0",
   "scripts": {
     "vendor": "node scripts/vendor-assets.mjs",
+    "optimize-assets": "node scripts/validate-assets.mjs",
     "postinstall": "npm run vendor"
   },
   "devDependencies": {

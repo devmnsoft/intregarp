@@ -12,12 +12,12 @@ public sealed class DashboardController : Controller
         {
             Kpis = new[]
             {
-                new KpiCardViewModel("Pedidos em andamento", "—", "Aguardando dados da API", "neutral", "bi-receipt", "/orders"),
-                new KpiCardViewModel("Tarefas vencidas", "—", "Conecte a API para calcular atrasos", "warning", "bi-check2-square", "/tasks/my"),
-                new KpiCardViewModel("SLA no prazo", "—", "Sem eventos consolidados", "neutral", "bi-speedometer2", "/bi/kpis"),
-                new KpiCardViewModel("Estoque crítico", "—", "Sem leitura de saldo disponível", "warning", "bi-boxes", "/inventory"),
-                new KpiCardViewModel("Títulos vencidos", "—", "Sem carteira financeira carregada", "neutral", "bi-cash-coin", "/billing/titles"),
-                new KpiCardViewModel("Score operacional", "—", "Aguardando indicadores reais", "neutral", "bi-graph-up", "/bi")
+                new KpiCardViewModel("Pedidos em andamento", "Indisponível", "API operacional não respondeu", "neutral", "orders", "/orders"),
+                new KpiCardViewModel("Tarefas vencidas", "Indisponível", "API operacional não respondeu", "warning", "tasks", "/tasks/my"),
+                new KpiCardViewModel("SLA no prazo", "Indisponível", "Indicadores não consolidados", "neutral", "dashboard", "/bi/kpis"),
+                new KpiCardViewModel("Estoque crítico", "Indisponível", "Consulta de saldo não respondeu", "warning", "inventory", "/inventory"),
+                new KpiCardViewModel("Títulos vencidos", "Indisponível", "Carteira financeira não respondeu", "neutral", "billing", "/billing/titles"),
+                new KpiCardViewModel("Score operacional", "Indisponível", "Indicadores não consolidados", "neutral", "timeline", "/bi")
             }
         };
         return View(model);

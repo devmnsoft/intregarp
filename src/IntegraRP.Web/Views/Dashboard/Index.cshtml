@@ -8,13 +8,13 @@
 <section class="kpi-grid" aria-label="Indicadores principais">
 @foreach (var kpi in Model.Kpis)
 {
-  <article class="kpi-card" data-status="@kpi.Status"><i class="bi @kpi.Icon" aria-hidden="true"></i><p>@kpi.Title</p><strong>@kpi.Value</strong><span>@kpi.Context</span><a href="@kpi.DetailUrl">Abrir detalhe</a></article>
+  <article class="kpi-card" data-status="@kpi.Status"><app-icon name="@kpi.Icon" /><p>@kpi.Title</p><strong>@kpi.Value</strong><span>@kpi.Context</span><a href="@kpi.DetailUrl">Abrir detalhe</a></article>
 }
 </section>
 <section class="dashboard-grid">
-  <article class="panel"><h2>O que precisa da sua atenção</h2><p class="text-muted">Nenhum alerta crítico foi retornado pela API. Quando houver dados, priorize atrasos, rupturas e exceções de SLA.</p></article>
-  <article class="panel"><h2>Minhas próximas tarefas</h2><p class="text-muted">A lista será preenchida por tarefas atribuídas ao usuário autenticado.</p></article>
-  <article class="panel"><h2>Processos em andamento</h2><p class="text-muted">Instâncias do Integra Flow aparecerão aqui com etapa atual e responsável.</p></article>
-  <article class="panel"><h2>Saúde dos módulos</h2><p class="text-muted">API, Web, Worker, banco e integrações serão exibidos sem números fictícios em Production.</p></article>
+  <article class="panel"><h2>O que precisa da sua atenção</h2><p class="text-muted">Não foi possível consultar alertas operacionais. Atualize a página ou abra a Central de Ações.</p></article>
+  <article class="panel"><h2>Minhas próximas tarefas</h2><p class="text-muted">A consulta de tarefas não respondeu. Acesse sua fila para tentar novamente.</p></article>
+  <article class="panel"><h2>Processos em andamento</h2><p class="text-muted">A consulta de processos não respondeu. Abra o Integra Flow para consultar a operação.</p></article>
+  <article class="panel"><h2>Saúde dos módulos</h2><p class="text-muted">Os indicadores de disponibilidade não puderam ser consolidados nesta atualização.</p></article>
 </section>
 @section Scripts { <script src="~/js/pages/dashboard.js" asp-append-version="true" defer></script> }

@@ -9,14 +9,14 @@ public sealed class NavigationService : INavigationService
         var canSeeTechnical = string.Equals(environmentName, "Development", StringComparison.OrdinalIgnoreCase) || user.IsInRole("Tecnico") || user.IsInRole("Administrador");
         var groups = new List<NavigationGroup>
         {
-            new("Início", new[] { Item("Visão geral", "bi-speedometer2", "Dashboard"), Item("Central de Ações", "bi-compass", "Journey"), Item("Atividade recente", "bi-activity", "Activities") }),
-            new("Operação", new[] { Item("Minhas tarefas", "bi-check2-square", "Tasks", "My"), Item("Clientes", "bi-people", "Customers"), Item("Produtos", "bi-box-seam", "Products"), Item("Estoque", "bi-boxes", "Inventory"), Item("Pedidos", "bi-receipt", "Orders"), Item("Logística", "bi-truck", "Operational"), Item("Entregas", "bi-geo-alt", "Operational") }),
-            new("Processos", new[] { Item("Integra Flow", "bi-diagram-3", "Flow"), Item("Designer de Processos", "bi-bezier2", "FlowDesigner"), Item("Templates", "bi-layers", "Templates"), Item("Automações", "bi-lightning-charge", "Automation") }),
-            new("Gestão", new[] { Item("Financeiro", "bi-cash-coin", "Billing"), Item("BI e Indicadores", "bi-graph-up", "Bi"), Item("KPIs", "bi-bar-chart", "Bi", "Kpis"), Item("Project Central", "bi-kanban", "Project") }),
-            new("Plataforma", new[] { Item("Integra Studio", "bi-grid-1x2", "Studio"), Item("Integra AI", "bi-stars", "Ai"), Item("Connect", "bi-broadcast", "Connect") }),
-            new("Administração", new[] { Item("Usuários", "bi-person-gear", "Users"), Item("Setores", "bi-diagram-2", "Departments"), Item("Perfis e Permissões", "bi-shield-lock", "Roles"), Item("Auditoria", "bi-journal-check", "Audit"), Item("Configurações", "bi-gear", "Settings") })
+            new("Início", new[] { Item("Visão geral", "dashboard", "Dashboard"), Item("Central de Ações", "action-center", "Journey"), Item("Atividade recente", "activities", "Activities") }),
+            new("Operação", new[] { Item("Minhas tarefas", "tasks", "Tasks", "My"), Item("Clientes", "customers", "Customers"), Item("Produtos", "products", "Products"), Item("Estoque", "inventory", "Inventory"), Item("Pedidos", "orders", "Orders"), Item("Logística", "stock-transfer", "Operational"), Item("Entregas", "processes", "Operational") }),
+            new("Processos", new[] { Item("Integra Flow", "workflow", "Flow"), Item("Designer de Processos", "processes", "FlowDesigner"), Item("Templates", "categories", "Templates"), Item("Automações", "activities", "Automation") }),
+            new("Gestão", new[] { Item("Financeiro", "billing", "Billing"), Item("BI e Indicadores", "dashboard", "Bi"), Item("KPIs", "timeline", "Bi", "Kpis"), Item("Project Central", "tasks", "Project") }),
+            new("Plataforma", new[] { Item("Integra Studio", "categories", "Studio"), Item("Integra AI", "help", "Ai"), Item("Connect", "notifications", "Connect") }),
+            new("Administração", new[] { Item("Usuários", "users", "Users"), Item("Setores", "sectors", "Departments"), Item("Perfis e Permissões", "roles", "Roles"), Item("Auditoria", "audit", "Audit"), Item("Configurações", "settings", "Settings") })
         };
-        if (canSeeTechnical) groups.Add(new("Técnico", new[] { Item("Homologação", "bi-clipboard-check", "Homologation"), Item("Diagnóstico", "bi-bug", "Demo") }));
+        if (canSeeTechnical) groups.Add(new("Técnico", new[] { Item("Homologação", "success", "Homologation"), Item("Diagnóstico", "warning", "Demo") }));
         return groups;
     }
 
