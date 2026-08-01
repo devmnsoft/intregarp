@@ -1,3 +1,10 @@
+@import url("./design-tokens.css");
+@import url("./tokens/colors.css");
+@import url("./tokens/typography.css");
+@import url("./tokens/spacing.css");
+@import url("./tokens/elevation.css");
+@import url("./tokens/motion.css");
+
 :root {
   --integrarp-blue: #071F3A;
   --integrarp-tech: #2563EB;
@@ -34,3 +41,11 @@ body {
   border-radius: 1rem;
   box-shadow: 0 10px 24px rgb(15 23 42 / 6%);
 }
+.brand-symbol { width: 2.5rem; height: 2.5rem; flex: 0 0 auto; }
+.sidebar-brand { color: #fff; text-decoration: none; }
+.sidebar-brand:hover { color: #fff; }
+.quick-create-menu { min-width: 15rem; }
+.quick-create-menu .dropdown-item { display: flex; gap: .65rem; align-items: center; min-height: 2.75rem; }
+.action-center-link { display: inline-grid; place-items: center; text-decoration: none; }
+.notification-button { position: relative; }
+.notification-count { position: absolute; inset: -.3rem -.35rem auto auto; min-width: 1.15rem; padding: .08rem .28rem; border: 2px solid var(--surface); border-radius: 1rem; background: var(--danger-600); color: #fff; font-size: .68rem; font-weight: 700; }

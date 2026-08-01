@@ -2,9 +2,21 @@
   <button class="icon-button" type="button" data-sidebar-toggle aria-label="Expandir ou recolher navegação" aria-controls="app-sidebar"><i class="bi bi-list"></i></button>
   @await Html.PartialAsync("_Breadcrumbs")
   <div class="topbar-search"><label class="visually-hidden" for="global-search">Pesquisa global</label><input id="global-search" type="search" class="form-control" placeholder="Pesquisar clientes, pedidos, tarefas e processos" data-command-open /></div>
-  <button class="btn btn-primary btn-sm" type="button"><i class="bi bi-plus-lg"></i> Criar</button>
+  <div class="dropdown">
+    <button class="btn btn-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-plus-lg" aria-hidden="true"></i> Criar</button>
+    <ul class="dropdown-menu dropdown-menu-end quick-create-menu">
+      <li><h2 class="dropdown-header">Criação rápida</h2></li>
+      <li><a class="dropdown-item" href="/customers?action=create"><i class="bi bi-person-plus" aria-hidden="true"></i> Novo cliente</a></li>
+      <li><a class="dropdown-item" href="/opportunities/pipeline?action=create"><i class="bi bi-funnel" aria-hidden="true"></i> Nova oportunidade</a></li>
+      <li><a class="dropdown-item" href="/quotes/create"><i class="bi bi-file-earmark-text" aria-hidden="true"></i> Novo orçamento</a></li>
+      <li><a class="dropdown-item" href="/orders?action=create"><i class="bi bi-receipt" aria-hidden="true"></i> Novo pedido</a></li>
+      <li><a class="dropdown-item" href="/inventory?action=entry"><i class="bi bi-box-arrow-in-down" aria-hidden="true"></i> Entrada de estoque</a></li>
+      <li><a class="dropdown-item" href="/tasks/my?action=create"><i class="bi bi-check2-square" aria-hidden="true"></i> Nova tarefa</a></li>
+    </ul>
+  </div>
   <button class="icon-button" type="button" data-command-open aria-label="Abrir command palette (Ctrl K)"><i class="bi bi-command"></i></button>
-  <button class="icon-button" type="button" data-notification-toggle aria-label="Abrir notificações"><i class="bi bi-bell"></i></button>
+  <a class="icon-button action-center-link" href="/journey/what-to-do-now" aria-label="Abrir Central de Ações"><i class="bi bi-inbox"></i></a>
+  <button class="icon-button notification-button" type="button" data-notification-toggle aria-label="Abrir notificações"><i class="bi bi-bell"></i><span class="notification-count" data-notification-count hidden></span></button>
   <span class="tenant-chip">@User.FindFirst("tenant_name")?.Value</span>
   @await Html.PartialAsync("_UserMenu")
 </header>

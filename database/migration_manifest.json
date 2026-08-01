@@ -1,7 +1,7 @@
 {
   "schema": "integrarp",
-  "gerado_para": "v1.40",
-  "contrato": "Banco Canônico Integrarp v1.40",
+  "gerado_para": "v1.50",
+  "contrato": "Banco Canônico Integrarp v1.50",
   "migrations": [
     {
       "ordem": 1,
@@ -563,6 +563,17 @@
       "status": "versionada",
       "observacoes": "Migration aditiva v1.49; migrations 0001 a 0050 permanecem congeladas.",
       "checksum_sha256": "f6fa1fc302cd506c129a73834af43d3b606ac86e99e22fed72377b04566e3825"
+    },
+    {
+      "ordem": 52,
+      "arquivo": "0052_v150_premium_product_experience.sql",
+      "versao": "0052_v150_premium_product_experience",
+      "descricao": "Premium Product Experience: contrato canônico da visão de processos em andamento",
+      "modulo": "Flow",
+      "presente_no_script_completop": true,
+      "status": "versionada",
+      "observacoes": "Migration aditiva v1.50; migrations 0001 a 0051 permanecem congeladas.",
+      "checksum_sha256": "4532653030c0a2f95617e249c4dd205eb9c8f27a2d8c69447fc057e2eefa932f"
     }
   ],
   "postgresql": "16",

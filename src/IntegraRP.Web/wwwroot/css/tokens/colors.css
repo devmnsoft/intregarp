@@ -1,0 +1,9 @@
+:root {
+  --brand-950: #081426; --brand-900: #0c2038; --brand-800: #123352;
+  --brand-600: #2563eb; --brand-500: #3478f6;
+  --success-600: #11845b; --warning-600: #b86600; --danger-600: #c73e4d;
+  --background: #f3f6fa; --surface: #fff; --surface-muted: #f8fafc; --border: #dce3ec;
+  --text-primary: #172033; --text-secondary: #536174; --text-muted: #69778a;
+  --accent-600: var(--brand-600); --neutral-950: var(--text-primary); --neutral-600: var(--text-secondary);
+  --neutral-200: var(--border); --neutral-100: #edf2f7; --neutral-50: var(--surface-muted);
+}
