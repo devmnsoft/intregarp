@@ -92,9 +92,10 @@ jobs:
       - run: npm ci
       - run: test -s src/IntegraRP.Web/wwwroot/lib/bootstrap/css/bootstrap.min.css
       - run: test -s src/IntegraRP.Web/wwwroot/lib/bootstrap/js/bootstrap.bundle.min.js
-      - run: test -s src/IntegraRP.Web/wwwroot/lib/bootstrap-icons/font/bootstrap-icons.css
+      - run: test -s src/IntegraRP.Web/wwwroot/icons/integrarp-icons.svg
       - run: rg -q "Bootstrap v5" src/IntegraRP.Web/wwwroot/lib/bootstrap/css/bootstrap.min.css
-      - run: test -f src/IntegraRP.Web/wwwroot/lib/bootstrap/LICENSE && test -f src/IntegraRP.Web/wwwroot/lib/bootstrap-icons/LICENSE.md
+      - run: test -f src/IntegraRP.Web/wwwroot/lib/bootstrap/LICENSE
+      - run: node scripts/validate-assets.mjs
 
   database-clean:
     runs-on: ubuntu-latest
