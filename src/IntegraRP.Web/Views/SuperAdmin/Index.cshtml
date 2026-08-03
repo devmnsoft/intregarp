@@ -1,0 +1,39 @@
+@{ ViewData["Title"] = "Super Administração"; ViewData["Description"] = "Governança global de tenants, identidades e saúde da plataforma."; }
+@section Styles { <link rel="stylesheet" href="~/css/premium-experience.css" asp-append-version="true" /> }
+
+<section class="app-action-bar" aria-label="Ações da Super Administração">
+  <div><span class="app-status-badge app-status-badge--secure"><app-icon name="audit" size="16" /> Contexto global auditado</span></div>
+  <div class="app-action-bar__actions">
+    <button class="app-button app-button--secondary" type="button" data-app-drawer-open="support-context"><app-icon name="tenants" size="16" /> Acessar tenant para suporte</button>
+    <a class="app-button app-button--primary" href="/tenants?action=create"><app-icon name="create" size="16" /> Criar tenant</a>
+  </div>
+</section>
+
+<div class="app-metric-grid" data-superadmin-metrics aria-live="polite">
+  <article class="app-metric-card"><span>Tenants</span><strong data-metric="tenants">—</strong><small>organizações cadastradas</small></article>
+  <article class="app-metric-card"><span>Usuários globais</span><strong data-metric="users">—</strong><small>identidades governadas</small></article>
+  <article class="app-metric-card"><span>Plataforma</span><strong class="text-success">Operacional</strong><small>verificação atual do BFF</small></article>
+</div>
+
+<section class="app-surface" aria-labelledby="tenant-list-title">
+  <div class="app-filter-bar"><div><h2 id="tenant-list-title">Tenants</h2><p>Consumo, plano e situação de cada organização.</p></div><label>Filtrar <input class="form-control" type="search" data-superadmin-filter /></label></div>
+  <div class="app-skeleton" data-superadmin-loading aria-label="Carregando tenants"><span></span><span></span><span></span></div>
+  <div class="table-responsive" hidden data-superadmin-content><table class="app-data-table"><thead><tr><th>Organização</th><th>Situação</th><th>Plano</th><th class="text-end">Ações</th></tr></thead><tbody data-superadmin-rows></tbody></table></div>
+  <div class="app-empty-state" hidden data-superadmin-empty><app-icon name="tenants" size="32" /><h3>Nenhum tenant encontrado</h3><p>Ajuste o filtro ou cadastre a primeira organização.</p></div>
+  <div class="app-error-state" hidden data-superadmin-error><app-icon name="warning" size="32" /><h3>Não foi possível carregar a visão global</h3><p>Nenhuma alteração foi feita. Verifique a conexão e tente novamente.</p><button class="app-button app-button--secondary" data-superadmin-retry>Carregar novamente</button></div>
+</section>
+
+<aside class="app-drawer" id="support-context" aria-hidden="true" aria-labelledby="support-title" tabindex="-1">
+  <div class="app-drawer__header"><div><small>Suporte temporário</small><h2 id="support-title">Acessar contexto de tenant</h2></div><button class="app-icon-button" type="button" data-app-drawer-close aria-label="Fechar"><app-icon name="close" /></button></div>
+  <form class="app-drawer__body" data-support-context-form>
+    <div class="app-banner app-banner--warning"><app-icon name="audit" /><p>O acesso é temporário, permanece visível no shell e gera registro de auditoria.</p></div>
+    <label class="form-label" for="support-tenant">Tenant</label><select class="form-select" id="support-tenant" required data-support-tenants></select>
+    <label class="form-label mt-3" for="support-reason">Motivo detalhado</label><textarea class="form-control" id="support-reason" minlength="10" required></textarea>
+    <label class="form-label mt-3" for="support-duration">Duração</label><select class="form-select" id="support-duration"><option value="30">30 minutos</option><option value="60">1 hora</option><option value="120">2 horas</option></select>
+    <div class="app-checklist"><strong>Antes de continuar</strong><label><input type="checkbox" required /> Confirmo que possuo autorização para este atendimento.</label></div>
+    <button class="app-button app-button--primary mt-4" type="submit">Iniciar acesso auditado</button>
+  </form>
+</aside>
+<div class="app-drawer-backdrop" hidden data-app-drawer-backdrop></div>
+
+@section Scripts { <script src="~/js/superadmin.js" asp-append-version="true" defer></script> }

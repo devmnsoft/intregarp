@@ -6,7 +6,6 @@ using IntegraRP.Infrastructure.Data;
 
 namespace IntegraRP.Infrastructure.Repositories.Postgres.Commercial;
 
-[Obsolete("Adapter legado; novos fluxos devem usar repositories comerciais especializados.")]
 public sealed class PostgresCommercialOperationsRepository(IDbConnectionFactory connections, NumeracaoComercialService numbering) : ILegacyCommercialOperationsRepository
 {
     public async Task<IReadOnlyList<CustomerContactDto>> ListContactsAsync(Guid tenantId, Guid customerId, CancellationToken ct)

@@ -203,9 +203,7 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddLegacyCommercialCompatibility(this IServiceCollection services)
     {
-#pragma warning disable CS0618 // Compatibility endpoint isolated from the canonical runtime.
         services.AddScoped<ILegacyCommercialOperationsRepository, PostgresCommercialOperationsRepository>();
-#pragma warning restore CS0618
         return services;
     }
 }

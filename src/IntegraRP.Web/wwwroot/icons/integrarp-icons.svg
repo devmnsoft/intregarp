@@ -163,4 +163,7 @@
   <symbol id="icon-menu" viewBox="0 0 16 16">
     <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5"/>
   </symbol>
+  <symbol id="icon-tenants" viewBox="0 0 16 16"><path d="M1 14.5V5l7-4 7 4v9.5h-1V5.6L8 2.2 2 5.6v8.9zm3-1V7h3v6.5zm5 0V7h3v6.5zM5 8v1h1V8zm5 0v1h1V8zM5 11v1h1v-1zm5 0v1h1v-1z"/></symbol>
+  <symbol id="icon-health" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0-1a6 6 0 1 0 0-12 6 6 0 0 0 0 12"/><path d="M3 8h2l1-3 2 6 1.5-4H13v1h-2.8L8 14 6 8l-.3 1H3z"/></symbol>
+  <symbol id="icon-close" viewBox="0 0 16 16"><path d="M3.65 3.65a.5.5 0 0 1 .7 0L8 7.29l3.65-3.64a.5.5 0 1 1 .7.7L8.71 8l3.64 3.65a.5.5 0 0 1-.7.7L8 8.71l-3.65 3.64a.5.5 0 0 1-.7-.7L7.29 8 3.65 4.35a.5.5 0 0 1 0-.7"/></symbol>
 </svg>

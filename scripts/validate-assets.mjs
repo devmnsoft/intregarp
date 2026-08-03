@@ -47,6 +47,20 @@ const sprite = await readFile(spritePath, 'utf8');
 const ids = [...sprite.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]);
 const duplicateIds = ids.filter((id, index) => ids.indexOf(id) !== index);
 if (duplicateIds.length) throw new Error(`IDs duplicados no sprite: ${[...new Set(duplicateIds)].join(', ')}`);
+const requiredIcons = ['dashboard', 'customers', 'contacts', 'opportunities', 'activities', 'quotes', 'approvals', 'orders', 'products', 'inventory', 'reservations', 'tasks', 'processes', 'billing', 'users', 'tenants', 'roles', 'audit', 'settings'];
+const missingRequired = requiredIcons.filter(name => !ids.includes(`icon-${name}`));
+if (missingRequired.length) throw new Error(`Ícones obrigatórios ausentes: ${missingRequired.join(', ')}`);
+const symbols = [...sprite.matchAll(/<symbol\s+id="([^"]+)"[^>]*>([\s\S]*?)<\/symbol>/g)];
+const emptySymbols = symbols.filter(([, , geometry]) => !/<(?:path|circle|rect|line|polyline|polygon|ellipse)\b/.test(geometry)).map(([, id]) => id);
+if (emptySymbols.length) throw new Error(`Símbolos vazios: ${emptySymbols.join(', ')}`);
+const invalidNames = ids.filter(id => !/^icon-[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(id));
+if (invalidNames.length) throw new Error(`Nomes de ícones não semânticos: ${invalidNames.join(', ')}`);
+const geometryOwners = new Map();
+for (const [, id, geometry] of symbols) {
+  const canonical = geometry.replace(/\s+/g, ' ').trim();
+  if (geometryOwners.has(canonical)) throw new Error(`Geometria duplicada: ${geometryOwners.get(canonical)} e ${id}`);
+  geometryOwners.set(canonical, id);
+}
 
 const sourceFiles = (await walk(join(repository, 'src/IntegraRP.Web')))
   .filter(file => ['.cs', '.cshtml', '.css', '.js'].includes(extname(file)) && !file.includes('/wwwroot/lib/'));
@@ -63,6 +77,9 @@ for (const file of sourceFiles) {
       throw new Error(`Ícone desconhecido '${match[1]}' em ${relative(repository, file)}`);
     }
   }
+}
+for (const match of sprite.matchAll(/(?:href|xlink:href)=["']#([^"']+)/g)) {
+  if (!ids.includes(match[1])) throw new Error(`Referência inexistente no sprite: ${match[1]}`);
 }
 
 console.log(`${svgFiles.length} SVGs, ${ids.length} símbolos e ${changed.size} alterações validados.`);

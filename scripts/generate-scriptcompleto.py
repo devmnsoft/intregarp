@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Gera deterministicamente o script completo, seu alias e os contratos v1.57."""
+"""Gera deterministicamente o script completo, seu alias e os contratos v1.58."""
 from __future__ import annotations
 import hashlib, json, re
 from pathlib import Path
@@ -45,6 +45,11 @@ for entry in entries:
         text=re.sub(r'CREATE\s+OR\s+REPLACE\s+VIEW\s+integrarp\.vw_flow_tarefas_(?:abertas|atrasadas)\s+AS\s+.*?;', '-- view de tarefa adiada para 0051', text, flags=re.I|re.S)
     if entry['arquivo'] in {'0003_flow_bpmn_core.sql', '0052_v150_premium_product_experience.sql'}:
         text=re.sub(r'CREATE\s+OR\s+REPLACE\s+VIEW\s+integrarp\.vw_flow_processos_(?:em_andamento|atrasados)\s+AS\s+.*?;', '-- view de processos adiada para a definição canônica', text, flags=re.I|re.S)
+    # A definição histórica consulta tarefa.prazo_em, coluna removida do contrato
+    # canônico. Ela não pode ser executada nem por alguns milissegundos durante
+    # uma instalação limpa; 0058 publica a única definição compatível.
+    if entry['arquivo'] != '0058_v158_premium_experience_superadmin.sql':
+        text=re.sub(r'CREATE\s+OR\s+REPLACE\s+VIEW\s+integrarp\.vw_flow_dashboard_resumo\s+AS\s+.*?;', '-- dashboard Flow adiado para a definição canônica v1.58', text, flags=re.I|re.S)
     text='\n'.join(line for line in text.splitlines() if line.strip().upper() not in {'BEGIN;','COMMIT;'}) .strip()+'\n'
     if re.search(r'\b(?:SET\s+(?:LOCAL\s+)?search_path|set_config\s*\(\s*[\'\"]search_path)',text,re.I): raise SystemExit(f"search_path proibido: {entry['arquivo']}")
     if re.search(r'(?<![\w])(?:public|integra|dbo)\.',text,re.I): raise SystemExit(f"Schema proibido: {entry['arquivo']}")
@@ -75,14 +80,14 @@ body=base_parts[0]+'\n'+canonical_compatibility+'\n'+'\n'.join(historical_parts)
 body_checksum=sha(body.encode())
 lock_key=153_2026_0803
 header=f'''-- Produto: IntegraRP
--- Versão: v1.57
+-- Versão: v1.58
 -- PostgreSQL: 16
 -- Schema: integrarp
 -- Arquivo principal: database/scriptcompleto.sql
 -- Quantidade de migrations: {len(entries)}
 -- Data UTC determinística: {manifest['generatedAtUtc']}
 -- Checksum SHA-256: {body_checksum}
--- Contrato: Banco Canônico Integrarp v1.57
+-- Contrato: Banco Canônico Integrarp v1.58
 -- Execução:
 -- psql -X "$POSTGRES_URI" --set ON_ERROR_STOP=1 --file database/scriptcompleto.sql
 -- Gerado automaticamente; não editar os arquivos de saída.
@@ -118,7 +123,7 @@ BEGIN;
 footer=f'''\nDO $final_validation$
 BEGIN
   IF to_regnamespace('integrarp') IS NULL THEN RAISE EXCEPTION 'Schema integrarp ausente'; END IF;
-  IF NOT EXISTS (SELECT 1 FROM integrarp.schema_contract WHERE contract_name = 'Banco Canônico Integrarp v1.57' AND migration_count = 57) THEN RAISE EXCEPTION 'Contrato v1.57 ausente ou divergente'; END IF;
+  IF NOT EXISTS (SELECT 1 FROM integrarp.schema_contract WHERE contract_name = 'Banco Canônico Integrarp v1.58' AND migration_count = 58) THEN RAISE EXCEPTION 'Contrato v1.58 ausente ou divergente'; END IF;
   IF EXISTS (SELECT 1 FROM pg_catalog.pg_constraint c JOIN pg_catalog.pg_class r ON r.oid=c.conrelid JOIN pg_catalog.pg_namespace n ON n.oid=r.relnamespace WHERE n.nspname='integrarp' AND NOT c.convalidated) THEN
     RAISE EXCEPTION 'Existem constraints não validadas no schema integrarp';
   END IF;
@@ -144,11 +149,11 @@ for entry in entries:
 # Keep the last canonical definition for repeated idempotent declarations.
 dedup={(o['type'],o['name']):o for o in objects}; objects=sorted(dedup.values(),key=lambda o:(o['type'],o['name']))
 counts={k:sum(o['type']==k for o in objects) for k in sorted({o['type'] for o in objects})}
-inventory={'contract':'Banco Canônico Integrarp v1.57','generatedAtUtc':manifest['generatedAtUtc'],'sourceManifest':'database/migration_manifest.json','schema':'integrarp','extensions':['pgcrypto'],'migrations':len(entries),'counts':counts,'objects':objects}
+inventory={'contract':'Banco Canônico Integrarp v1.58','generatedAtUtc':manifest['generatedAtUtc'],'sourceManifest':'database/migration_manifest.json','schema':'integrarp','extensions':['pgcrypto'],'migrations':len(entries),'counts':counts,'objects':objects}
 (DB/'schema_inventory.json').write_text(json.dumps(inventory,ensure_ascii=False,indent=2)+'\n',encoding='utf-8',newline='\n')
-contract={'$schema':'https://json-schema.org/draft/2020-12/schema','contract':'Banco Canônico Integrarp v1.57','productVersion':'v1.57','postgresqlMajor':16,'schemas':['integrarp'],'extensions':['pgcrypto'],'types':[],'sequences':[o for o in objects if o['type']=='sequence'],'tables':[o for o in objects if o['type']=='table'],'views':[o for o in objects if o['type'] in ('view','materialized_view')],'functions':[o for o in objects if o['type']=='function'],'triggers':[o for o in objects if o['type']=='trigger'],'constraints':[o for o in objects if o['type']=='constraint'],'indexes':[o for o in objects if o['type']=='index']}
+contract={'$schema':'https://json-schema.org/draft/2020-12/schema','contract':'Banco Canônico Integrarp v1.58','productVersion':'v1.58','postgresqlMajor':16,'schemas':['integrarp'],'extensions':['pgcrypto'],'types':[],'sequences':[o for o in objects if o['type']=='sequence'],'tables':[o for o in objects if o['type']=='table'],'views':[o for o in objects if o['type'] in ('view','materialized_view')],'functions':[o for o in objects if o['type']=='function'],'triggers':[o for o in objects if o['type']=='trigger'],'constraints':[o for o in objects if o['type']=='constraint'],'indexes':[o for o in objects if o['type']=='index']}
 (DB/'schema_contract.json').write_text(json.dumps(contract,ensure_ascii=False,indent=2)+'\n',encoding='utf-8',newline='\n')
-artifact=ROOT/'artifacts/v157/database'; artifact.mkdir(parents=True,exist_ok=True)
+artifact=ROOT/'artifacts/v158/database'; artifact.mkdir(parents=True,exist_ok=True)
 log=f"generator=generate-scriptcompleto.py\nmigrations={len(entries)}\nbody_sha256={body_checksum}\nfile_sha256={sha(content)}\nalias_identical=true\nobjects={len(objects)}\ncounts={json.dumps(counts,sort_keys=True)}\n"
 (artifact/'generation.log').write_text(log,encoding='utf-8',newline='\n')
 (artifact/'scriptcompleto.sha256').write_text(f"{sha(content)}  database/scriptcompleto.sql\n{sha(content)}  database/script_completop.sql\n",encoding='utf-8',newline='\n')

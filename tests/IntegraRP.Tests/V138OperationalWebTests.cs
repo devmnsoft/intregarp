@@ -36,7 +36,7 @@ public sealed class V138OperationalWebTests
         var css = File.ReadAllText(Path.Combine(root, "src/IntegraRP.Web/wwwroot/lib/bootstrap/css/bootstrap.min.css"));
         var bundle = File.ReadAllText(Path.Combine(root, "src/IntegraRP.Web/wwwroot/lib/bootstrap/js/bootstrap.bundle.min.js"));
         var icons = File.ReadAllText(Path.Combine(root, "src/IntegraRP.Web/wwwroot/icons/integrarp-icons.svg"));
-        Assert.Contains("Bootstrap v5", css);
+        Assert.Matches(@"Bootstrap\s+v5(?:\.\d+){1,2}", css);
         Assert.Contains("Modal", bundle);
         Assert.Contains("id=\"icon-customers\"", icons);
         Assert.True(css.Length > 100_000);

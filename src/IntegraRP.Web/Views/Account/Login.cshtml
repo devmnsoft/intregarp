@@ -11,10 +11,11 @@
       <div asp-validation-summary="ModelOnly" class="alert alert-warning" role="alert"></div>
       <div class="mb-4"><label class="form-label" asp-for="Tenant"></label><input class="form-control" asp-for="Tenant" autocomplete="organization" /><span asp-validation-for="Tenant"></span></div>
       <div class="mb-4"><label class="form-label" asp-for="Email"></label><input class="form-control" asp-for="Email" autocomplete="email" /><span asp-validation-for="Email"></span></div>
-      <div class="mb-4"><label class="form-label" asp-for="Password"></label><input class="form-control" asp-for="Password" autocomplete="current-password" /><span asp-validation-for="Password"></span></div>
+      <div class="mb-4"><label class="form-label" asp-for="Password"></label><div class="input-group"><input class="form-control" asp-for="Password" autocomplete="current-password" aria-describedby="caps-lock-status" /><button class="btn btn-outline-secondary" type="button" data-password-toggle aria-label="Mostrar senha" aria-pressed="false"><span data-password-toggle-label>Mostrar</span></button></div><small id="caps-lock-status" class="text-warning" role="status" hidden data-caps-lock>Caps Lock está ativado.</small><span asp-validation-for="Password"></span></div>
       <label class="d-flex gap-2 mb-4"><input asp-for="RememberTenant" /> <span>Lembrar organização neste dispositivo</span></label>
-      <button class="btn btn-primary" type="submit" data-submit-button>Entrar com segurança</button>
+      <button class="btn btn-primary" type="submit" data-submit-button><span data-submit-label>Entrar com segurança</span><span class="spinner-border spinner-border-sm" hidden data-submit-spinner aria-hidden="true"></span></button>
       <a class="btn btn-outline-secondary" asp-action="ForgotPassword">Esqueci minha senha</a>
     </form>
   </div>
 </section>
+@section Scripts { <script src="~/js/login.js" asp-append-version="true" defer></script> }

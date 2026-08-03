@@ -45,6 +45,14 @@ public sealed class ApiProxyController(
     [HttpGet("catalogo/modulos")]
     public Task<IActionResult> Modulos(CancellationToken cancellationToken) => Proxy("/api/catalogo/modulos", cancellationToken);
 
+    [HttpGet("superadmin/tenants")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "SuperAdmin")]
+    public Task<IActionResult> SuperAdminTenants(CancellationToken cancellationToken) => Proxy("/api/tenants", cancellationToken);
+
+    [HttpGet("superadmin/usuarios")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "SuperAdmin")]
+    public Task<IActionResult> SuperAdminUsers(CancellationToken cancellationToken) => Proxy("/api/usuarios", cancellationToken);
+
     [Route("flow/designer/{**path}")]
     public Task<IActionResult> FlowDesignerProxy(string path, CancellationToken cancellationToken) => Proxy($"/api/flow/designer/{path}", cancellationToken);
 

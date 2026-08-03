@@ -1,17 +1,17 @@
 {
-  "contract": "Banco Canônico Integrarp v1.57",
+  "contract": "Banco Canônico Integrarp v1.58",
   "generatedAtUtc": "2026-08-03T00:00:00Z",
   "sourceManifest": "database/migration_manifest.json",
   "schema": "integrarp",
   "extensions": [
     "pgcrypto"
   ],
-  "migrations": 57,
+  "migrations": 58,
   "counts": {
     "constraint": 218,
     "function": 7,
-    "index": 641,
-    "table": 315,
+    "index": 642,
+    "table": 317,
     "trigger": 139,
     "view": 90
   },
@@ -14886,6 +14886,24 @@
     },
     {
       "schema": "integrarp",
+      "name": "ux_superadmin_contexto_ativo",
+      "type": "index",
+      "module": "Platform",
+      "originMigration": "0058_v158_premium_experience_superadmin.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE UNIQUE INDEX IF NOT EXISTS ux_superadmin_contexto_ativo ON integrarp.superadmin_contexto_suporte(superadmin_usuario_id) WHERE encerrado_em IS NULL;",
+      "definitionChecksumSha256": "28b43889ca910f304432102f4484798279c6869cfc2649c259b0c12c6c89a4cf",
+      "dependencies": [
+        "integrarp.superadmin_contexto_suporte"
+      ]
+    },
+    {
+      "schema": "integrarp",
       "name": "ux_tabela_preco_padrao",
       "type": "index",
       "module": "Commercial",
@@ -19364,6 +19382,22 @@
     },
     {
       "schema": "integrarp",
+      "name": "superadmin_contexto_suporte",
+      "type": "table",
+      "module": "Platform",
+      "originMigration": "0058_v158_premium_experience_superadmin.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.superadmin_contexto_suporte ( id uuid PRIMARY KEY DEFAULT gen_random_uuid(), superadmin_usuario_id uuid NOT NULL, tenant_id uuid NOT NULL REFERENCES integrarp.tenant(id), motivo text NOT NULL CHECK (length(btrim(motivo)) >= 10), iniciado_em timestamptz NOT NULL DEFAULT now(), expira_em timestamptz NOT NULL, encerrado_em timestamptz NULL, correlation_id text NOT NULL, CHECK (expira_em > iniciado_em), CHECK (expira_em <= iniciado_em + interval '2 hours') );",
+      "definitionChecksumSha256": "3e09ff015da5de2cc1c83bf7345d27e29f6f28d821770bc1c7694c883ccf9a83",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
       "name": "tabela_preco",
       "type": "table",
       "module": "Commercial",
@@ -19904,6 +19938,22 @@
       "active": true,
       "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.usuario_preferencia ( id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, usuario_id uuid NOT NULL, chave text NOT NULL, valor jsonb NOT NULL DEFAULT '{}'::jsonb, criado_em timestamptz NOT NULL DEFAULT now(), atualizado_em timestamptz NOT NULL DEFAULT now(), row_version bigint NOT NULL DEFAULT 1, CONSTRAINT ck_usuario_preferencia_chave CHECK (length(btrim(chave)) BETWEEN 1 AND 120), CONSTRAINT ck_usuario_preferencia_valor CHECK (jsonb_typeof(valor) = 'object'), CONSTRAINT ck_usuario_preferencia_row_version CHECK (row_version > 0), CONSTRAINT ux_usuario_preferencia_tenant_usuario_chave UNIQUE (tenant_id, usuario_id, chave) );",
       "definitionChecksumSha256": "63a28741ccf650a080c6e9c2b866363a5f13136915b807e61a412a758846916a",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "usuario_preferencia_ui",
+      "type": "table",
+      "module": "Platform",
+      "originMigration": "0058_v158_premium_experience_superadmin.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.usuario_preferencia_ui ( tenant_id uuid NOT NULL REFERENCES integrarp.tenant(id), usuario_id uuid NOT NULL, tema text NOT NULL DEFAULT 'system' CHECK (tema IN ('light','dark','system')), densidade text NOT NULL DEFAULT 'comfortable' CHECK (densidade IN ('comfortable','compact')), pagina_inicial text NOT NULL DEFAULT '/dashboard', filtros_json jsonb NOT NULL DEFAULT '{}'::jsonb, colunas_json jsonb NOT NULL DEFAULT '{}'::jsonb, favoritos_json jsonb NOT NULL DEFAULT '[]'::jsonb, recentes_json jsonb NOT NULL DEFAULT '[]'::jsonb, atualizado_em timestamptz NOT NULL DEFAULT now(), PRIMARY KEY (tenant_id, usuario_id), FOREIGN KEY (tenant_id, usuario_id) REFERENCES integrarp.usuario(tenant_id, id) );",
+      "definitionChecksumSha256": "78bb612641c25eeead2e029203815305694d6f274b134e6bed63fe8c9ef264d6",
       "dependencies": []
     },
     {
@@ -22998,16 +23048,16 @@
       "schema": "integrarp",
       "name": "vw_flow_dashboard_resumo",
       "type": "view",
-      "module": "Operations",
-      "originMigration": "0057_v157_runtime_canonico_operacao.sql",
+      "module": "Platform",
+      "originMigration": "0058_v158_premium_experience_superadmin.sql",
       "usedBy": [
         "database/scriptcompleto.sql"
       ],
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CREATE OR REPLACE VIEW integrarp.vw_flow_dashboard_resumo AS SELECT d.tenant_id, count(DISTINCT d.processo_definicao_id) FILTER (WHERE d.status='publicado') AS processos_publicados, count(DISTINCT i.processo_instancia_id) FILTER (WHERE i.status IN ('em_andamento','aguardando_tarefa')) AS processos_em_andamento, count(DISTINCT t.id) FILTER (WHERE t.status IN ('pendente','atribuida','em_execucao','pausada')) AS tarefas_abertas, count(DISTINCT t.id) FILTER (WHERE t.status IN ('pendente','atribuida','em_execucao','pausada') AND t.vencimento_em<now()) AS tarefas_atrasadas, count(DISTINCT i.processo_instancia_id) FILTER (WHERE i.status='concluido') AS processos_concluidos FROM integrarp.processo_definicao d LEFT JOIN integrarp.processo_instancia i ON i.tenant_id=d.tenant_id AND i.processo_definicao_id=d.processo_definicao_id AND i.excluido_em IS NULL LEFT JOIN integrarp.tarefa t ON t.tenant_id=d.tenant_id AND t.processo_instancia_id=i.processo_instancia_id AND t.excluido_em IS NULL WHERE d.excluido_em IS NULL GROUP BY d.tenant_id;",
-      "definitionChecksumSha256": "e8a061c51174e806d559a7aacb6e778cc3ded73e799f0bb85629d25c4959ea8f",
+      "canonicalDefinition": "CREATE OR REPLACE VIEW integrarp.vw_flow_dashboard_resumo AS SELECT d.tenant_id, count(DISTINCT d.processo_definicao_id) FILTER (WHERE d.status='publicado') AS processos_publicados, count(DISTINCT i.processo_instancia_id) FILTER (WHERE i.status IN ('em_andamento','aguardando_tarefa')) AS processos_em_andamento, count(DISTINCT t.id) FILTER (WHERE t.status IN ('pendente','atribuida','em_execucao','pausada')) AS tarefas_abertas, count(DISTINCT t.id) FILTER (WHERE t.status IN ('pendente','atribuida','em_execucao','pausada') AND t.vencimento_em < now()) AS tarefas_atrasadas, count(DISTINCT i.processo_instancia_id) FILTER (WHERE i.status='concluido') AS processos_concluidos FROM integrarp.processo_definicao d LEFT JOIN integrarp.processo_instancia i ON i.tenant_id=d.tenant_id AND i.processo_definicao_id=d.processo_definicao_id AND i.excluido_em IS NULL LEFT JOIN integrarp.tarefa t ON t.tenant_id=d.tenant_id AND t.processo_instancia_id=i.processo_instancia_id AND t.excluido_em IS NULL WHERE d.excluido_em IS NULL GROUP BY d.tenant_id;",
+      "definitionChecksumSha256": "245b73cde017e1893a061eafec518f6ebe167c313ee3b9dfe688724771fe293e",
       "dependencies": []
     },
     {
