@@ -1,7 +1,7 @@
 generator=generate-scriptcompleto.py
-migrations=54
-body_sha256=2b2f9e8db7b47ea6bccc53814dbac450f3090e6e142f207369b3ee52ed76890b
-file_sha256=2f996c62dfe85848d9da28ee84f63b0a6d055a83a4b05ec4b8e84bb6e6cd128d
+migrations=55
+body_sha256=e2df4dc3f8c3aa7d00b6b3329cf939185f79f847a125afbb4df08ee9649b5926
+file_sha256=c4533d9dbed06d1d8dcd95c4fbabbc65f9396472b7632de5934808b8640b6527
 alias_identical=true
 objects=1405
 counts={"constraint": 215, "function": 7, "index": 640, "table": 315, "trigger": 138, "view": 90}
