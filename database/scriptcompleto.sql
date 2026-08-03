@@ -1,12 +1,12 @@
 -- Produto: IntegraRP
--- Versão: v1.49
+-- Versão: v1.53
 -- PostgreSQL: 16
 -- Schema: integrarp
 -- Arquivo principal: database/scriptcompleto.sql
--- Quantidade de migrations: 53
--- Data UTC determinística: 2026-08-01T00:00:00Z
--- Checksum SHA-256: 86fc8e82a5b1a6d44035f084026bd2916dbd14e2967ac498b4bc9017ed0c68ca
--- Contrato: Banco Canônico Integrarp v1.49
+-- Quantidade de migrations: 54
+-- Data UTC determinística: 2026-08-03T00:00:00Z
+-- Checksum SHA-256: 2b2f9e8db7b47ea6bccc53814dbac450f3090e6e142f207369b3ee52ed76890b
+-- Contrato: Banco Canônico Integrarp v1.53
 -- Execução:
 -- psql -X "$POSTGRES_URI" --set ON_ERROR_STOP=1 --file database/scriptcompleto.sql
 -- Gerado automaticamente; não editar os arquivos de saída.
@@ -16,7 +16,7 @@ DO $version_check$
 BEGIN
   IF current_setting('server_version_num')::integer < 160000
      OR current_setting('server_version_num')::integer >= 170000 THEN
-    RAISE EXCEPTION 'IntegraRP v1.49 requer PostgreSQL 16; encontrado %', current_setting('server_version');
+    RAISE EXCEPTION 'IntegraRP v1.53 requer PostgreSQL 16; encontrado %', current_setting('server_version');
   END IF;
 END
 $version_check$;
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS integrarp.schema_contract (
     CONSTRAINT ck_schema_contract_postgresql CHECK (postgresql_major = 16),
     CONSTRAINT ck_schema_contract_schema CHECK (schema_name = 'integrarp')
 );
-SELECT pg_advisory_lock(14920260731);
+SELECT pg_advisory_lock(15320260803);
 BEGIN;
 
 -- >>> 0001_initial_integrarp.sql
@@ -1870,7 +1870,7 @@ CREATE TABLE IF NOT EXISTS integrarp.outbox_evento (outbox_evento_id uuid PRIMAR
 
 -- view de tarefa adiada para 0051
 -- view de tarefa adiada para 0051
-CREATE OR REPLACE VIEW integrarp.vw_flow_processos_em_andamento AS SELECT tenant_id, processo_instancia_id, codigo, titulo, status, prazo_em FROM integrarp.processo_instancia WHERE excluido_em IS NULL AND status IN ('em_andamento','aguardando_tarefa');
+-- view de processos adiada para 0053
 CREATE OR REPLACE VIEW integrarp.vw_flow_processos_atrasados AS SELECT tenant_id, processo_instancia_id, codigo, titulo, status, prazo_em FROM integrarp.processo_instancia WHERE excluido_em IS NULL AND status <> 'concluido' AND prazo_em < now();
 CREATE OR REPLACE VIEW integrarp.vw_flow_dashboard_resumo AS SELECT d.tenant_id, count(DISTINCT d.processo_definicao_id) FILTER (WHERE d.status = 'publicado') AS processos_publicados, count(DISTINCT i.processo_instancia_id) FILTER (WHERE i.status IN ('em_andamento','aguardando_tarefa')) AS processos_em_andamento, count(DISTINCT t.id) FILTER (WHERE t.status IN ('aberta','atribuida','em_andamento')) AS tarefas_abertas, count(DISTINCT t.id) FILTER (WHERE t.status <> 'concluida' AND t.prazo_em < now()) AS tarefas_atrasadas, count(DISTINCT i.processo_instancia_id) FILTER (WHERE i.status = 'concluido') AS processos_concluidos FROM integrarp.processo_definicao d LEFT JOIN integrarp.processo_instancia i ON i.tenant_id = d.tenant_id AND i.processo_definicao_id = d.processo_definicao_id AND i.excluido_em IS NULL LEFT JOIN integrarp.tarefa t ON t.tenant_id = d.tenant_id AND t.excluido_em IS NULL WHERE d.excluido_em IS NULL GROUP BY d.tenant_id;
 
@@ -8884,21 +8884,7 @@ ON CONFLICT (contract_name) DO UPDATE SET
 -- >>> 0052_v150_premium_product_experience.sql
 -- IntegraRP v1.50 — correção aditiva do contrato de leitura do Flow.
 -- O nome canônico pertence à definição; a view não depende do título da instância.
-CREATE OR REPLACE VIEW integrarp.vw_flow_processos_em_andamento AS
-SELECT
-    i.tenant_id,
-    i.processo_instancia_id,
-    i.codigo,
-    d.nome AS titulo,
-    i.status,
-    i.prazo_em
-FROM integrarp.processo_instancia AS i
-JOIN integrarp.processo_definicao AS d
-  ON d.tenant_id = i.tenant_id
- AND d.processo_definicao_id = i.processo_definicao_id
- AND d.excluido_em IS NULL
-WHERE i.excluido_em IS NULL
-  AND i.status IN ('em_andamento', 'aguardando_tarefa');
+-- view de processos adiada para 0053
 
 COMMENT ON VIEW integrarp.vw_flow_processos_em_andamento IS
   'Processos ativos com título obtido da definição canônica.';
@@ -8938,14 +8924,105 @@ COMMENT ON VIEW integrarp.vw_flow_processos_em_andamento IS
 
 -- <<< 0053_v151_product_experience_operacao.sql
 
+-- >>> 0054_v153_workspace_comercial_premium.sql
+-- IntegraRP v1.53 — Workspace Comercial Premium.
+-- Evolução aditiva e multi-tenant para ordenação, preferências e ações reais.
+
+ALTER TABLE integrarp.oportunidade_comercial
+  ADD COLUMN IF NOT EXISTS posicao integer NOT NULL DEFAULT 0;
+
+ALTER TABLE integrarp.atividade_comercial
+  ADD COLUMN IF NOT EXISTS posicao integer NOT NULL DEFAULT 0;
+
+CREATE INDEX IF NOT EXISTS ix_oportunidade_pipeline_ordem
+  ON integrarp.oportunidade_comercial (tenant_id, etapa, posicao, atualizado_em DESC)
+  WHERE removido_em IS NULL;
+
+CREATE INDEX IF NOT EXISTS ix_atividade_agenda_ordem
+  ON integrarp.atividade_comercial (tenant_id, responsavel_id, posicao, agendada_em)
+  WHERE removido_em IS NULL AND concluida_em IS NULL AND cancelada_em IS NULL;
+
+CREATE TABLE IF NOT EXISTS integrarp.preferencia_interface (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL,
+  usuario_id uuid NOT NULL,
+  tema text NOT NULL DEFAULT 'sistema',
+  sidebar_recolhida boolean NOT NULL DEFAULT false,
+  densidade text NOT NULL DEFAULT 'confortavel',
+  criado_em timestamptz NOT NULL DEFAULT now(),
+  atualizado_em timestamptz NOT NULL DEFAULT now(),
+  row_version bigint NOT NULL DEFAULT 1,
+  CONSTRAINT ux_preferencia_interface_usuario UNIQUE (tenant_id, usuario_id),
+  CONSTRAINT ck_preferencia_interface_tema CHECK (tema IN ('claro', 'escuro', 'sistema')),
+  CONSTRAINT ck_preferencia_interface_densidade CHECK (densidade IN ('compacta', 'confortavel'))
+);
+
+CREATE TABLE IF NOT EXISTS integrarp.visao_salva (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, usuario_id uuid NOT NULL,
+  recurso text NOT NULL, nome text NOT NULL, filtros_json jsonb NOT NULL DEFAULT '{}'::jsonb,
+  compartilhada boolean NOT NULL DEFAULT false, criado_em timestamptz NOT NULL DEFAULT now(),
+  atualizado_em timestamptz NOT NULL DEFAULT now(), row_version bigint NOT NULL DEFAULT 1,
+  CONSTRAINT ux_visao_salva_nome UNIQUE (tenant_id, usuario_id, recurso, nome)
+);
+
+CREATE TABLE IF NOT EXISTS integrarp.item_favorito (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, usuario_id uuid NOT NULL,
+  recurso text NOT NULL, entidade_id uuid NOT NULL, titulo text NOT NULL, deep_link text NOT NULL,
+  criado_em timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT ux_item_favorito UNIQUE (tenant_id, usuario_id, recurso, entidade_id)
+);
+
+CREATE TABLE IF NOT EXISTS integrarp.item_recente (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, usuario_id uuid NOT NULL,
+  recurso text NOT NULL, entidade_id uuid NOT NULL, titulo text NOT NULL, deep_link text NOT NULL,
+  acessado_em timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT ux_item_recente UNIQUE (tenant_id, usuario_id, recurso, entidade_id)
+);
+CREATE INDEX IF NOT EXISTS ix_item_recente_usuario
+  ON integrarp.item_recente (tenant_id, usuario_id, acessado_em DESC);
+
+CREATE TABLE IF NOT EXISTS integrarp.central_acao (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL,
+  tipo text NOT NULL, entidade_tipo text NOT NULL, entidade_id uuid NOT NULL,
+  titulo text NOT NULL, impacto text NOT NULL, responsavel_usuario_id uuid,
+  prazo_em timestamptz, acao_recomendada text NOT NULL, deep_link text NOT NULL,
+  prioridade smallint NOT NULL DEFAULT 2, status text NOT NULL DEFAULT 'aberta',
+  resolvida_em timestamptz, criado_em timestamptz NOT NULL DEFAULT now(),
+  atualizado_em timestamptz NOT NULL DEFAULT now(), row_version bigint NOT NULL DEFAULT 1,
+  CONSTRAINT ck_central_acao_prioridade CHECK (prioridade BETWEEN 1 AND 4),
+  CONSTRAINT ck_central_acao_status CHECK (status IN ('aberta', 'em_andamento', 'resolvida', 'descartada')),
+  CONSTRAINT ux_central_acao_aberta UNIQUE (tenant_id, tipo, entidade_tipo, entidade_id)
+);
+CREATE INDEX IF NOT EXISTS ix_central_acao_fila
+  ON integrarp.central_acao (tenant_id, responsavel_usuario_id, prioridade, prazo_em)
+  WHERE status IN ('aberta', 'em_andamento');
+
+COMMENT ON TABLE integrarp.central_acao IS
+  'Fila multi-tenant de pendências acionáveis, com impacto, responsável, prazo e deep link.';
+
+INSERT INTO integrarp.schema_contract (
+  contract_name, product_version, postgresql_major, schema_name, migration_count,
+  manifest_generated_at_utc, installed_at, updated_at
+) VALUES (
+  'Banco Canônico Integrarp v1.53', 'v1.53', 16, 'integrarp', 54,
+  '2026-08-03T00:00:00Z'::timestamptz, now(), now()
+)
+ON CONFLICT (contract_name) DO UPDATE SET
+  product_version = EXCLUDED.product_version,
+  migration_count = EXCLUDED.migration_count,
+  manifest_generated_at_utc = EXCLUDED.manifest_generated_at_utc,
+  updated_at = now();
+
+-- <<< 0054_v153_workspace_comercial_premium.sql
+
 DO $final_validation$
 BEGIN
   IF to_regnamespace('integrarp') IS NULL THEN RAISE EXCEPTION 'Schema integrarp ausente'; END IF;
-  IF to_regclass('integrarp.schema_contract') IS NULL THEN RAISE EXCEPTION 'Contrato v1.49 ausente'; END IF;
+  IF NOT EXISTS (SELECT 1 FROM integrarp.schema_contract WHERE contract_name = 'Banco Canônico Integrarp v1.53' AND migration_count = 54) THEN RAISE EXCEPTION 'Contrato v1.53 ausente ou divergente'; END IF;
   IF EXISTS (SELECT 1 FROM pg_catalog.pg_constraint c JOIN pg_catalog.pg_class r ON r.oid=c.conrelid JOIN pg_catalog.pg_namespace n ON n.oid=r.relnamespace WHERE n.nspname='integrarp' AND NOT c.convalidated) THEN
     RAISE EXCEPTION 'Existem constraints não validadas no schema integrarp';
   END IF;
 END
 $final_validation$;
 COMMIT;
-SELECT pg_advisory_unlock(14920260731);
+SELECT pg_advisory_unlock(15320260803);
