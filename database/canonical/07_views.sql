@@ -1,0 +1,1 @@
+-- Fase 07: objetos canônicos já declarados no snapshot DDL; extensões v1.60 seguem nas fases posteriores.
