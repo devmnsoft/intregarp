@@ -585,8 +585,19 @@
       "status": "versionada",
       "observacoes": "Migration aditiva v1.51; migrations 0001 a 0052 permanecem congeladas.",
       "checksum_sha256": "4e4db89616473e107d1bee602ef705dd37517c84ddc1d77ea1ff2d65f2470f24"
+    },
+    {
+      "ordem": 54,
+      "arquivo": "0054_v153_workspace_comercial_premium.sql",
+      "versao": "0054_v153_workspace_comercial_premium",
+      "descricao": "Workspace Comercial Premium: ordenação, preferências, favoritos, recentes e Central de Ações",
+      "modulo": "Commercial",
+      "presente_no_script_completop": true,
+      "status": "versionada",
+      "observacoes": "Migration aditiva v1.53; migrations 0001 a 0053 permanecem congeladas.",
+      "checksum_sha256": "f5c63d63dcb0ee9034cda949ea34b4b58e4bdb75aebce53999e1c4996525eb3f"
     }
   ],
   "postgresql": "16",
-  "generatedAtUtc": "2026-08-01T00:00:00Z"
+  "generatedAtUtc": "2026-08-03T00:00:00Z"
 }

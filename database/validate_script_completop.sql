@@ -98,3 +98,18 @@ BEGIN
   END IF;
 END
 $v151_validation$;
+
+DO $v153_validation$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM integrarp.schema_contract WHERE contract_name='Banco Canônico Integrarp v1.53' AND migration_count=54) THEN
+    RAISE EXCEPTION 'Contrato v1.53 ausente ou divergente';
+  END IF;
+  IF to_regclass('integrarp.central_acao') IS NULL
+     OR to_regclass('integrarp.preferencia_interface') IS NULL
+     OR to_regclass('integrarp.visao_salva') IS NULL
+     OR to_regclass('integrarp.item_favorito') IS NULL
+     OR to_regclass('integrarp.item_recente') IS NULL THEN
+    RAISE EXCEPTION 'Estruturas do Workspace Comercial Premium ausentes';
+  END IF;
+END
+$v153_validation$;

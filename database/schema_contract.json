@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "contract": "Banco Canônico Integrarp v1.49",
-  "productVersion": "v1.49",
+  "contract": "Banco Canônico Integrarp v1.53",
+  "productVersion": "v1.53",
   "postgresqlMajor": 16,
   "schemas": [
     "integrarp"
@@ -746,6 +746,22 @@
       "active": true,
       "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.cargo (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, setor_id uuid NULL, nome text NOT NULL, status text NOT NULL DEFAULT 'ativo', criado_em timestamptz NOT NULL DEFAULT now(), criado_por_usuario_id uuid NULL, atualizado_em timestamptz NOT NULL DEFAULT now(), atualizado_por_usuario_id uuid NULL, excluido_em timestamptz NULL, metadata_json jsonb NULL);",
       "definitionChecksumSha256": "a363317bffb6f35f6cf80be024f644c050dbf61788bacf3fa5b5e218a14e5606",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "central_acao",
+      "type": "table",
+      "module": "Commercial",
+      "originMigration": "0054_v153_workspace_comercial_premium.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.central_acao ( id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, tipo text NOT NULL, entidade_tipo text NOT NULL, entidade_id uuid NOT NULL, titulo text NOT NULL, impacto text NOT NULL, responsavel_usuario_id uuid, prazo_em timestamptz, acao_recomendada text NOT NULL, deep_link text NOT NULL, prioridade smallint NOT NULL DEFAULT 2, status text NOT NULL DEFAULT 'aberta', resolvida_em timestamptz, criado_em timestamptz NOT NULL DEFAULT now(), atualizado_em timestamptz NOT NULL DEFAULT now(), row_version bigint NOT NULL DEFAULT 1, CONSTRAINT ck_central_acao_prioridade CHECK (prioridade BETWEEN 1 AND 4), CONSTRAINT ck_central_acao_status CHECK (status IN ('aberta', 'em_andamento', 'resolvida', 'descartada')), CONSTRAINT ux_central_acao_aberta UNIQUE (tenant_id, tipo, entidade_tipo, entidade_id) );",
+      "definitionChecksumSha256": "6d0575ed31bcab3994723494b0f88f76f4bc777246ec7d825f94e5fb44d0139a",
       "dependencies": []
     },
     {
@@ -1978,6 +1994,38 @@
       "active": true,
       "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.integracao_webhook_evento ( id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, nome text, codigo text, status text NOT NULL DEFAULT 'ativo', tipo text, descricao text, payload_json jsonb NOT NULL DEFAULT '{}'::jsonb, metadata_json jsonb NOT NULL DEFAULT '{}'::jsonb, secret_reference text, correlation_id text, erro text, duracao_ms integer, valor numeric(18,2), data_referencia timestamptz, criado_em timestamptz NOT NULL DEFAULT now(), criado_por_usuario_id uuid, atualizado_em timestamptz NOT NULL DEFAULT now(), atualizado_por_usuario_id uuid, excluido_em timestamptz );",
       "definitionChecksumSha256": "afa01eb88d0d131ebb6a3c3328c63e5e097f1f55855dd12482a0244894fda63d",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "item_favorito",
+      "type": "table",
+      "module": "Commercial",
+      "originMigration": "0054_v153_workspace_comercial_premium.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.item_favorito ( id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, usuario_id uuid NOT NULL, recurso text NOT NULL, entidade_id uuid NOT NULL, titulo text NOT NULL, deep_link text NOT NULL, criado_em timestamptz NOT NULL DEFAULT now(), CONSTRAINT ux_item_favorito UNIQUE (tenant_id, usuario_id, recurso, entidade_id) );",
+      "definitionChecksumSha256": "85839754fda983f0beb30de85a192d59ad6780f71eb348df1d977b62ea9f89f9",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "item_recente",
+      "type": "table",
+      "module": "Commercial",
+      "originMigration": "0054_v153_workspace_comercial_premium.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.item_recente ( id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, usuario_id uuid NOT NULL, recurso text NOT NULL, entidade_id uuid NOT NULL, titulo text NOT NULL, deep_link text NOT NULL, acessado_em timestamptz NOT NULL DEFAULT now(), CONSTRAINT ux_item_recente UNIQUE (tenant_id, usuario_id, recurso, entidade_id) );",
+      "definitionChecksumSha256": "b2937dde7535bbd7a1fd00ce5bf04cdee5a10bb36c2f197fc3ecddd1c8894cb2",
       "dependencies": []
     },
     {
@@ -3518,6 +3566,22 @@
     },
     {
       "schema": "integrarp",
+      "name": "preferencia_interface",
+      "type": "table",
+      "module": "Commercial",
+      "originMigration": "0054_v153_workspace_comercial_premium.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.preferencia_interface ( id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, usuario_id uuid NOT NULL, tema text NOT NULL DEFAULT 'sistema', sidebar_recolhida boolean NOT NULL DEFAULT false, densidade text NOT NULL DEFAULT 'confortavel', criado_em timestamptz NOT NULL DEFAULT now(), atualizado_em timestamptz NOT NULL DEFAULT now(), row_version bigint NOT NULL DEFAULT 1, CONSTRAINT ux_preferencia_interface_usuario UNIQUE (tenant_id, usuario_id), CONSTRAINT ck_preferencia_interface_tema CHECK (tema IN ('claro', 'escuro', 'sistema')), CONSTRAINT ck_preferencia_interface_densidade CHECK (densidade IN ('compacta', 'confortavel')) );",
+      "definitionChecksumSha256": "622b663f55c76a24ed0bebac885f43ce231e4f9fd5129f2509d17e605a26d769",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
       "name": "processo_auditoria_evento",
       "type": "table",
       "module": "Flow",
@@ -4922,6 +4986,22 @@
       "active": true,
       "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.v18_template_catalog (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, codigo text NOT NULL, nome text NOT NULL, descricao text NULL, criado_em timestamptz NOT NULL DEFAULT now(), atualizado_em timestamptz NULL, excluido_em timestamptz NULL, metadata_json jsonb NOT NULL DEFAULT '{}'::jsonb);",
       "definitionChecksumSha256": "43bc6b412473f0e9b132c16c35b0544d13845ae144cf2c0b83d67b304ee89dd4",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "visao_salva",
+      "type": "table",
+      "module": "Commercial",
+      "originMigration": "0054_v153_workspace_comercial_premium.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE TABLE IF NOT EXISTS integrarp.visao_salva ( id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, usuario_id uuid NOT NULL, recurso text NOT NULL, nome text NOT NULL, filtros_json jsonb NOT NULL DEFAULT '{}'::jsonb, compartilhada boolean NOT NULL DEFAULT false, criado_em timestamptz NOT NULL DEFAULT now(), atualizado_em timestamptz NOT NULL DEFAULT now(), row_version bigint NOT NULL DEFAULT 1, CONSTRAINT ux_visao_salva_nome UNIQUE (tenant_id, usuario_id, recurso, nome) );",
+      "definitionChecksumSha256": "6f6b24c6c79d65071928f571151081d6787c97360a3db3f6217a358acefdfa36",
       "dependencies": []
     },
     {
@@ -8790,6 +8870,22 @@
     },
     {
       "schema": "integrarp",
+      "name": "ck_central_acao_prioridade",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0054_v153_workspace_comercial_premium.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT ck_central_acao_prioridade CHECK (prioridade BETWEEN 1 AND 4),",
+      "definitionChecksumSha256": "538c51002b9b2aaa37bf66333ddd38e9bca6a2f0730ce899a67b460ca4cee434",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
       "name": "ck_commercial_activity_tipo",
       "type": "constraint",
       "module": "Commercial",
@@ -9890,6 +9986,38 @@
       "active": true,
       "canonicalDefinition": ", CONSTRAINT ck_politica_desconto_faixa CHECK (percentual_inicial >= 0 AND percentual_final <= 100 AND percentual_inicial <= percentual_final) )",
       "definitionChecksumSha256": "2ecf0e2089e0ae21002e554b6f73fe4a4db308c1167e0cf76d39b1902b9111c9",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_preferencia_interface_densidade",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0054_v153_workspace_comercial_premium.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT ck_preferencia_interface_densidade CHECK (densidade IN ('compacta',",
+      "definitionChecksumSha256": "7532c47aa220b9011b66a209457d3c016369ca88a3887120bed163f3cd751cb2",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_preferencia_interface_tema",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0054_v153_workspace_comercial_premium.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT ck_preferencia_interface_tema CHECK (tema IN ('claro',",
+      "definitionChecksumSha256": "240cc8ba8b1c2d8dee8691fac82403ebcc99602741d47d0db4f7d10766aa6743",
       "dependencies": []
     },
     {
@@ -11958,6 +12086,54 @@
     },
     {
       "schema": "integrarp",
+      "name": "ux_central_acao_aberta",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0054_v153_workspace_comercial_premium.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT ux_central_acao_aberta UNIQUE (tenant_id,",
+      "definitionChecksumSha256": "8dae25e99083c1a85a23928378f889cee7cb6bbb205ead0651bb7b7968669115",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ux_item_favorito",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0054_v153_workspace_comercial_premium.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT ux_item_favorito UNIQUE (tenant_id,",
+      "definitionChecksumSha256": "d8f678e144a2e06d983d4ba2b3bec5b337580d44aa62ff6dccc11becdb79eb1c",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ux_item_recente",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0054_v153_workspace_comercial_premium.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT ux_item_recente UNIQUE (tenant_id,",
+      "definitionChecksumSha256": "2ca66b8577f987ff6575710927239c6b1efc8242cab0ac9aa31ebb00e312f89d",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
       "name": "ux_orcamento_v145_idempotencia",
       "type": "constraint",
       "module": "Commercial",
@@ -11986,6 +12162,22 @@
       "active": true,
       "canonicalDefinition": ", CONSTRAINT ux_orcamento_v145_numero UNIQUE(tenant_id,",
       "definitionChecksumSha256": "de470258278904a5a6a09eec143fad3da17cb09762dabb80cdc7fea0c539cac0",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ux_preferencia_interface_usuario",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0054_v153_workspace_comercial_premium.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT ux_preferencia_interface_usuario UNIQUE (tenant_id,",
+      "definitionChecksumSha256": "564b73347bc6a6e99d1e2bca8d0f8c08d615dc90cf6be9d03aae05a94282cbb5",
       "dependencies": []
     },
     {
@@ -12050,6 +12242,22 @@
       "active": true,
       "canonicalDefinition": ", CONSTRAINT ux_template_fluxo_versao UNIQUE(tenant_id,",
       "definitionChecksumSha256": "a1f623268a87f971dbb3e3b98206bfb5f43f93cec450dace060535b4f8cc9778",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ux_visao_salva_nome",
+      "type": "constraint",
+      "module": "Commercial",
+      "originMigration": "0054_v153_workspace_comercial_premium.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": ", CONSTRAINT ux_visao_salva_nome UNIQUE (tenant_id,",
+      "definitionChecksumSha256": "918ec29426024e305d82a7d368e6c28896a358ece6956a2a5154a0ee3751640a",
       "dependencies": []
     }
   ],
@@ -13352,6 +13560,24 @@
     },
     {
       "schema": "integrarp",
+      "name": "ix_atividade_agenda_ordem",
+      "type": "index",
+      "module": "Commercial",
+      "originMigration": "0054_v153_workspace_comercial_premium.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE INDEX IF NOT EXISTS ix_atividade_agenda_ordem ON integrarp.atividade_comercial (tenant_id, responsavel_id, posicao, agendada_em) WHERE removido_em IS NULL AND concluida_em IS NULL AND cancelada_em IS NULL;",
+      "definitionChecksumSha256": "ea91a16a03e5b0b51e2558b3f2e483252ea4098ebddb05d0644daf03fc7ab8eb",
+      "dependencies": [
+        "integrarp.atividade_comercial"
+      ]
+    },
+    {
+      "schema": "integrarp",
       "name": "ix_auditoria_evento_tenant_criado",
       "type": "index",
       "module": "Core",
@@ -13528,6 +13754,24 @@
       "definitionChecksumSha256": "cd68a2725c1cfe5d71ca6d9fdb140fe0ceb47f7be11dcd7527b994a1af831d66",
       "dependencies": [
         "integrarp.automacao_execucao"
+      ]
+    },
+    {
+      "schema": "integrarp",
+      "name": "ix_central_acao_fila",
+      "type": "index",
+      "module": "Commercial",
+      "originMigration": "0054_v153_workspace_comercial_premium.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE INDEX IF NOT EXISTS ix_central_acao_fila ON integrarp.central_acao (tenant_id, responsavel_usuario_id, prioridade, prazo_em) WHERE status IN ('aberta', 'em_andamento');",
+      "definitionChecksumSha256": "34ef20659bc7ea2d3190c62fd80c77e974aa35aff4a8189afb99e6c25b987fe0",
+      "dependencies": [
+        "integrarp.central_acao"
       ]
     },
     {
@@ -14770,6 +15014,24 @@
       "definitionChecksumSha256": "835a71a9b638c9f54e4e6c8cbf3c740e8723553ab7404b509e7c1b90699fc584",
       "dependencies": [
         "integrarp.integracao_webhook_evento"
+      ]
+    },
+    {
+      "schema": "integrarp",
+      "name": "ix_item_recente_usuario",
+      "type": "index",
+      "module": "Commercial",
+      "originMigration": "0054_v153_workspace_comercial_premium.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE INDEX IF NOT EXISTS ix_item_recente_usuario ON integrarp.item_recente (tenant_id, usuario_id, acessado_em DESC);",
+      "definitionChecksumSha256": "717c0d1dc0959bb8c10f9769aa8c74dd6cc8d371458e71f83eb015837814f19f",
+      "dependencies": [
+        "integrarp.item_recente"
       ]
     },
     {
@@ -17470,6 +17732,24 @@
       "definitionChecksumSha256": "80e0233eed29b2f9a51955f2d16b47c28e4a2a4b626990b9618be7ab157063a3",
       "dependencies": [
         "integrarp.operacao_rota"
+      ]
+    },
+    {
+      "schema": "integrarp",
+      "name": "ix_oportunidade_pipeline_ordem",
+      "type": "index",
+      "module": "Commercial",
+      "originMigration": "0054_v153_workspace_comercial_premium.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE INDEX IF NOT EXISTS ix_oportunidade_pipeline_ordem ON integrarp.oportunidade_comercial (tenant_id, etapa, posicao, atualizado_em DESC) WHERE removido_em IS NULL;",
+      "definitionChecksumSha256": "07493a78518b969959789202fe9a3c0feae182f4c7cfa3e330a85185326fe24d",
+      "dependencies": [
+        "integrarp.oportunidade_comercial"
       ]
     },
     {
