@@ -1,7 +1,7 @@
 {
   "schema": "integrarp",
-  "gerado_para": "v1.55",
-  "contrato": "Banco Canônico Integrarp v1.55",
+  "gerado_para": "v1.57",
+  "contrato": "Banco Canônico Integrarp v1.57",
   "migrations": [
     {
       "ordem": 1,
@@ -618,6 +618,17 @@
       "status": "versionada",
       "observacoes": "Migration aditiva v1.56; migrations 0001 a 0055 permanecem congeladas.",
       "checksum_sha256": "c708397fda4dd98d11d9147cd6f8a66c098a46254b2017571683f5f0f989bcad"
+    },
+    {
+      "ordem": 57,
+      "arquivo": "0057_v157_runtime_canonico_operacao.sql",
+      "versao": "0057_v157_runtime_canonico_operacao",
+      "descricao": "Runtime canônico, tarefas e operação transacional",
+      "modulo": "Operations",
+      "presente_no_script_completop": true,
+      "status": "versionada",
+      "observacoes": "Migration aditiva v1.57; migrations 0001 a 0056 permanecem congeladas.",
+      "checksum_sha256": "2d11e784a1d5e4018f27ace63fc0369801942017b541000950dfb7126b5834a2"
     }
   ],
   "postgresql": "16",

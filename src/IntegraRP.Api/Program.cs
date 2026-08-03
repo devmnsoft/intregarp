@@ -7,6 +7,15 @@ using IntegraRP.Infrastructure.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var validateContainer = builder.Environment.IsDevelopment()
+    || builder.Environment.IsEnvironment("CI")
+    || builder.Configuration.GetValue<bool>("IntegraRP:ValidateDependencyInjection");
+builder.Host.UseDefaultServiceProvider(options =>
+{
+    options.ValidateOnBuild = validateContainer;
+    options.ValidateScopes = validateContainer;
+});
+
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApiServices(builder.Configuration);

@@ -20,7 +20,7 @@ public sealed class PostgresOnboardingProgressQuery(IDbConnectionFactory connect
               exists(select 1 from integrarp.produto where tenant_id=@tenantId and status='ativo' and categoria_id is not null and excluido_em is null) as FirstProduct,
               exists(select 1 from integrarp.estoque_saldo where tenant_id=@tenantId and saldo_fisico>0) as FirstInventory,
               exists(select 1 from integrarp.pedido where tenant_id=@tenantId and excluido_em is null) as FirstOrder,
-              exists(select 1 from integrarp.tarefa_operacional where tenant_id=@tenantId and status='concluida' and (responsavel_usuario_id=@userId or responsavel_usuario_id is null)) as FirstTask
+              exists(select 1 from integrarp.tarefa where tenant_id=@tenantId and status='concluida' and (responsavel_usuario_id=@userId or responsavel_usuario_id is null)) as FirstTask
             """, new { tenantId, userId }, cancellationToken: cancellationToken));
     }
 }
