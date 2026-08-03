@@ -1,44 +1,38 @@
 -- Produto: IntegraRP
--- Versão: v1.58
+-- Versão: v1.60
 -- PostgreSQL: 16
--- Schema: integrarp
--- Arquivo principal: database/scriptcompleto.sql
--- Quantidade de migrations: 58
--- Data UTC determinística: 2026-08-03T00:00:00Z
--- Checksum SHA-256: 72b9c0544d036d676583684c11687df28b9e17c4e60ab762351351f04ff5a468
--- Contrato: Banco Canônico Integrarp v1.58
--- Execução:
--- psql -X "$POSTGRES_URI" --set ON_ERROR_STOP=1 --file database/scriptcompleto.sql
--- Gerado automaticamente; não editar os arquivos de saída.
-\set ON_ERROR_STOP on
+-- Contrato: Banco Canônico Integrarp v1.60
+-- SQL PostgreSQL puro; execute externamente com ON_ERROR_STOP=1.
+-- Gerado de database/canonical; não editar este artefato.
 
-DO $version_check$
+-- >>> canonical/01_preflight.sql
+-- Fase 01: preflight atômico. Execute com psql --set ON_ERROR_STOP=1.
+DO $preflight$
 BEGIN
-  IF current_setting('server_version_num')::integer < 160000
-     OR current_setting('server_version_num')::integer >= 170000 THEN
-    RAISE EXCEPTION 'IntegraRP v1.57 requer PostgreSQL 16; encontrado %', current_setting('server_version');
+  IF current_setting('server_version_num')::integer NOT BETWEEN 160000 AND 169999 THEN
+    RAISE EXCEPTION '[preflight:postgresql] PostgreSQL 16 requerido; encontrado %', current_setting('server_version');
   END IF;
-END
-$version_check$;
-
+END $preflight$;
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE SCHEMA IF NOT EXISTS integrarp;
-CREATE TABLE IF NOT EXISTS integrarp.schema_contract (
-    contract_name text PRIMARY KEY,
-    product_version text NOT NULL,
-    postgresql_major integer NOT NULL,
-    schema_name text NOT NULL,
-    migration_count integer NOT NULL,
-    manifest_generated_at_utc timestamptz NOT NULL,
-    installed_at timestamptz NOT NULL DEFAULT now(),
-    updated_at timestamptz NOT NULL DEFAULT now(),
-    CONSTRAINT ck_schema_contract_postgresql CHECK (postgresql_major = 16),
-    CONSTRAINT ck_schema_contract_schema CHECK (schema_name = 'integrarp')
-);
-SELECT pg_advisory_lock(15320260803);
+SELECT pg_advisory_lock(16020260803);
 BEGIN;
+-- <<< canonical/01_preflight.sql
 
--- >>> 0001_initial_integrarp.sql
+-- >>> canonical/02_schema.sql
+-- Fase 02: metadados do contrato.
+CREATE TABLE IF NOT EXISTS integrarp.schema_contract (
+ contract_name text PRIMARY KEY, product_version text NOT NULL, postgresql_major integer NOT NULL,
+ schema_name text NOT NULL, migration_count integer NOT NULL, manifest_generated_at_utc timestamptz NOT NULL,
+ installed_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now(),
+ installer_checksum text NULL, install_mode text NOT NULL DEFAULT 'Development'
+);
+ALTER TABLE integrarp.schema_contract ADD COLUMN IF NOT EXISTS installer_checksum text;
+ALTER TABLE integrarp.schema_contract ADD COLUMN IF NOT EXISTS install_mode text NOT NULL DEFAULT 'Development';
+-- <<< canonical/02_schema.sql
+
+-- >>> canonical/03_tables.sql
+-- Fase 03: snapshot DDL canônico v1.60. Definições históricas não são lidas pelo gerador.
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE SCHEMA IF NOT EXISTS integrarp;
 
@@ -1712,9 +1706,7 @@ INSERT INTO integrarp.processo_definicao (nome, codigo, status) SELECT 'Ação d
 INSERT INTO integrarp.processo_definicao (nome, codigo, status) SELECT 'Checagem de Estoque', lower(regexp_replace('Checagem de Estoque', '[^a-zA-Z0-9]+', '-', 'g')), 'template' WHERE NOT EXISTS (SELECT 1 FROM integrarp.processo_definicao WHERE nome = 'Checagem de Estoque');
 INSERT INTO integrarp.processo_definicao (nome, codigo, status) SELECT 'Precificação no Ponto de Venda', lower(regexp_replace('Precificação no Ponto de Venda', '[^a-zA-Z0-9]+', '-', 'g')), 'template' WHERE NOT EXISTS (SELECT 1 FROM integrarp.processo_definicao WHERE nome = 'Precificação no Ponto de Venda');
 
--- <<< 0001_initial_integrarp.sql
 
--- >>> compatibilidade estrutural canônica (não é migration histórica)
 ALTER TABLE IF EXISTS integrarp.processo_definicao ADD COLUMN IF NOT EXISTS processo_definicao_id uuid;
 ALTER TABLE IF EXISTS integrarp.processo_versao ADD COLUMN IF NOT EXISTS processo_versao_id uuid;
 ALTER TABLE IF EXISTS integrarp.processo_versao ADD COLUMN IF NOT EXISTS processo_definicao_id uuid;
@@ -1727,9 +1719,7 @@ ALTER TABLE IF EXISTS integrarp.processo_instancia ADD COLUMN IF NOT EXISTS proc
 ALTER TABLE IF EXISTS integrarp.processo_instancia ADD COLUMN IF NOT EXISTS processo_versao_id uuid;
 ALTER TABLE IF EXISTS integrarp.processo_variavel ADD COLUMN IF NOT EXISTS processo_variavel_id uuid;
 ALTER TABLE IF EXISTS integrarp.processo_variavel ADD COLUMN IF NOT EXISTS processo_instancia_id uuid;
--- <<< compatibilidade estrutural canônica
 
--- >>> 0003_flow_bpmn_core.sql
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE SCHEMA IF NOT EXISTS integrarp;
 
@@ -1881,9 +1871,7 @@ INSERT INTO integrarp.processo_definicao (tenant_id, codigo, nome, descricao, st
 VALUES ('11111111-1111-1111-1111-111111111111', 'pedido_ao_pos_venda', 'Pedido ao Pós-venda', 'Seed Integra Flow: do pedido ao faturamento.', 'publicado', '{"initialVariables":["cliente_id","pedido_id","valor_pedido","credito_aprovado","estoque_disponivel","observacao"]}'::jsonb)
 ON CONFLICT DO NOTHING;
 
--- <<< 0003_flow_bpmn_core.sql
 
--- >>> 0004_flow_designer_web.sql
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 ALTER TABLE integrarp.processo_versao ADD COLUMN IF NOT EXISTS designer_layout_json jsonb NOT NULL DEFAULT '{}'::jsonb;
@@ -2028,9 +2016,7 @@ WHERE NOT EXISTS (SELECT 1 FROM integrarp.flow_template_transicao x WHERE x.flow
 
 -- Permissões do designer devem ser vinculadas ao catálogo RBAC quando a tabela de permissões estiver habilitada.
 
--- <<< 0004_flow_designer_web.sql
 
--- >>> 0006_faturamento_connect_outbox.sql
 CREATE SCHEMA IF NOT EXISTS integrarp;
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
@@ -2539,9 +2525,7 @@ INSERT INTO integrarp.mensagem_envio (tenant_id, canal, status, assunto, corpo_r
 SELECT '00000000-0000-0000-0000-000000000001', 'email', 'enviado', 'Mensagem demo', 'FAKE-EMAIL enviado com sucesso.', 1, now(), '{"demo":true}'::jsonb
 WHERE NOT EXISTS (SELECT 1 FROM integrarp.mensagem_envio WHERE metadata_json->>'demo' = 'true');
 
--- <<< 0006_faturamento_connect_outbox.sql
 
--- >>> 0007_bi_kpis_project_central.sql
 CREATE SCHEMA IF NOT EXISTS integrarp;
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE TABLE IF NOT EXISTS integrarp.kpi_definicao (kpi_definicao_id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NULL, codigo varchar(120) NOT NULL, nome varchar(180) NOT NULL, descricao text NULL, modulo varchar(80) NOT NULL, categoria varchar(80) NULL, unidade varchar(40) NULL, formula_texto text NULL, query_referencia text NULL, direcao_melhor varchar(20) NOT NULL DEFAULT 'maior', frequencia_calculo varchar(40) NOT NULL DEFAULT 'diaria', ativo boolean NOT NULL DEFAULT true, publico boolean NOT NULL DEFAULT false, criado_em timestamptz NOT NULL DEFAULT now(), atualizado_em timestamptz NULL, excluido_em timestamptz NULL, metadata_json jsonb NOT NULL DEFAULT '{}'::jsonb);
@@ -2638,9 +2622,7 @@ INSERT INTO integrarp.kpi_definicao (codigo,nome,modulo,unidade,publico) VALUES
 ('s7_16','Burndown saudável','Sprint7','quantidade',true) ON CONFLICT DO NOTHING;
 DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ck_score_operacional_range') THEN ALTER TABLE integrarp.score_operacional ADD CONSTRAINT ck_score_operacional_range CHECK (score >= 0 AND score <= 100); END IF; END $$;
 
--- <<< 0007_bi_kpis_project_central.sql
 
--- >>> 0008_mobile_ai_mvp.sql
 CREATE SCHEMA IF NOT EXISTS integrarp;
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
@@ -3372,9 +3354,7 @@ INSERT INTO integrarp.ai_ferramenta (tenant_id,codigo,nome,modulo,requer_permiss
 
 INSERT INTO integrarp.ai_ferramenta (tenant_id,codigo,nome,modulo,requer_permissao) VALUES ('00000000-0000-0000-0000-000000000001','open_human_task','open_human_task','ai','ai.tool.open_human_task') ON CONFLICT DO NOTHING;
 
--- <<< 0008_mobile_ai_mvp.sql
 
--- >>> 0009_studio_avancado_modulos_dinamicos.sql
 -- Sprint 9 - Integra Studio Avancado e Modulos Dinamicos
 CREATE SCHEMA IF NOT EXISTS integrarp;
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
@@ -3808,9 +3788,7 @@ VALUES
 ('00000000-0000-0000-0000-000000000001','solicitacao_compras','Solicitação de Compras','template','ativo','{}')
 ON CONFLICT DO NOTHING;
 
--- <<< 0009_studio_avancado_modulos_dinamicos.sql
 
--- >>> 0010_templates_operacionais_distribuicao_campo.sql
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 CREATE TABLE IF NOT EXISTS integrarp.template_operacional_pacote (
@@ -3914,9 +3892,7 @@ CROSS JOIN (VALUES
 WHERE p.codigo = 'pacote_operacao_distribuicao'
   AND NOT EXISTS (SELECT 1 FROM integrarp.template_operacional t WHERE t.codigo = v.codigo);
 
--- <<< 0010_templates_operacionais_distribuicao_campo.sql
 
--- >>> 0011_hardening_indexes_observability.sql
 CREATE SCHEMA IF NOT EXISTS integrarp;
 
 CREATE TABLE IF NOT EXISTS integrarp.lgpd_log_acesso_dado (
@@ -4007,9 +3983,7 @@ BEGIN
     END IF;
 END $$;
 
--- <<< 0011_hardening_indexes_observability.sql
 
--- >>> 0012_piloto_v1_final_adjustments.sql
 CREATE SCHEMA IF NOT EXISTS integrarp;
 
 CREATE TABLE IF NOT EXISTS integrarp.piloto_v1_demo_catalogo (
@@ -4081,9 +4055,7 @@ SELECT categoria, chave, nome, descricao
 FROM integrarp.piloto_v1_demo_catalogo
 WHERE status IN ('pendente', 'em_fluxo');
 
--- <<< 0012_piloto_v1_final_adjustments.sql
 
--- >>> 0013_v11_scriptcompleto_forms_automation.sql
 -- IntegraRP database complete idempotent script v1.1
 CREATE SCHEMA IF NOT EXISTS integrarp;
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
@@ -4215,9 +4187,7 @@ INSERT INTO integrarp.notificacao (tenant_id,evento,titulo,corpo,canal,status) V
 INSERT INTO integrarp.anexo_configuracao (tenant_id,extensoes_permitidas,tamanho_maximo_bytes,metadata_json) VALUES ('11111111-1111-1111-1111-111111111111','.pdf,.png,.jpg,.jpeg,.csv',10485760,'{"demo":"Anexos demo"}'::jsonb) ON CONFLICT DO NOTHING;
 -- v1.15: schema_migrations é gerenciada exclusivamente pelo Migration Runner; registro legado removido.
 
--- <<< 0013_v11_scriptcompleto_forms_automation.sql
 
--- >>> 0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql
 CREATE SCHEMA IF NOT EXISTS integrarp;
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
@@ -5624,9 +5594,7 @@ ON CONFLICT (id) DO UPDATE SET
 
 -- v1.15: schema_migrations é gerenciada exclusivamente pelo Migration Runner; registro legado removido.
 
--- <<< 0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql
 
--- >>> 0014_v12_jornada_cliente_onboarding_ux.sql
 -- v1.2 Jornada do Cliente, Onboarding Guiado e UX Operacional
 CREATE SCHEMA IF NOT EXISTS integrarp;
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
@@ -5699,9 +5667,7 @@ INSERT INTO integrarp.jornada_acao_recomendada (tenant_id, titulo, descricao, pr
 -- Perfis: Administrador Geral; Administrador do Tenant; Diretor; Coordenador; Financeiro; Vendas; Logística; Motorista; Promotor de Vendas; Operador.
 -- v1.15: schema_migrations é gerenciada exclusivamente pelo Migration Runner; registro legado removido.
 
--- <<< 0014_v12_jornada_cliente_onboarding_ux.sql
 
--- >>> 0015_v13_funcionalidade_real_end_to_end.sql
 -- v1.3 - Funcionalidade real end-to-end, validação funcional e demo persistido
 CREATE SCHEMA IF NOT EXISTS integrarp;
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
@@ -5855,9 +5821,7 @@ SELECT d.tenant_id, d.codigo, count(*) AS etapas, count(*) FILTER (WHERE d.statu
 FROM integrarp.v13_demo_execucao d
 GROUP BY d.tenant_id, d.codigo;
 
--- <<< 0015_v13_funcionalidade_real_end_to_end.sql
 
--- >>> 0016_v14_postgres_repositories_operacional.sql
 -- v1.4 Build verde, repositórios PostgreSQL reais e fluxo operacional
 CREATE SCHEMA IF NOT EXISTS integrarp;
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
@@ -5977,9 +5941,7 @@ GROUP BY tenant_id, codigo;
 
 -- v1.20: registro manual em schema_migrations removido; Migration Runner/script completo registram checksums.
 
--- <<< 0016_v14_postgres_repositories_operacional.sql
 
--- >>> 0017_v15_validacao_real_cruds_qa_deploy.sql
 -- =============================================================
 -- v1.5 - Validação real, CRUDs operacionais, QA e deploy assistido
 -- =============================================================
@@ -6121,9 +6083,7 @@ FROM integrarp.v15_operational_object;
 
 -- v1.20: registro manual em schema_migrations removido; Migration Runner/script completo registram checksums.
 
--- <<< 0017_v15_validacao_real_cruds_qa_deploy.sql
 
--- >>> 0018_v16_release_candidate_validation.sql
 -- =============================================================
 -- v1.6 Release Candidate - validação real, CI, Docker, smoke tests
 -- =============================================================
@@ -6188,17 +6148,12 @@ GROUP BY tenant_id;
 
 -- v1.20: registro manual em schema_migrations removido; Migration Runner/script completo registram checksums.
 
--- <<< 0018_v16_release_candidate_validation.sql
 
--- >>> 0019_v17_runtime_validation_and_green_pipeline.sql
 -- v1.7 runtime validation and green pipeline
 -- This migration intentionally reuses the idempotent v1.7 block contained in the complete script
 -- to keep scriptcompleto.sql and versioned execution aligned without duplicating object definitions.
-\ir ../scriptcompleto.sql
 
--- <<< 0019_v17_runtime_validation_and_green_pipeline.sql
 
--- >>> 0020_v18_funcionalidade_real_produto.sql
 -- V1.8 - Funcionalidade real de produto: tabelas reais de domínio
 CREATE SCHEMA IF NOT EXISTS integrarp;
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
@@ -6273,9 +6228,7 @@ CREATE INDEX IF NOT EXISTS ix_pedido_cliente_status ON integrarp.pedido (tenant_
 CREATE INDEX IF NOT EXISTS ix_tarefa_responsavel_status ON integrarp.tarefa (tenant_id, responsavel_usuario_id, status);
 CREATE INDEX IF NOT EXISTS ix_outbox_status_tentativas ON integrarp.outbox_evento (tenant_id, status, tentativas);
 
--- <<< 0020_v18_funcionalidade_real_produto.sql
 
--- >>> 0020_v18_produto_funcional_cruds_telas_jornada.sql
 CREATE SCHEMA IF NOT EXISTS integrarp;
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
@@ -6388,9 +6341,7 @@ ON CONFLICT (tenant_id, area, modulo) DO UPDATE SET status = EXCLUDED.status, ch
 
 -- v1.20: registro manual em schema_migrations removido; Migration Runner/script completo registram checksums.
 
--- <<< 0020_v18_produto_funcional_cruds_telas_jornada.sql
 
--- >>> 0021_v19_demo_funcional_inserts_telas_jornada.sql
 -- IntegraRP database complete idempotent script v1.9
 CREATE SCHEMA IF NOT EXISTS integrarp;
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
@@ -6461,8 +6412,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS ux_atividade_operacional_tenant_codigo ON inte
 -- =====================================================
 -- V1.9 - SEED DEMO FUNCIONAL COMPLETO
 -- =====================================================
-INSERT INTO integrarp.tenant (slug,nome,metadata_json) VALUES ('demo','Demo IntegraRP','{"demo":true,"versao":"v1.9"}'::jsonb)
-ON CONFLICT (slug) WHERE excluido_em IS NULL DO UPDATE SET nome=EXCLUDED.nome, metadata_json=EXCLUDED.metadata_json;
+-- tenant histórico substituído pelo seed canônico da fase 09.
 
 WITH t AS (SELECT id tenant_id FROM integrarp.tenant WHERE slug='demo')
 INSERT INTO integrarp.permissao (tenant_id,codigo,descricao)
@@ -6566,9 +6516,7 @@ CREATE TRIGGER trg_v18_screen_audit_atualizado_em BEFORE UPDATE ON integrarp.v18
 CREATE OR REPLACE VIEW integrarp.vw_v18_dashboard_operacional AS SELECT tenant_id, modulo, status, proxima_acao FROM integrarp.v18_screen_audit WHERE excluido_em IS NULL;
 -- v1.15: schema_migrations é gerenciada exclusivamente pelo Migration Runner; registro legado removido.
 
--- <<< 0021_v19_demo_funcional_inserts_telas_jornada.sql
 
--- >>> 0021_v19_fix_scriptcompleto_inserts_demo_jornada.sql
 -- IntegraRP database complete idempotent script v1.9
 CREATE SCHEMA IF NOT EXISTS integrarp;
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
@@ -6639,8 +6587,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS ux_atividade_operacional_tenant_codigo ON inte
 -- =====================================================
 -- V1.9 - SEED DEMO FUNCIONAL COMPLETO
 -- =====================================================
-INSERT INTO integrarp.tenant (slug,nome,metadata_json) VALUES ('demo','Demo IntegraRP','{"demo":true,"versao":"v1.9"}'::jsonb)
-ON CONFLICT (slug) WHERE excluido_em IS NULL DO UPDATE SET nome=EXCLUDED.nome, metadata_json=EXCLUDED.metadata_json;
+-- tenant histórico substituído pelo seed canônico da fase 09.
 
 WITH t AS (SELECT id tenant_id FROM integrarp.tenant WHERE slug='demo')
 INSERT INTO integrarp.permissao (tenant_id,codigo,descricao)
@@ -6744,9 +6691,7 @@ CREATE TRIGGER trg_v18_screen_audit_atualizado_em BEFORE UPDATE ON integrarp.v18
 CREATE OR REPLACE VIEW integrarp.vw_v18_dashboard_operacional AS SELECT tenant_id, modulo, status, proxima_acao FROM integrarp.v18_screen_audit WHERE excluido_em IS NULL;
 -- v1.15: schema_migrations é gerenciada exclusivamente pelo Migration Runner; registro legado removido.
 
--- <<< 0021_v19_fix_scriptcompleto_inserts_demo_jornada.sql
 
--- >>> 0023_v113_consolidacao_funcional_maturidade.sql
 -- v1.13 - Consolidação funcional, maturidade operacional e smoke E2E
 CREATE TABLE IF NOT EXISTS integrarp.v113_functional_consolidation_check (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -6804,9 +6749,7 @@ WHERE excluido_em IS NULL;
 
 -- v1.20: registro manual em schema_migrations removido; Migration Runner/script completo registram checksums.
 
--- <<< 0023_v113_consolidacao_funcional_maturidade.sql
 
--- >>> 0024_v114_consolidacao_operacional_seguranca.sql
 -- v1.14 - consolidação operacional e segurança real
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE SCHEMA IF NOT EXISTS integrarp;
@@ -6849,9 +6792,7 @@ CREATE INDEX IF NOT EXISTS ix_tarefa_operacional_tenant_responsavel ON integrarp
 CREATE INDEX IF NOT EXISTS ix_tarefa_comentario_tenant_tarefa ON integrarp.tarefa_comentario (tenant_id, tarefa_id) WHERE excluido_em IS NULL;
 CREATE INDEX IF NOT EXISTS ix_pedido_status_historico_tenant_pedido ON integrarp.pedido_status_historico (tenant_id, pedido_id, criado_em);
 
--- <<< 0024_v114_consolidacao_operacional_seguranca.sql
 
--- >>> 0025_v117_auth_tasks_mobile_persistence.sql
 CREATE SCHEMA IF NOT EXISTS integrarp;
 ALTER TABLE integrarp.tenant ADD COLUMN IF NOT EXISTS slug text;
 ALTER TABLE integrarp.tenant ADD COLUMN IF NOT EXISTS status text NOT NULL DEFAULT 'ativo';
@@ -6881,9 +6822,7 @@ CREATE INDEX IF NOT EXISTS ix_v117_refresh_session ON integrarp.auth_refresh_tok
 CREATE INDEX IF NOT EXISTS ix_v117_tasks_my ON integrarp.tarefa_operacional (tenant_id, responsavel_usuario_id, status, vencimento_em) WHERE excluido_em IS NULL;
 CREATE INDEX IF NOT EXISTS ix_v117_sync_status ON integrarp.mobile_sync_queue (tenant_id, usuario_id, device_id, status, proxima_tentativa_em);
 
--- <<< 0025_v117_auth_tasks_mobile_persistence.sql
 
--- >>> 0026_v118_auth_ux_task_hardening.sql
 CREATE SCHEMA IF NOT EXISTS integrarp;
 
 ALTER TABLE IF EXISTS integrarp.usuario ADD COLUMN IF NOT EXISTS tentativas_invalidas integer NOT NULL DEFAULT 0;
@@ -6934,9 +6873,7 @@ CREATE TABLE IF NOT EXISTS integrarp.tarefa_arquivo_evidencia (
 );
 CREATE INDEX IF NOT EXISTS ix_tarefa_arquivo_tarefa ON integrarp.tarefa_arquivo_evidencia (tenant_id, tarefa_id) WHERE excluido_em IS NULL;
 
--- <<< 0026_v118_auth_ux_task_hardening.sql
 
--- >>> 0027_v119_postgresql_standalone_flow_persistido.sql
 -- IntegraRP v1.19 - PostgreSQL standalone e compatibilidade Flow/Auth
 -- Migration aditiva e idempotente; transação controlada pelo Migration Runner.
 
@@ -6978,9 +6915,7 @@ ALTER TABLE IF EXISTS integrarp.tarefa_operacional ADD COLUMN IF NOT EXISTS row_
 CREATE UNIQUE INDEX IF NOT EXISTS ux_tarefa_operacional_idempotency ON integrarp.tarefa_operacional (tenant_id, idempotency_key) WHERE idempotency_key IS NOT NULL;
 CREATE INDEX IF NOT EXISTS ix_tarefa_operacional_processo_instancia ON integrarp.tarefa_operacional (tenant_id, processo_instancia_id) WHERE processo_instancia_id IS NOT NULL;
 
--- <<< 0027_v119_postgresql_standalone_flow_persistido.sql
 
--- >>> 0028_v122_release_candidate_core_real.sql
 -- v1.22 release candidate hardening marker.
 -- This migration is intentionally additive and idempotent. It records the
 -- release-candidate database contract without changing existing data because
@@ -7011,9 +6946,7 @@ ON CONFLICT (versao) DO UPDATE SET
 CREATE INDEX IF NOT EXISTS ix_release_candidate_evidencia_status
     ON integrarp.release_candidate_evidencia (status, criado_em DESC);
 
--- <<< 0028_v122_release_candidate_core_real.sql
 
--- >>> 0029_v123_core_operacional_real.sql
 -- IntegraRP v1.23 - hardening operacional real.
 -- Migration aditiva e idempotente; transação controlada pelo Migration Runner/script completo.
 
@@ -7096,9 +7029,7 @@ SELECT
 FROM integrarp.tenant t
 WHERE COALESCE(t.status, '') = 'ativo' AND t.excluido_em IS NULL;
 
--- <<< 0029_v123_core_operacional_real.sql
 
--- >>> 0030_v124_production_foundation_auth_ux.sql
 -- IntegraRP v1.24 - fundação de produção, autenticação Web e UX
 -- PostgreSQL 16; schema integrarp; migration idempotente e aditiva.
 
@@ -7198,9 +7129,7 @@ SELECT
     now() AS atualizado_em
 FROM integrarp.tenant t;
 
--- <<< 0030_v124_production_foundation_auth_ux.sql
 
--- >>> 0031_v125_core_comercial_ux_operacional.sql
 -- IntegraRP v1.25 - Core Comercial, UX Premium e Operação Intuitiva
 -- PostgreSQL 16; schema integrarp; migration aditiva, idempotente.
 
@@ -7317,9 +7246,7 @@ SELECT
     now() AS atualizado_em
 FROM integrarp.tenant t;
 
--- <<< 0031_v125_core_comercial_ux_operacional.sql
 
--- >>> 0032_v126_jornada_comercial_ux_premium.sql
 -- IntegraRP v1.26 - Jornada Comercial Real, UX Premium e Homologação Verde
 -- PostgreSQL 16; schema integrarp; migration aditiva, idempotente.
 
@@ -7389,9 +7316,7 @@ SELECT
     now() AS atualizado_em
 FROM integrarp.tenant t;
 
--- <<< 0032_v126_jornada_comercial_ux_premium.sql
 
--- >>> 0033_v127_operacao_comercial_executavel.sql
 -- IntegraRP v1.27 - Operacao Comercial Executavel, UX Premium e Release Homologada
 -- PostgreSQL 16; schema integrarp; migration aditiva e idempotente.
 
@@ -7494,9 +7419,7 @@ SELECT
     now() AS atualizado_em
 FROM integrarp.tenant t;
 
--- <<< 0033_v127_operacao_comercial_executavel.sql
 
--- >>> 0034_v128_core_comercial_producao.sql
 -- IntegraRP v1.28 - Core Comercial em Produção
 -- PostgreSQL 16 | schema integrarp | migration aditiva e idempotente
 
@@ -7593,9 +7516,7 @@ ALTER TABLE integrarp.outbox_evento ADD COLUMN IF NOT EXISTS correlation_id text
 CREATE INDEX IF NOT EXISTS ix_outbox_evento_tenant_status_proxima ON integrarp.outbox_evento (tenant_id, status, proxima_tentativa_em);
 CREATE UNIQUE INDEX IF NOT EXISTS ux_outbox_evento_tenant_idempotency ON integrarp.outbox_evento (tenant_id, idempotency_key) WHERE idempotency_key IS NOT NULL;
 
--- <<< 0034_v128_core_comercial_producao.sql
 
--- >>> 0035_v129_jornada_comercial_real.sql
 -- IntegraRP v1.29 - jornada comercial real
 -- PostgreSQL 16, schema integrarp, migration aditiva e idempotente.
 CREATE SCHEMA IF NOT EXISTS integrarp;
@@ -7689,9 +7610,7 @@ CREATE INDEX IF NOT EXISTS ix_pedido_historico_status_tenant_pedido ON integrarp
 CREATE INDEX IF NOT EXISTS ix_estoque_movimento_tenant_produto ON integrarp.estoque_movimento (tenant_id, produto_id, criado_em DESC);
 CREATE INDEX IF NOT EXISTS ix_worker_tenant_job_lock_until ON integrarp.worker_tenant_job_lock (locked_until);
 
--- <<< 0035_v129_jornada_comercial_real.sql
 
--- >>> 0036_v130_jornada_comercial_persistida.sql
 -- Produto: IntegraRP
 -- Versao: v1.30
 -- PostgreSQL: 16
@@ -7758,9 +7677,7 @@ CREATE TABLE IF NOT EXISTS integrarp.outbox_evento (id uuid NOT NULL DEFAULT gen
 CREATE TABLE IF NOT EXISTS integrarp.worker_tenant_job_lock (tenant_id uuid NOT NULL, job_name text NOT NULL, locked_until timestamptz NOT NULL, correlation_id text NULL, atualizado_em timestamptz NOT NULL DEFAULT now(), CONSTRAINT pk_worker_tenant_job_lock PRIMARY KEY(tenant_id, job_name));
 CREATE TABLE IF NOT EXISTS integrarp.worker_dead_letter (id uuid NOT NULL DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL, job_name text NOT NULL, reason text NOT NULL, correlation_id text NULL, criado_em timestamptz NOT NULL DEFAULT now(), CONSTRAINT pk_worker_dead_letter PRIMARY KEY(id));
 
--- <<< 0036_v130_jornada_comercial_persistida.sql
 
--- >>> 0037_v131_release_candidate_comercial.sql
 -- Produto: IntegraRP
 -- Versao: v1.31
 -- PostgreSQL: 16
@@ -7875,9 +7792,7 @@ ALTER TABLE integrarp.pedido VALIDATE CONSTRAINT fk_pedido_cliente_tenant_v131;
 ALTER TABLE integrarp.pedido_item VALIDATE CONSTRAINT fk_pedido_item_pedido_tenant_v131;
 ALTER TABLE integrarp.pedido_item VALIDATE CONSTRAINT fk_pedido_item_produto_tenant_v131;
 
--- <<< 0037_v131_release_candidate_comercial.sql
 
--- >>> 0038_v132_operacao_comercial_homologada.sql
 -- Produto: IntegraRP
 -- Versao: v1.32
 -- PostgreSQL: 16
@@ -7920,9 +7835,7 @@ ALTER TABLE integrarp.pedido VALIDATE CONSTRAINT ck_pedido_totais_v132;
 ALTER TABLE integrarp.estoque_saldo VALIDATE CONSTRAINT ck_estoque_saldo_disponivel_v132;
 ALTER TABLE integrarp.tarefa_evidencia VALIDATE CONSTRAINT fk_evidencia_tarefa_tenant_v132;
 
--- <<< 0038_v132_operacao_comercial_homologada.sql
 
--- >>> 0039_v133_convergencia_executavel.sql
 -- IntegraRP v1.33 - convergencia executavel do schema comercial
 -- PostgreSQL 16. Migration aditiva, idempotente e restrita ao schema integrarp.
 
@@ -7993,9 +7906,7 @@ ALTER TABLE integrarp.pedido VALIDATE CONSTRAINT fk_pedido_cliente_tenant_v133;
 ALTER TABLE integrarp.pedido_item VALIDATE CONSTRAINT fk_pedido_item_pedido_tenant_v133;
 ALTER TABLE integrarp.pedido_item VALIDATE CONSTRAINT fk_pedido_item_produto_tenant_v133;
 
--- <<< 0039_v133_convergencia_executavel.sql
 
--- >>> 0040_v134_experiencia_guiada_core_comercial.sql
 -- IntegraRP v1.34 - experiencia guiada e operacao comercial
 -- PostgreSQL 16. Migration aditiva, idempotente e restrita ao schema integrarp.
 
@@ -8060,9 +7971,7 @@ COMMENT ON TABLE integrarp.pedido_numeracao IS 'Sequencia anual de pedidos isola
 COMMENT ON TABLE integrarp.usuario_preferencia IS 'Preferencias persistentes, incluindo progresso do onboarding, por tenant e usuario.';
 COMMENT ON TABLE integrarp.notificacao_usuario IS 'Notificacoes internas persistentes e enderecadas por tenant e usuario.';
 
--- <<< 0040_v134_experiencia_guiada_core_comercial.sql
 
--- >>> 0041_v135_experiencia_guiada_funcional.sql
 -- IntegraRP v1.35 - integridade da experiencia guiada funcional
 -- PostgreSQL 16. Migration aditiva e idempotente; migrations 0001 a 0040 permanecem congeladas.
 
@@ -8105,9 +8014,7 @@ CREATE INDEX IF NOT EXISTS ix_notificacao_usuario_prioridade
 CREATE INDEX IF NOT EXISTS ix_pedido_numeracao_atualizacao
     ON integrarp.pedido_numeracao (tenant_id, atualizado_em DESC);
 
--- <<< 0041_v135_experiencia_guiada_funcional.sql
 
--- >>> 0042_v136_experiencia_premium_funcional.sql
 -- IntegraRP v1.36 - integridade multi-tenant e notificacoes operacionais
 -- PostgreSQL 16; aditiva, idempotente e sem transacao de topo.
 
@@ -8159,9 +8066,7 @@ CREATE INDEX IF NOT EXISTS ix_notificacao_usuario_expiracao
 CREATE INDEX IF NOT EXISTS ix_notificacao_usuario_deep_link
     ON integrarp.notificacao_usuario (tenant_id, url) WHERE url IS NOT NULL;
 
--- <<< 0042_v136_experiencia_premium_funcional.sql
 
--- >>> 0043_v137_produto_navegavel.sql
 -- IntegraRP v1.37 - suporte aditivo à jornada navegável e processamento confiável.
 -- PostgreSQL 16; migrations 0001 a 0042 permanecem congeladas.
 
@@ -8185,9 +8090,7 @@ BEGIN
 END
 $migration$;
 
--- <<< 0043_v137_produto_navegavel.sql
 
--- >>> 0044_v138_web_operacional_homologado.sql
 -- IntegraRP v1.38 - validação de integridade e rastreabilidade do despacho real.
 -- PostgreSQL 16; migrations 0001 a 0043 permanecem congeladas.
 DO $migration$
@@ -8210,9 +8113,7 @@ CREATE TABLE IF NOT EXISTS integrarp.outbox_execucao_handler (
 );
 CREATE INDEX IF NOT EXISTS ix_outbox_execucao_handler_tenant_data ON integrarp.outbox_execucao_handler(tenant_id, executado_em DESC);
 
--- <<< 0044_v138_web_operacional_homologado.sql
 
--- >>> 0045_v139_release_candidate_piloto.sql
 -- IntegraRP v1.39 - execução rastreável e multi-tenant dos handlers de outbox.
 -- PostgreSQL 16; evolução aditiva. Migrations 0001 a 0044 permanecem congeladas.
 ALTER TABLE integrarp.outbox_execucao_handler
@@ -8271,9 +8172,7 @@ CREATE INDEX IF NOT EXISTS ix_outbox_execucao_retry
     ON integrarp.outbox_execucao_handler (tenant_id, status, iniciado_em)
     WHERE status IN ('processando', 'erro');
 
--- <<< 0045_v139_release_candidate_piloto.sql
 
--- >>> 0046_v140_scriptcompleto_integrarp.sql
 -- IntegraRP v1.40: metadados do contrato canônico, sem transação de topo.
 CREATE TABLE IF NOT EXISTS integrarp.schema_contract (
     contract_name text PRIMARY KEY,
@@ -8301,9 +8200,7 @@ SET product_version = EXCLUDED.product_version,
 
 COMMENT ON TABLE integrarp.schema_contract IS 'Contrato canônico e versão instalada do banco IntegraRP.';
 
--- <<< 0046_v140_scriptcompleto_integrarp.sql
 
--- >>> 0047_v143_convergencia_executavel.sql
 -- IntegraRP v1.43: converge o contrato de processos antes da criação de índices.
 -- A migration é aditiva e pode ser promovida pelo gerador antes da migration 0003.
 ALTER TABLE IF EXISTS integrarp.processo_definicao
@@ -8392,9 +8289,7 @@ ON CONFLICT (contract_name) DO UPDATE SET
   migration_count = EXCLUDED.migration_count,
   manifest_generated_at_utc = EXCLUDED.manifest_generated_at_utc;
 
--- <<< 0047_v143_convergencia_executavel.sql
 
--- >>> 0048_v145_produto_operacional_360.sql
 -- IntegraRP v1.45 — CRM, orçamentos, preços, operação e documentos.
 -- Apenas objetos aditivos no schema canônico; todas as chaves de negócio incluem tenant_id.
 ALTER TABLE integrarp.cliente_contato ADD COLUMN IF NOT EXISTS whatsapp boolean NOT NULL DEFAULT false;
@@ -8576,9 +8471,7 @@ INSERT INTO integrarp.schema_contract(contract_name,product_version,postgresql_m
 VALUES('Banco Canônico Integrarp v1.45','v1.45',16,'integrarp',48,'2026-07-30T00:00:00Z'::timestamptz)
 ON CONFLICT(contract_name) DO UPDATE SET product_version=EXCLUDED.product_version,migration_count=EXCLUDED.migration_count,manifest_generated_at_utc=EXCLUDED.manifest_generated_at_utc;
 
--- <<< 0048_v145_produto_operacional_360.sql
 
--- >>> 0049_v147_ciclo_comercial_executavel.sql
 -- IntegraRP v1.47 — suporte transacional ao ciclo comercial executável.
 CREATE TABLE IF NOT EXISTS integrarp.numeracao_comercial (
   tenant_id uuid NOT NULL,
@@ -8649,9 +8542,7 @@ ON CONFLICT (contract_name) DO UPDATE SET product_version=EXCLUDED.product_versi
   migration_count=EXCLUDED.migration_count, manifest_generated_at_utc=EXCLUDED.manifest_generated_at_utc,
   updated_at=now();
 
--- <<< 0049_v147_ciclo_comercial_executavel.sql
 
--- >>> 0050_v148_venda_execucao_vertical.sql
 -- IntegraRP v1.48 — Venda à Execução Vertical
 -- Evolução aditiva das estruturas canônicas; migrations anteriores permanecem congeladas.
 
@@ -8751,9 +8642,7 @@ ON CONFLICT (contract_name) DO UPDATE SET
   manifest_generated_at_utc = EXCLUDED.manifest_generated_at_utc,
   updated_at = now();
 
--- <<< 0050_v148_venda_execucao_vertical.sql
 
--- >>> 0051_v149_orcamento_pedido_operacao.sql
 -- IntegraRP v1.49 — Orçamento ao Faturamento
 -- Reconciliação aditiva do contrato canônico de tarefas operacionais.
 
@@ -8879,9 +8768,7 @@ ON CONFLICT (contract_name) DO UPDATE SET
   manifest_generated_at_utc = EXCLUDED.manifest_generated_at_utc,
   updated_at = now();
 
--- <<< 0051_v149_orcamento_pedido_operacao.sql
 
--- >>> 0052_v150_premium_product_experience.sql
 -- IntegraRP v1.50 — correção aditiva do contrato de leitura do Flow.
 -- O nome canônico pertence à definição; a view não depende do título da instância.
 -- view de processos adiada para a definição canônica
@@ -8889,9 +8776,7 @@ ON CONFLICT (contract_name) DO UPDATE SET
 COMMENT ON VIEW integrarp.vw_flow_processos_em_andamento IS
   'Processos ativos com título obtido da definição canônica.';
 
--- <<< 0052_v150_premium_product_experience.sql
 
--- >>> 0053_v151_product_experience_operacao.sql
 -- IntegraRP v1.51 — contrato canônico de prazo dos processos ativos.
 -- processo_instancia não possui prazo próprio: o prazo operacional é o menor
 -- vencimento ainda aberto entre as tarefas pertencentes à instância.
@@ -8922,9 +8807,7 @@ WHERE i.excluido_em IS NULL
 COMMENT ON VIEW integrarp.vw_flow_processos_em_andamento IS
   'Processos ativos; prazo derivado do menor vencimento das tarefas operacionais abertas.';
 
--- <<< 0053_v151_product_experience_operacao.sql
 
--- >>> 0054_v153_workspace_comercial_premium.sql
 -- IntegraRP v1.53 — Workspace Comercial Premium.
 -- Evolução aditiva e multi-tenant para ordenação, preferências e ações reais.
 
@@ -9013,9 +8896,7 @@ ON CONFLICT (contract_name) DO UPDATE SET
   manifest_generated_at_utc = EXCLUDED.manifest_generated_at_utc,
   updated_at = now();
 
--- <<< 0054_v153_workspace_comercial_premium.sql
 
--- >>> 0055_v155_jornada_comercial_operacional.sql
 -- IntegraRP v1.55 — contrato canônico de processos e tarefas operacionais.
 -- A instância histórica não possui título nem prazo próprios. O título pertence
 -- à definição e o prazo efetivo é derivado da menor tarefa ainda aberta.
@@ -9060,9 +8941,7 @@ COMMENT ON VIEW integrarp.vw_flow_processos_em_andamento IS
 COMMENT ON VIEW integrarp.vw_flow_processos_atrasados IS
   'Processos ativos cujo prazo operacional canônico já venceu.';
 
--- <<< 0055_v155_jornada_comercial_operacional.sql
 
--- >>> 0056_v156_operacao_canonica_premium.sql
 -- IntegraRP v1.56 — operação canônica, tarefas e faturamento pendente.
 -- Esta migration é aditiva, idempotente e preserva os registros da fila legada.
 
@@ -9199,9 +9078,7 @@ ON CONFLICT (contract_name) DO UPDATE SET
   manifest_generated_at_utc = EXCLUDED.manifest_generated_at_utc,
   updated_at = now();
 
--- <<< 0056_v156_operacao_canonica_premium.sql
 
--- >>> 0057_v157_runtime_canonico_operacao.sql
 -- IntegraRP v1.57 — runtime canônico da operação.
 -- A migration é aditiva e idempotente; tarefa_operacional permanece somente leitura.
 
@@ -9239,9 +9116,7 @@ INSERT INTO integrarp.schema_contract(contract_name,product_version,postgresql_m
 VALUES('Banco Canônico Integrarp v1.57','v1.57',16,'integrarp',57,'2026-08-03T00:00:00Z'::timestamptz,now(),now())
 ON CONFLICT(contract_name) DO UPDATE SET product_version=EXCLUDED.product_version,migration_count=57,updated_at=now();
 
--- <<< 0057_v157_runtime_canonico_operacao.sql
 
--- >>> 0058_v158_premium_experience_superadmin.sql
 -- IntegraRP v1.58 — experiência premium, preferências e suporte global auditável.
 
 CREATE TABLE IF NOT EXISTS integrarp.superadmin_contexto_suporte (
@@ -9292,17 +9167,190 @@ GROUP BY d.tenant_id;
 INSERT INTO integrarp.schema_contract(contract_name,product_version,postgresql_major,schema_name,migration_count,manifest_generated_at_utc,installed_at,updated_at)
 VALUES('Banco Canônico Integrarp v1.58','v1.58',16,'integrarp',58,'2026-08-03T00:00:00Z'::timestamptz,now(),now())
 ON CONFLICT(contract_name) DO UPDATE SET product_version=EXCLUDED.product_version,migration_count=58,updated_at=now();
+-- <<< canonical/03_tables.sql
 
--- <<< 0058_v158_premium_experience_superadmin.sql
+-- >>> canonical/04_constraints.sql
+-- Fase 04: reconciliação canônica de tabelas repetidas no legado.
+ALTER TABLE integrarp.processo_definicao ADD COLUMN IF NOT EXISTS descricao text;
+ALTER TABLE integrarp.processo_versao ADD COLUMN IF NOT EXISTS numero_versao integer;
+ALTER TABLE integrarp.processo_versao ADD COLUMN IF NOT EXISTS publicado_em timestamptz;
+ALTER TABLE integrarp.processo_versao ADD COLUMN IF NOT EXISTS bpmn_json jsonb NOT NULL DEFAULT '{}'::jsonb;
+ALTER TABLE integrarp.processo_elemento ADD COLUMN IF NOT EXISTS tipo text;
+ALTER TABLE integrarp.processo_elemento ADD COLUMN IF NOT EXISTS descricao text;
+ALTER TABLE integrarp.processo_elemento ADD COLUMN IF NOT EXISTS ordem numeric(12,4) NOT NULL DEFAULT 0;
+ALTER TABLE integrarp.processo_transicao ADD COLUMN IF NOT EXISTS elemento_origem_id uuid;
+ALTER TABLE integrarp.processo_transicao ADD COLUMN IF NOT EXISTS elemento_destino_id uuid;
+ALTER TABLE integrarp.processo_transicao ADD COLUMN IF NOT EXISTS condicao_tipo text NOT NULL DEFAULT 'always';
+ALTER TABLE integrarp.processo_transicao ADD COLUMN IF NOT EXISTS ordem numeric(12,4) NOT NULL DEFAULT 0;
+UPDATE integrarp.processo_definicao SET processo_definicao_id=id WHERE processo_definicao_id IS NULL;
+UPDATE integrarp.processo_versao SET processo_versao_id=id WHERE processo_versao_id IS NULL;
+UPDATE integrarp.processo_elemento SET processo_elemento_id=id WHERE processo_elemento_id IS NULL;
+UPDATE integrarp.processo_transicao SET processo_transicao_id=id WHERE processo_transicao_id IS NULL;
+UPDATE integrarp.processo_instancia SET processo_instancia_id=id WHERE processo_instancia_id IS NULL;
+-- <<< canonical/04_constraints.sql
 
+-- >>> canonical/05_indexes.sql
+-- Fase 05: objetos canônicos já declarados no snapshot DDL; extensões v1.60 seguem nas fases posteriores.
+-- <<< canonical/05_indexes.sql
+
+-- >>> canonical/06_functions_triggers.sql
+-- Fase 06: objetos canônicos já declarados no snapshot DDL; extensões v1.60 seguem nas fases posteriores.
+-- <<< canonical/06_functions_triggers.sql
+
+-- >>> canonical/07_views.sql
+-- Fase 07: objetos canônicos já declarados no snapshot DDL; extensões v1.60 seguem nas fases posteriores.
+-- <<< canonical/07_views.sql
+
+-- >>> canonical/08_parameters.sql
+-- Fase 08: objetos canônicos já declarados no snapshot DDL; extensões v1.60 seguem nas fases posteriores.
+-- <<< canonical/08_parameters.sql
+
+-- >>> canonical/09_identity_seed.sql
+-- Fase 09: identidade mínima Development/Pilot. Hash ASP.NET Identity v3 (PBKDF2-SHA512/100000).
+ALTER TABLE integrarp.usuario ADD COLUMN IF NOT EXISTS is_global boolean NOT NULL DEFAULT false;
+ALTER TABLE integrarp.perfil ADD COLUMN IF NOT EXISTS escopo text NOT NULL DEFAULT 'tenant';
+INSERT INTO integrarp.tenant (id, slug, nome, status)
+VALUES ('11111111-1111-1111-1111-111111111111','valora-mnsoft-demo','Valora Group & MNSoft Demo','ativo')
+ON CONFLICT (id) DO UPDATE SET slug=EXCLUDED.slug,nome=EXCLUDED.nome,status='ativo',excluido_em=NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS ux_tenant_slug_ativo ON integrarp.tenant(lower(slug)) WHERE excluido_em IS NULL AND status='ativo';
+
+INSERT INTO integrarp.perfil (id,tenant_id,nome,permissoes_json,escopo)
+SELECT gen_random_uuid(),t.id,n,'[]'::jsonb,CASE WHEN n='SuperAdmin' THEN 'global' ELSE 'tenant' END
+FROM integrarp.tenant t CROSS JOIN unnest(ARRAY['SuperAdmin','Administrador Geral','Diretor','Financeiro','Vendas','Logística','Operador','Auditor / LGPD']) n
+WHERE t.slug='valora-mnsoft-demo' AND NOT EXISTS (SELECT 1 FROM integrarp.perfil p WHERE p.tenant_id=t.id AND p.nome=n AND p.excluido_em IS NULL);
+
+INSERT INTO integrarp.permissao (id,tenant_id,codigo,descricao)
+SELECT gen_random_uuid(),t.id,c,c FROM integrarp.tenant t CROSS JOIN unnest(ARRAY[
+'dashboard.view','customers.view','customers.create','customers.update','customers.deactivate','opportunities.view','opportunities.create','opportunities.update','quotes.view','quotes.create','quotes.update','quotes.approve','products.view','products.manage','inventory.view','inventory.entry','inventory.adjust','orders.view','orders.create','orders.confirm','orders.cancel','tasks.view','tasks.claim','tasks.execute','processes.view','billing.view','billing.manage','users.view','users.manage','tenants.view','tenants.manage','audit.view','notifications.view','superadmin.access']) c
+WHERE t.slug='valora-mnsoft-demo' AND NOT EXISTS (SELECT 1 FROM integrarp.permissao p WHERE p.tenant_id=t.id AND p.codigo=c AND p.excluido_em IS NULL);
+
+INSERT INTO integrarp.perfil_permissao(tenant_id,perfil_id,permissao_id)
+SELECT p.tenant_id,p.id,x.id FROM integrarp.perfil p JOIN integrarp.permissao x ON x.tenant_id=p.tenant_id
+WHERE p.excluido_em IS NULL AND x.excluido_em IS NULL AND NOT EXISTS
+ (SELECT 1 FROM integrarp.perfil_permissao pp WHERE pp.tenant_id=p.tenant_id AND pp.perfil_id=p.id AND pp.permissao_id=x.id AND pp.excluido_em IS NULL);
+
+WITH accounts(email,nome,role,global_account) AS (VALUES
+ ('admin@integrarp.local','Administrador IntegraRP','SuperAdmin',true),
+ ('diretor@integrarp.local','Diretor Piloto','Diretor',false),('financeiro@integrarp.local','Financeiro Piloto','Financeiro',false),
+ ('vendas@integrarp.local','Vendas Piloto','Vendas',false),('logistica@integrarp.local','Logística Piloto','Logística',false),
+ ('operador@integrarp.local','Operador Piloto','Operador',false),('auditor@integrarp.local','Auditor Piloto','Auditor / LGPD',false))
+INSERT INTO integrarp.usuario(id,tenant_id,email,nome,perfil,status,is_global)
+SELECT gen_random_uuid(),t.id,a.email,a.nome,a.role,'ativo',a.global_account FROM accounts a CROSS JOIN integrarp.tenant t
+WHERE t.slug='valora-mnsoft-demo' AND NOT EXISTS (SELECT 1 FROM integrarp.usuario u WHERE u.tenant_id=t.id AND lower(u.email)=lower(a.email) AND u.excluido_em IS NULL);
+
+INSERT INTO integrarp.usuario_perfil(tenant_id,usuario_id,perfil_id)
+SELECT u.tenant_id,u.id,p.id FROM integrarp.usuario u JOIN integrarp.perfil p ON p.tenant_id=u.tenant_id AND p.nome=u.perfil
+WHERE u.email LIKE '%@integrarp.local' AND NOT EXISTS (SELECT 1 FROM integrarp.usuario_perfil up WHERE up.tenant_id=u.tenant_id AND up.usuario_id=u.id AND up.perfil_id=p.id AND up.excluido_em IS NULL);
+
+INSERT INTO integrarp.usuario_credencial(tenant_id,usuario_id,password_hash,force_change)
+SELECT u.tenant_id,u.id,'AQAAAAIAAYagAAAAEBYBYBYBYBYBYBYBYBYBYBbcIOkFAFB33XCvH7YRbEaAya/c/8AaxRM/DTL6v1QSJg==',true
+FROM integrarp.usuario u WHERE u.email LIKE '%@integrarp.local' AND NOT EXISTS
+ (SELECT 1 FROM integrarp.usuario_credencial c WHERE c.tenant_id=u.tenant_id AND c.usuario_id=u.id AND c.excluido_em IS NULL);
+
+INSERT INTO integrarp.auditoria_evento(tenant_id,usuario_id,entidade,entidade_id,acao,metadata_json)
+SELECT u.tenant_id,u.id,'usuario',u.id,'bootstrap.superadmin','{"force_change":true,"installer":"canonical-v1.60"}'::jsonb
+FROM integrarp.usuario u WHERE u.is_global AND NOT EXISTS (SELECT 1 FROM integrarp.auditoria_evento a WHERE a.entidade_id=u.id AND a.acao='bootstrap.superadmin');
+-- <<< canonical/09_identity_seed.sql
+
+-- >>> canonical/10_business_seed.sql
+-- Fase 10: seed operacional mínimo, sem clientes, pedidos ou faturas demonstrativos.
+INSERT INTO integrarp.setor(id,tenant_id,nome,status)
+SELECT gen_random_uuid(),t.id,n,'ativo' FROM integrarp.tenant t CROSS JOIN unnest(ARRAY['Administração','Diretoria','Financeiro','Vendas','Logística','Operações','Auditoria / LGPD']) n
+WHERE t.slug='valora-mnsoft-demo' AND NOT EXISTS (SELECT 1 FROM integrarp.setor s WHERE s.tenant_id=t.id AND s.nome=n AND s.excluido_em IS NULL);
+INSERT INTO integrarp.estoque_local(id,tenant_id,codigo,nome,status)
+SELECT gen_random_uuid(),t.id,'principal','Estoque Principal','ativo' FROM integrarp.tenant t WHERE t.slug='valora-mnsoft-demo'
+AND NOT EXISTS (SELECT 1 FROM integrarp.estoque_local l WHERE l.tenant_id=t.id AND l.codigo='principal' AND l.excluido_em IS NULL);
+WITH t AS (SELECT id FROM integrarp.tenant WHERE slug='valora-mnsoft-demo')
+INSERT INTO integrarp.processo_definicao(id,processo_definicao_id,tenant_id,codigo,nome,descricao,status)
+SELECT '16000000-0000-0000-0000-000000000100','16000000-0000-0000-0000-000000000100',id,'pedido-ao-faturamento','Pedido ao Faturamento','Fluxo operacional canônico','publicado' FROM t
+ON CONFLICT(id) DO UPDATE SET descricao=EXCLUDED.descricao,status='publicado';
+WITH t AS (SELECT id FROM integrarp.tenant WHERE slug='valora-mnsoft-demo')
+INSERT INTO integrarp.processo_versao(id,processo_versao_id,tenant_id,processo_definicao_id,nome,codigo,status,numero_versao,publicado_em,bpmn_json)
+SELECT '16000000-0000-0000-0000-000000000101','16000000-0000-0000-0000-000000000101',id,'16000000-0000-0000-0000-000000000100','Pedido ao Faturamento v1','pedido-ao-faturamento-v1','publicado',1,now(),'{}'::jsonb FROM t
+ON CONFLICT(id) DO UPDATE SET status='publicado',numero_versao=1;
+-- <<< canonical/10_business_seed.sql
+
+-- >>> canonical/11_migration_ledger.sql
+-- Fase 11: ledger completo impede reaplicação pelo Migration Runner.
+INSERT INTO integrarp.schema_migrations(script_name,checksum_sha256,duration_ms,success,executed_by,error_message)
+VALUES
+('0001_initial_integrarp.sql','73746cf999bd1d63f6a40911a1cea295b71ee6bf5d2aadfaff2a25f296cfdd5d'),
+('0003_flow_bpmn_core.sql','3bd50f48e1a78c49049e515ff96aa371fb83f9513b15b54414f3cbba3890be57'),
+('0004_flow_designer_web.sql','f3dfc417095bfd55084dd29f8fddedfd475404b809df5d1a5264a0fd489de723'),
+('0006_faturamento_connect_outbox.sql','9b03e408bb4b3cb6c9595d7e0557ad96d2fdd59a15a05b2b9294373d97bbb758'),
+('0007_bi_kpis_project_central.sql','cdaecde59c922fcb993d644ddbfab4f50e20deb6e9f019802b24e5ceef62ddfe'),
+('0008_mobile_ai_mvp.sql','0b8170e168d4689bcf507280b9f1ee128ebbf093e75c744ee783093e862b594f'),
+('0009_studio_avancado_modulos_dinamicos.sql','37dd50628eb0e2c1f98ae4109f71318ec01c1062da46d4143433cb82ac7053c9'),
+('0010_templates_operacionais_distribuicao_campo.sql','349bab2caac2cc376a67b5cc3b4936faf7bc3b82e112f4f79f2fed3beabe4f7c'),
+('0011_hardening_indexes_observability.sql','37bfd053cad8354a3d94251b4da17cd3e787bf219b5e65cadf478b0c06373ea3'),
+('0012_piloto_v1_final_adjustments.sql','ffff425e10d16ed1957bed62012094333af2dd2fd901eb01b92cc86eb78441f7'),
+('0013_v11_scriptcompleto_forms_automation.sql','7184d98df895bdf65cdb5a2ef903155ca60ad7260ad0f4694574fc144538c556'),
+('0014_v12_integracoes_fiscal_conciliacao_rotas_offline.sql','533de68c85a3124cb0e1d9dafe129aa96d92d5224fbf7ae115cea90c5dc71e6b'),
+('0014_v12_jornada_cliente_onboarding_ux.sql','34ee29ddf50a3eae3b6ab64a2696c67fbc4e2fab346d7324aea6cf0553190f2d'),
+('0015_v13_funcionalidade_real_end_to_end.sql','86e9e22148c73b075fe939ebb81f60f54d822aa8f6a6adcb9fd37a9a1f36e20c'),
+('0016_v14_postgres_repositories_operacional.sql','d50997772dc0af608dfa32fd5d97075e5e4a26b296328b1a6e2afaa20e1d1c50'),
+('0017_v15_validacao_real_cruds_qa_deploy.sql','2e1e4bbf438409da06987e15440cc4654adba982d52f86840c68164f975d43bb'),
+('0018_v16_release_candidate_validation.sql','5d1ef06902cbd7d5e0c89710c3dda7462586ff1650267b49d34b88954a61dde8'),
+('0019_v17_runtime_validation_and_green_pipeline.sql','f4e55f2c5c2577defdf111982714422669d3020597dc63dbf74f91b18593f6a2'),
+('0020_v18_funcionalidade_real_produto.sql','e4e255979fa9dca8e728e9002506b8dde09557e25c7eb02cbffa5b40c51b581f'),
+('0020_v18_produto_funcional_cruds_telas_jornada.sql','9948216f4eaaa01380a7554b79870269b9a6096be70c288c49e3916ed82ef8a4'),
+('0021_v19_demo_funcional_inserts_telas_jornada.sql','94e32d331c090d9396e1bf732b49bf585bc36d8ef39171c7fcd67e77c1b1111a'),
+('0021_v19_fix_scriptcompleto_inserts_demo_jornada.sql','94e32d331c090d9396e1bf732b49bf585bc36d8ef39171c7fcd67e77c1b1111a'),
+('0023_v113_consolidacao_funcional_maturidade.sql','a0e0af529e92a5c1071f773068ed634b42401862b22afd4f83d96ae935138779'),
+('0024_v114_consolidacao_operacional_seguranca.sql','5c2630b70bc9de7c620904554e66a16c92f006b197cbcb4d988aa72b71d722b6'),
+('0025_v117_auth_tasks_mobile_persistence.sql','7d95bbf1ddbdaeaa96af7f14d813be471e40986a406172765fc2b8279614e916'),
+('0026_v118_auth_ux_task_hardening.sql','bf73d8261693d39c8ff4eb258b92c9e8e625a9e5cee90fadd698963b11cec9c3'),
+('0027_v119_postgresql_standalone_flow_persistido.sql','27ccb7bf9af9ed2df8bc51c000c66a8504fd0a2b33ebf6850a3e95d89a7552bc'),
+('0028_v122_release_candidate_core_real.sql','a844a9f7db7c9d407542269275c9f8bea3c7dfbe38cc28c0fa374fb6c29c5c43'),
+('0029_v123_core_operacional_real.sql','dcfd5043778b4278baade8d049a95ae62a54e60683bb45cb432a33c44b8d9808'),
+('0030_v124_production_foundation_auth_ux.sql','fe6ba13c72222fb41e31c0a62fa89a37f182cb1d794d34e622fbbf037ebd2d6d'),
+('0031_v125_core_comercial_ux_operacional.sql','a4ad115bbc33c0e1b326b79e3f7d5048600d1c31246b97b3dfa07718fab8a187'),
+('0032_v126_jornada_comercial_ux_premium.sql','d11bc64c6c243fa769f830bee60e39c28b407162470c89f40ed5a3ce7677023b'),
+('0033_v127_operacao_comercial_executavel.sql','d7e5d56e50e32daadc6c7416835864c32b1e8a146ad99538ead36c59835a6d93'),
+('0034_v128_core_comercial_producao.sql','2859ddc802eaf9168e190a27d5adafacde579951ce1214fa384a35df33d12e58'),
+('0035_v129_jornada_comercial_real.sql','426d65a5b5d6ca3bef38f6517c2e3c1e1a82b78dffd5c0187fcca52b2182d22d'),
+('0036_v130_jornada_comercial_persistida.sql','2d5f1dcaa531868ed418ccd56aae8922b590c7667d4314b78021c8e332650f49'),
+('0037_v131_release_candidate_comercial.sql','b8f740f7b57fda22b649722339ddb150e8b18bdc6961101cf26169b640314a94'),
+('0038_v132_operacao_comercial_homologada.sql','758f5f52746497a73d208e10073e35816f3636abaf56f05960d970a2ba219307'),
+('0039_v133_convergencia_executavel.sql','975563742249dc8bbf086438299ca3874de13426a3a1a0448a65b441ff58b661'),
+('0040_v134_experiencia_guiada_core_comercial.sql','3184261c36e8de47dd509ef110c7a6f95029b827a86126a15db761fdff8748d4'),
+('0041_v135_experiencia_guiada_funcional.sql','062dd9ac3af1380e520b03ed480e59f561bc41551705a412354543e559d478ae'),
+('0042_v136_experiencia_premium_funcional.sql','c04bb58accfaebc9e8a2a4ae6c4dfbde8670a6dc0dab46d3a28bd51ef6b619e2'),
+('0043_v137_produto_navegavel.sql','43aab875e5b9d333ff668b3b5a7e36a8e7eb333fe1600e2cfb1f9adacee2248f'),
+('0044_v138_web_operacional_homologado.sql','639b71dbb8737661429c70219eac79109b5449ecfe3c6df0e8495a5f61a85d53'),
+('0045_v139_release_candidate_piloto.sql','c626f86a17800f486d712562c64289c1d3d221f9245c423144b0c33cd27b5ff5'),
+('0046_v140_scriptcompleto_integrarp.sql','6fb125341903216df7e4a5931dfa4508f6482422a064fe34438667364b25403b'),
+('0047_v143_convergencia_executavel.sql','6b841b5ecc345ddcf6cc61a03b3aded3891e8168ad8f96ce7b7c84437a283748'),
+('0048_v145_produto_operacional_360.sql','bc7db3f4bf80a8544b1927714fc9a4b54bc72a6ff974732db11ed174effeb12b'),
+('0049_v147_ciclo_comercial_executavel.sql','c80462a3d77fe861f750c35602fd7806f357703d6eaee73c8a0b701918ddaeda'),
+('0050_v148_venda_execucao_vertical.sql','b1b25f06bd9626f93a2b0e82e3a59c8f6c6b591659e874d700a9caca054e83c5'),
+('0051_v149_orcamento_pedido_operacao.sql','f6fa1fc302cd506c129a73834af43d3b606ac86e99e22fed72377b04566e3825'),
+('0052_v150_premium_product_experience.sql','4532653030c0a2f95617e249c4dd205eb9c8f27a2d8c69447fc057e2eefa932f'),
+('0053_v151_product_experience_operacao.sql','4e4db89616473e107d1bee602ef705dd37517c84ddc1d77ea1ff2d65f2470f24'),
+('0054_v153_workspace_comercial_premium.sql','f5c63d63dcb0ee9034cda949ea34b4b58e4bdb75aebce53999e1c4996525eb3f'),
+('0055_v155_jornada_comercial_operacional.sql','d216f64e449b2a2bd533745effd5850231508524dc59b8c537002553685a5321'),
+('0056_v156_operacao_canonica_premium.sql','c708397fda4dd98d11d9147cd6f8a66c098a46254b2017571683f5f0f989bcad'),
+('0057_v157_runtime_canonico_operacao.sql','2d11e784a1d5e4018f27ace63fc0369801942017b541000950dfb7126b5834a2'),
+('0058_v158_premium_experience_superadmin.sql','ca3bcc7438781e95e12ff61699c51b57aa3b6211e47dc6dbf9f276b8d9aab232'),
+('0059_v159_canonical_compatibility_checkpoint.sql','canonical-checkpoint-v159'),
+('0060_v160_instalador_canonico_one_shot.sql','a50a4e4ea8605e3f586991aada0cf06cab438d27d8e8b8c4fd5f16e2ab2536cb')
+ON CONFLICT (script_name) DO UPDATE SET checksum_sha256=EXCLUDED.checksum_sha256,success=true,error_message=NULL,executed_by='canonical-installer-v1.60';
+INSERT INTO integrarp.schema_contract(contract_name,product_version,postgresql_major,schema_name,migration_count,manifest_generated_at_utc,installer_checksum,install_mode)
+VALUES('Banco Canônico Integrarp v1.60','v1.60',16,'integrarp',60,'2026-08-03T00:00:00Z','780e22f40a8b18271d9570da929d86abdf2b707adec3e9c5d3cd498279ea08d4','Development')
+ON CONFLICT(contract_name) DO UPDATE SET product_version='v1.60',migration_count=60,updated_at=now(),installer_checksum=EXCLUDED.installer_checksum;
+-- <<< canonical/11_migration_ledger.sql
+
+-- >>> canonical/12_final_validation.sql
+-- Fase 12: validação dentro da mesma transação e liberação do lock após COMMIT.
 DO $final_validation$
+DECLARE missing text;
 BEGIN
-  IF to_regnamespace('integrarp') IS NULL THEN RAISE EXCEPTION 'Schema integrarp ausente'; END IF;
-  IF NOT EXISTS (SELECT 1 FROM integrarp.schema_contract WHERE contract_name = 'Banco Canônico Integrarp v1.58' AND migration_count = 58) THEN RAISE EXCEPTION 'Contrato v1.58 ausente ou divergente'; END IF;
-  IF EXISTS (SELECT 1 FROM pg_catalog.pg_constraint c JOIN pg_catalog.pg_class r ON r.oid=c.conrelid JOIN pg_catalog.pg_namespace n ON n.oid=r.relnamespace WHERE n.nspname='integrarp' AND NOT c.convalidated) THEN
-    RAISE EXCEPTION 'Existem constraints não validadas no schema integrarp';
-  END IF;
-END
-$final_validation$;
+ SELECT string_agg(x,', ') INTO missing FROM unnest(ARRAY['tenant','usuario','usuario_credencial','usuario_perfil','perfil','permissao','perfil_permissao','setor','estoque_local','processo_definicao','processo_versao','schema_migrations','schema_contract']) x WHERE to_regclass('integrarp.'||x) IS NULL;
+ IF missing IS NOT NULL THEN RAISE EXCEPTION '[final-validation:tables] ausentes: %',missing; END IF;
+ IF NOT EXISTS(SELECT 1 FROM integrarp.tenant WHERE slug='valora-mnsoft-demo' AND status='ativo' AND excluido_em IS NULL) THEN RAISE EXCEPTION '[final-validation:tenant] tenant piloto ausente'; END IF;
+ IF (SELECT count(*) FROM integrarp.schema_migrations WHERE success)=60 THEN NULL; ELSE RAISE EXCEPTION '[final-validation:ledger] esperado 60 registros'; END IF;
+ IF EXISTS(SELECT 1 FROM pg_constraint c JOIN pg_class r ON r.oid=c.conrelid JOIN pg_namespace n ON n.oid=r.relnamespace WHERE n.nspname='integrarp' AND NOT c.convalidated) THEN RAISE EXCEPTION '[final-validation:constraints] constraint não validada'; END IF;
+END $final_validation$;
 COMMIT;
-SELECT pg_advisory_unlock(15320260803);
+SELECT pg_advisory_unlock(16020260803);
+-- <<< canonical/12_final_validation.sql

@@ -1,7 +1,7 @@
 {
   "schema": "integrarp",
-  "gerado_para": "v1.57",
-  "contrato": "Banco Canônico Integrarp v1.57",
+  "gerado_para": "IntegraRP v1.60",
+  "contrato": "Banco Canônico Integrarp v1.60",
   "migrations": [
     {
       "ordem": 1,
@@ -640,6 +640,17 @@
       "status": "versionada",
       "observacoes": "Migration aditiva v1.58; migrations 0001 a 0057 permanecem congeladas.",
       "checksum_sha256": "ca3bcc7438781e95e12ff61699c51b57aa3b6211e47dc6dbf9f276b8d9aab232"
+    },
+    {
+      "ordem": 60,
+      "arquivo": "0060_v160_instalador_canonico_one_shot.sql",
+      "versao": "0060_v160_instalador_canonico_one_shot",
+      "descricao": "Reconciliação aditiva e instalador canônico one-shot v1.60",
+      "modulo": "Database",
+      "presente_no_script_completop": false,
+      "status": "versionada",
+      "observacoes": "Upgrade aditivo; a instalação limpa usa database/canonical.",
+      "checksum_sha256": "a50a4e4ea8605e3f586991aada0cf06cab438d27d8e8b8c4fd5f16e2ab2536cb"
     }
   ],
   "postgresql": "16",
