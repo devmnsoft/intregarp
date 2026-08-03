@@ -1,68 +1,17 @@
 import { apiRequest } from '../core/api-client.js';
-
-const status = document.querySelector('#customers-status');
-const list = document.querySelector('#customers-list');
-const empty = document.querySelector('#customers-empty');
-const form = document.querySelector('#customer-form');
-
-function cell(value) {
-  const element = document.createElement('td');
-  element.textContent = value ?? '';
-  return element;
-}
-
-function renderCustomer(customer) {
-  const row = document.createElement('tr');
-  row.append(cell(customer.name || customer.nome));
-  row.append(cell(customer.document || customer.documento));
-  row.append(cell(customer.email));
-  const statusCell = document.createElement('td');
-  const badge = document.createElement('span');
-  const isActive = customer.status === 'ativo' || customer.active;
-  badge.className = `badge text-bg-${isActive ? 'success' : 'secondary'}`;
-  badge.textContent = customer.status || (isActive ? 'ativo' : 'inativo');
-  statusCell.append(badge);
-  row.append(statusCell);
-  return row;
-}
-
-async function load() {
-  status.className = 'alert alert-info';
-  status.textContent = 'Carregando clientes...';
-  try {
-    const data = await apiRequest('/api/customers');
-    const customers = data.items || data || [];
-    list.replaceChildren(...customers.map(renderCustomer));
-    empty.classList.toggle('d-none', customers.length !== 0);
-    status.classList.add('d-none');
-  } catch (error) {
-    status.className = 'alert alert-danger';
-    status.textContent = error.message;
-  }
-}
-
-form?.addEventListener('submit', async event => {
-  event.preventDefault();
-  form.setAttribute('aria-busy', 'true');
-  status.className = 'alert alert-info';
-  status.textContent = 'Salvando cliente...';
-  try {
-    const values = Object.fromEntries(new FormData(form));
-    await apiRequest('/api/customers', {
-      method: 'POST',
-      body: JSON.stringify({ name: values.name, document: values.document || null, email: values.email || null, phone: null })
-    });
-    form.reset();
-    await load();
-    status.className = 'alert alert-success';
-    status.classList.remove('d-none');
-    status.textContent = 'Cliente salvo com sucesso.';
-  } catch (error) {
-    status.className = 'alert alert-danger';
-    status.textContent = error.message;
-  } finally {
-    form.setAttribute('aria-busy', 'false');
-  }
-});
-
-load();
+const state = { customers: [], page: 1, size: 10, trigger: null };
+const list = document.querySelector('#customers-list'); const empty = document.querySelector('#customers-empty'); const status = document.querySelector('#customers-status');
+const drawer = document.querySelector('#customer-drawer'); const backdrop = document.querySelector('[data-customer-backdrop]'); const form = document.querySelector('#customer-form'); const errors = document.querySelector('[data-customer-errors]');
+function textCell(value) { const cell = document.createElement('td'); cell.textContent = value || '—'; return cell; }
+function initials(name) { return (name || '?').split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase(); }
+function renderCustomer(customer) { const row = document.createElement('tr'); const identity = document.createElement('td'); const avatar = document.createElement('span'); avatar.className = 'app-avatar'; avatar.textContent = initials(customer.name || customer.nome); const name = document.createElement('strong'); name.textContent = customer.name || customer.nome || 'Cliente sem nome'; identity.append(avatar, name); row.append(identity, textCell(customer.document || customer.documento), textCell(customer.email)); const statusCell = document.createElement('td'); const badge = document.createElement('span'); const active = customer.status === 'ativo' || customer.active; badge.className = `app-status-badge app-status-badge--${active ? 'success' : 'neutral'}`; badge.textContent = customer.status || (active ? 'Ativo' : 'Inativo'); statusCell.append(badge); row.append(statusCell, textCell(customer.nextAction || customer.proximaAcao || 'Revisar relacionamento')); const action = document.createElement('td'); const edit = document.createElement('button'); edit.type = 'button'; edit.className = 'app-icon-button'; edit.setAttribute('aria-label', `Editar ${name.textContent}`); edit.textContent = 'Editar'; edit.addEventListener('click', event => openDrawer(event.currentTarget, customer)); action.append(edit); row.append(action); return row; }
+function filtered() { const query = document.querySelector('#customers-search').value.trim().toLowerCase(); const filter = document.querySelector('#customers-status-filter').value; return state.customers.filter(customer => { const searchable = [customer.name, customer.nome, customer.document, customer.documento, customer.email].filter(Boolean).join(' ').toLowerCase(); const active = customer.status || (customer.active ? 'ativo' : 'inativo'); return (!query || searchable.includes(query)) && (!filter || active === filter); }); }
+function render() { const all = filtered(); const pages = Math.max(1, Math.ceil(all.length / state.size)); state.page = Math.min(state.page, pages); const page = all.slice((state.page - 1) * state.size, state.page * state.size); list.replaceChildren(...page.map(renderCustomer)); empty.hidden = all.length !== 0; document.querySelector('.app-surface').hidden = all.length === 0; document.querySelector('[data-page-label]').textContent = `Página ${state.page} de ${pages}`; document.querySelector('[data-page-previous]').disabled = state.page === 1; document.querySelector('[data-page-next]').disabled = state.page === pages; }
+function openDrawer(trigger, customer = null) { state.trigger = trigger; form.reset(); errors.hidden = true; form.elements.id.value = customer?.id || ''; form.elements.name.value = customer?.name || customer?.nome || ''; form.elements.document.value = customer?.document || customer?.documento || ''; form.elements.email.value = customer?.email || ''; document.querySelector('#customer-drawer-title').textContent = customer ? 'Editar cliente' : 'Novo cliente'; drawer.setAttribute('aria-hidden', 'false'); backdrop.hidden = false; form.elements.name.focus(); }
+function closeDrawer() { drawer.setAttribute('aria-hidden', 'true'); backdrop.hidden = true; state.trigger?.focus(); }
+async function load() { status.hidden = false; status.textContent = 'Carregando clientes...'; try { const data = await apiRequest('/api/customers'); state.customers = data?.items || data || []; render(); status.hidden = true; } catch (error) { status.className = 'app-banner app-banner--danger'; status.textContent = error.message; } }
+document.querySelectorAll('[data-customer-create]').forEach(button => button.addEventListener('click', event => openDrawer(event.currentTarget)));
+document.querySelectorAll('[data-customer-close]').forEach(button => button.addEventListener('click', closeDrawer)); backdrop.addEventListener('click', closeDrawer); document.addEventListener('keydown', event => { if (event.key === 'Escape' && drawer.getAttribute('aria-hidden') === 'false') closeDrawer(); });
+['#customers-search', '#customers-status-filter'].forEach(selector => document.querySelector(selector).addEventListener('input', () => { state.page = 1; render(); })); document.querySelector('[data-page-previous]').addEventListener('click', () => { state.page -= 1; render(); }); document.querySelector('[data-page-next]').addEventListener('click', () => { state.page += 1; render(); });
+form.addEventListener('submit', async event => { event.preventDefault(); errors.hidden = true; if (!form.reportValidity()) return; const values = Object.fromEntries(new FormData(form)); const button = form.querySelector('[type="submit"]'); button.disabled = true; try { await apiRequest(values.id ? `/api/customers/${values.id}` : '/api/customers', { method: values.id ? 'PUT' : 'POST', body: JSON.stringify({ name: values.name.trim(), document: values.document || null, email: values.email || null, phone: null }) }); closeDrawer(); await load(); window.IntegraRPToast?.show({ type: 'success', title: values.id ? 'Cliente atualizado' : 'Cliente criado', description: 'As informações já estão disponíveis para toda a equipe.' }); } catch (error) { errors.textContent = error.message; errors.hidden = false; errors.focus(); } finally { button.disabled = false; } });
+window.addEventListener('integrarp:record-created', event => { if (event.detail.kind === 'customer') load(); }); load();

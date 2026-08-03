@@ -18,6 +18,13 @@ public sealed class ApiProxyController(
         "/api/opportunities",
         "/api/quotes",
         "/api/dashboard",
+        "/api/orders",
+        "/api/products",
+        "/api/tasks",
+        "/api/processos",
+        "/api/usuarios",
+        "/api/billing",
+        "/api/commercial/",
         "/api/dynamic/",
         "/api/flow/designer/",
         "/api/journey/",
@@ -67,7 +74,7 @@ public sealed class ApiProxyController(
                 statusCode: StatusCodes.Status403Forbidden));
         }
 
-        return Proxy(path, cancellationToken);
+        return Proxy(path, cancellationToken, appendIncomingQuery: false);
     }
 
     private static bool IsAllowed(string? path)
@@ -78,12 +85,12 @@ public sealed class ApiProxyController(
         return AllowedPrefixes.Any(prefix => path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
     }
 
-    private async Task<IActionResult> Proxy(string path, CancellationToken cancellationToken)
+    private async Task<IActionResult> Proxy(string path, CancellationToken cancellationToken, bool appendIncomingQuery = true)
     {
         try
         {
             var client = httpClientFactory.CreateClient("IntegraRP.Api");
-            var target = path + Request.QueryString;
+            var target = appendIncomingQuery ? path + Request.QueryString : path;
             using var request = new HttpRequestMessage(new HttpMethod(Request.Method), target);
 
             var sessionId = User.FindFirst("session_id")?.Value;

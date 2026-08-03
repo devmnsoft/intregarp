@@ -1,1 +1,10 @@
-<div class="command-palette" data-command-palette role="dialog" aria-modal="true" aria-labelledby="command-title" hidden><div class="command-card"><h2 id="command-title">Comandos rápidos</h2><input class="form-control" data-command-input placeholder="Digite para navegar ou pesquisar" aria-label="Pesquisar comandos" /><div class="command-list"><a href="/customers">Criar cliente</a><a href="/orders">Criar pedido</a><a href="/tasks/my">Abrir tarefas</a><a href="/flow">Iniciar processo</a></div></div></div>
+<div class="command-palette" data-command-palette role="dialog" aria-modal="true" aria-labelledby="command-title" hidden>
+  <section class="command-card">
+    <header class="command-header"><div><small>Pesquisa global</small><h2 id="command-title">Encontre qualquer registro</h2></div><button type="button" class="app-icon-button" data-command-close aria-label="Fechar pesquisa"><app-icon name="close" /></button></header>
+    <label class="visually-hidden" for="command-search">Pesquisar clientes, oportunidades, pedidos e tarefas</label>
+    <input id="command-search" class="form-control command-input" type="search" data-command-input placeholder="Digite pelo menos 2 caracteres" autocomplete="off" aria-controls="command-results" />
+    <div class="command-progress" data-command-status role="status" aria-live="polite">Use ↑ e ↓ para navegar e Enter para abrir.</div>
+    <div id="command-results" class="command-list" data-command-results role="listbox"></div>
+    <footer><span><kbd>Ctrl</kbd> <kbd>K</kbd> abrir</span><span><kbd>Esc</kbd> fechar</span></footer>
+  </section>
+</div>

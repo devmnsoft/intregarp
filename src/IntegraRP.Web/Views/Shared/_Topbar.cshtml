@@ -2,18 +2,7 @@
   <button class="icon-button" type="button" data-sidebar-toggle aria-label="Expandir ou recolher navegação" aria-controls="app-sidebar"><app-icon name="menu" /></button>
   @await Html.PartialAsync("_Breadcrumbs")
   <div class="topbar-search"><label class="visually-hidden" for="global-search">Pesquisa global</label><input id="global-search" type="search" class="form-control" placeholder="Pesquisar clientes, pedidos, tarefas e processos" data-command-open /></div>
-  <div class="dropdown">
-    <button class="btn btn-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"><app-icon name="create" size="16" /> Criar</button>
-    <ul class="dropdown-menu dropdown-menu-end quick-create-menu">
-      <li><h2 class="dropdown-header">Criação rápida</h2></li>
-      <li><a class="dropdown-item" href="/customers?action=create"><app-icon name="customers" size="16" /> Novo cliente</a></li>
-      <li><a class="dropdown-item" href="/opportunities/pipeline?action=create"><app-icon name="opportunities" size="16" /> Nova oportunidade</a></li>
-      <li><a class="dropdown-item" href="/quotes/create"><app-icon name="quotes" size="16" /> Novo orçamento</a></li>
-      <li><a class="dropdown-item" href="/orders?action=create"><app-icon name="orders" size="16" /> Novo pedido</a></li>
-      <li><a class="dropdown-item" href="/inventory?action=entry"><app-icon name="stock-entry" size="16" /> Entrada de estoque</a></li>
-      <li><a class="dropdown-item" href="/tasks/my?action=create"><app-icon name="tasks" size="16" /> Nova tarefa</a></li>
-    </ul>
-  </div>
+  <button class="app-button app-button--primary" type="button" data-quick-create-open><app-icon name="create" size="16" /> Criar</button>
   <button class="icon-button" type="button" data-command-open aria-label="Abrir pesquisa global (Ctrl K)"><app-icon name="search" /></button>
   <a class="icon-button action-center-link" href="/journey/what-to-do-now" aria-label="Abrir Central de Ações"><app-icon name="action-center" /></a>
   <button class="icon-button notification-button" type="button" data-notification-toggle aria-label="Abrir notificações"><app-icon name="notifications" /><span class="notification-count" data-notification-count hidden></span></button>

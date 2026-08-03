@@ -1,0 +1,22 @@
+<aside class="app-drawer" id="quick-create" aria-hidden="true" aria-labelledby="quick-create-title" tabindex="-1">
+  <header class="app-drawer__header">
+    <div><small>Sem perder o contexto</small><h2 id="quick-create-title">Criação rápida</h2></div>
+    <button class="app-icon-button" type="button" data-quick-create-close aria-label="Fechar criação rápida"><app-icon name="close" /></button>
+  </header>
+  <form class="app-drawer__body app-form" data-quick-create-form novalidate>
+    <div class="app-validation-summary" data-quick-create-errors role="alert" tabindex="-1" hidden></div>
+    <label class="app-form-field" for="quick-create-kind"><span>O que deseja criar?</span>
+      <select id="quick-create-kind" name="kind" class="form-select" required>
+        <option value="customer">Cliente</option><option value="opportunity">Oportunidade</option>
+        <option value="activity">Atividade</option><option value="quote">Orçamento</option>
+        <option value="order">Pedido</option><option value="inventory">Entrada de estoque</option><option value="task">Tarefa</option>
+      </select>
+    </label>
+    <label class="app-form-field" for="quick-create-name"><span data-quick-create-name-label>Nome ou título</span><input id="quick-create-name" class="form-control" name="name" required maxlength="160" autocomplete="off" /></label>
+    <label class="app-form-field" for="quick-create-reference"><span>Referência ou documento <small>(opcional)</small></span><input id="quick-create-reference" class="form-control" name="reference" maxlength="80" /></label>
+    <label class="app-form-field" for="quick-create-notes"><span>Observações <small>(opcional)</small></span><textarea id="quick-create-notes" class="form-control" name="notes" rows="3" maxlength="500"></textarea></label>
+    <div class="app-drawer__actions"><button class="app-button app-button--secondary" type="button" data-quick-create-close>Cancelar</button><button class="app-button app-button--primary" type="submit" data-quick-create-submit>Salvar</button></div>
+    <div class="app-banner app-banner--success" data-quick-create-result role="status" hidden><app-icon name="success" /><div><strong>Registro criado.</strong><p>Os dados foram persistidos e a página pode ser atualizada.</p><a data-quick-create-link href="#">Abrir registro</a></div></div>
+  </form>
+</aside>
+<div class="app-drawer-backdrop" data-quick-create-backdrop hidden></div>
