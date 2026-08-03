@@ -3,10 +3,10 @@
 -- PostgreSQL: 16
 -- Schema: integrarp
 -- Arquivo principal: database/scriptcompleto.sql
--- Quantidade de migrations: 54
+-- Quantidade de migrations: 55
 -- Data UTC determinística: 2026-08-03T00:00:00Z
--- Checksum SHA-256: 2b2f9e8db7b47ea6bccc53814dbac450f3090e6e142f207369b3ee52ed76890b
--- Contrato: Banco Canônico Integrarp v1.53
+-- Checksum SHA-256: e2df4dc3f8c3aa7d00b6b3329cf939185f79f847a125afbb4df08ee9649b5926
+-- Contrato: Banco Canônico Integrarp v1.55
 -- Execução:
 -- psql -X "$POSTGRES_URI" --set ON_ERROR_STOP=1 --file database/scriptcompleto.sql
 -- Gerado automaticamente; não editar os arquivos de saída.
@@ -1870,8 +1870,8 @@ CREATE TABLE IF NOT EXISTS integrarp.outbox_evento (outbox_evento_id uuid PRIMAR
 
 -- view de tarefa adiada para 0051
 -- view de tarefa adiada para 0051
--- view de processos adiada para 0053
-CREATE OR REPLACE VIEW integrarp.vw_flow_processos_atrasados AS SELECT tenant_id, processo_instancia_id, codigo, titulo, status, prazo_em FROM integrarp.processo_instancia WHERE excluido_em IS NULL AND status <> 'concluido' AND prazo_em < now();
+-- view de processos adiada para a definição canônica
+-- view de processos adiada para a definição canônica
 CREATE OR REPLACE VIEW integrarp.vw_flow_dashboard_resumo AS SELECT d.tenant_id, count(DISTINCT d.processo_definicao_id) FILTER (WHERE d.status = 'publicado') AS processos_publicados, count(DISTINCT i.processo_instancia_id) FILTER (WHERE i.status IN ('em_andamento','aguardando_tarefa')) AS processos_em_andamento, count(DISTINCT t.id) FILTER (WHERE t.status IN ('aberta','atribuida','em_andamento')) AS tarefas_abertas, count(DISTINCT t.id) FILTER (WHERE t.status <> 'concluida' AND t.prazo_em < now()) AS tarefas_atrasadas, count(DISTINCT i.processo_instancia_id) FILTER (WHERE i.status = 'concluido') AS processos_concluidos FROM integrarp.processo_definicao d LEFT JOIN integrarp.processo_instancia i ON i.tenant_id = d.tenant_id AND i.processo_definicao_id = d.processo_definicao_id AND i.excluido_em IS NULL LEFT JOIN integrarp.tarefa t ON t.tenant_id = d.tenant_id AND t.excluido_em IS NULL WHERE d.excluido_em IS NULL GROUP BY d.tenant_id;
 
 DROP TRIGGER IF EXISTS trg_tarefa_atualizado_em ON integrarp.tarefa;
@@ -8884,7 +8884,7 @@ ON CONFLICT (contract_name) DO UPDATE SET
 -- >>> 0052_v150_premium_product_experience.sql
 -- IntegraRP v1.50 — correção aditiva do contrato de leitura do Flow.
 -- O nome canônico pertence à definição; a view não depende do título da instância.
--- view de processos adiada para 0053
+-- view de processos adiada para a definição canônica
 
 COMMENT ON VIEW integrarp.vw_flow_processos_em_andamento IS
   'Processos ativos com título obtido da definição canônica.';
@@ -9015,10 +9015,57 @@ ON CONFLICT (contract_name) DO UPDATE SET
 
 -- <<< 0054_v153_workspace_comercial_premium.sql
 
+-- >>> 0055_v155_jornada_comercial_operacional.sql
+-- IntegraRP v1.55 — contrato canônico de processos e tarefas operacionais.
+-- A instância histórica não possui título nem prazo próprios. O título pertence
+-- à definição e o prazo efetivo é derivado da menor tarefa ainda aberta.
+CREATE OR REPLACE VIEW integrarp.vw_flow_processos_em_andamento AS
+SELECT
+    i.tenant_id,
+    i.processo_instancia_id,
+    i.codigo,
+    d.nome AS titulo,
+    i.status,
+    deadlines.prazo_em
+FROM integrarp.processo_instancia AS i
+JOIN integrarp.processo_definicao AS d
+  ON d.tenant_id = i.tenant_id
+ AND d.processo_definicao_id = i.processo_definicao_id
+ AND d.excluido_em IS NULL
+LEFT JOIN LATERAL (
+    SELECT min(t.vencimento_em) AS prazo_em
+    FROM integrarp.tarefa AS t
+    WHERE t.tenant_id = i.tenant_id
+      AND t.processo_instancia_id = i.processo_instancia_id
+      AND t.excluido_em IS NULL
+      AND t.status IN ('pendente', 'atribuida', 'em_execucao', 'pausada')
+) AS deadlines ON true
+WHERE i.excluido_em IS NULL
+  AND i.status IN ('em_andamento', 'aguardando_tarefa');
+
+CREATE OR REPLACE VIEW integrarp.vw_flow_processos_atrasados AS
+SELECT
+    tenant_id,
+    processo_instancia_id,
+    codigo,
+    titulo,
+    status,
+    prazo_em
+FROM integrarp.vw_flow_processos_em_andamento
+WHERE prazo_em IS NOT NULL
+  AND prazo_em < now();
+
+COMMENT ON VIEW integrarp.vw_flow_processos_em_andamento IS
+  'Processos ativos com título da definição e prazo da menor tarefa operacional aberta.';
+COMMENT ON VIEW integrarp.vw_flow_processos_atrasados IS
+  'Processos ativos cujo prazo operacional canônico já venceu.';
+
+-- <<< 0055_v155_jornada_comercial_operacional.sql
+
 DO $final_validation$
 BEGIN
   IF to_regnamespace('integrarp') IS NULL THEN RAISE EXCEPTION 'Schema integrarp ausente'; END IF;
-  IF NOT EXISTS (SELECT 1 FROM integrarp.schema_contract WHERE contract_name = 'Banco Canônico Integrarp v1.53' AND migration_count = 54) THEN RAISE EXCEPTION 'Contrato v1.53 ausente ou divergente'; END IF;
+  IF NOT EXISTS (SELECT 1 FROM integrarp.schema_contract WHERE contract_name = 'Banco Canônico Integrarp v1.55' AND migration_count = 55) THEN RAISE EXCEPTION 'Contrato v1.53 ausente ou divergente'; END IF;
   IF EXISTS (SELECT 1 FROM pg_catalog.pg_constraint c JOIN pg_catalog.pg_class r ON r.oid=c.conrelid JOIN pg_catalog.pg_namespace n ON n.oid=r.relnamespace WHERE n.nspname='integrarp' AND NOT c.convalidated) THEN
     RAISE EXCEPTION 'Existem constraints não validadas no schema integrarp';
   END IF;

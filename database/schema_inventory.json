@@ -1,12 +1,12 @@
 {
-  "contract": "Banco Canônico Integrarp v1.53",
+  "contract": "Banco Canônico Integrarp v1.55",
   "generatedAtUtc": "2026-08-03T00:00:00Z",
   "sourceManifest": "database/migration_manifest.json",
   "schema": "integrarp",
   "extensions": [
     "pgcrypto"
   ],
-  "migrations": 54,
+  "migrations": 55,
   "counts": {
     "constraint": 215,
     "function": 7,
@@ -22933,15 +22933,15 @@
       "name": "vw_flow_processos_atrasados",
       "type": "view",
       "module": "Flow",
-      "originMigration": "0003_flow_bpmn_core.sql",
+      "originMigration": "0055_v155_jornada_comercial_operacional.sql",
       "usedBy": [
         "database/scriptcompleto.sql"
       ],
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CREATE OR REPLACE VIEW integrarp.vw_flow_processos_atrasados AS SELECT tenant_id, processo_instancia_id, codigo, titulo, status, prazo_em FROM integrarp.processo_instancia WHERE excluido_em IS NULL AND status <> 'concluido' AND prazo_em < now();",
-      "definitionChecksumSha256": "60fc7d2d931e36aad29c46c9cce16f3fc3370dea30db9e6b93e7c9e3b0911a7d",
+      "canonicalDefinition": "CREATE OR REPLACE VIEW integrarp.vw_flow_processos_atrasados AS SELECT tenant_id, processo_instancia_id, codigo, titulo, status, prazo_em FROM integrarp.vw_flow_processos_em_andamento WHERE prazo_em IS NOT NULL AND prazo_em < now();",
+      "definitionChecksumSha256": "f33309ca9bc2e9178825f61a4652ea1df5f26ede08cc7eb539f980784d695b43",
       "dependencies": []
     },
     {
@@ -22949,7 +22949,7 @@
       "name": "vw_flow_processos_em_andamento",
       "type": "view",
       "module": "Flow",
-      "originMigration": "0053_v151_product_experience_operacao.sql",
+      "originMigration": "0055_v155_jornada_comercial_operacional.sql",
       "usedBy": [
         "database/scriptcompleto.sql"
       ],

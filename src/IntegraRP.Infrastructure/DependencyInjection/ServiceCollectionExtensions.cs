@@ -55,17 +55,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<INotificationRepository, PostgresNotificationRepository>();
         services.AddScoped<ICommercialNumberRepository, PostgresCommercialNumberRepository>();
         services.AddScoped<NumeracaoComercialService>();
-        // The obsolete adapter is resolved by name only for compatibility endpoints. Keeping
-        // the concrete type out of the primary dependency graph prevents new workflows from
-        // accidentally depending on the monolithic repository.
-        services.AddScoped<ILegacyCommercialOperationsRepository>(provider =>
-        {
-            const string legacyTypeName =
-                "IntegraRP.Infrastructure.Repositories.Postgres.Commercial.PostgresCommercialOperationsRepository, IntegraRP.Infrastructure";
-            var legacyType = Type.GetType(legacyTypeName, throwOnError: true)
-                ?? throw new InvalidOperationException("O adaptador comercial legado não pôde ser carregado.");
-            return (ILegacyCommercialOperationsRepository)ActivatorUtilities.CreateInstance(provider, legacyType);
-        });
+        services.AddLegacyCommercialCompatibility();
         services.AddSingleton<IDataMaskingService, DataMaskingService>();
         services.AddSingleton<ILgpdAuditService, InMemoryLgpdAuditService>();
         services.AddSingleton<ISprint7BiProjectService, InMemoryBiProjectService>();
@@ -204,6 +194,16 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ITelegramSender, FakeTelegramSender>();
         services.AddSingleton<IWebhookSender, FakeWebhookSender>();
 
+        return services;
+    }
+
+    /// <summary>
+    /// Registers the monolithic commercial adapter exclusively for compatibility controllers.
+    /// New journeys must register and consume their specialized repositories instead.
+    /// </summary>
+    public static IServiceCollection AddLegacyCommercialCompatibility(this IServiceCollection services)
+    {
+        services.AddScoped<ILegacyCommercialOperationsRepository, PostgresCommercialOperationsRepository>();
         return services;
     }
 }

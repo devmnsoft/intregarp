@@ -1,7 +1,7 @@
 {
   "schema": "integrarp",
-  "gerado_para": "v1.50",
-  "contrato": "Banco Canônico Integrarp v1.50",
+  "gerado_para": "v1.55",
+  "contrato": "Banco Canônico Integrarp v1.55",
   "migrations": [
     {
       "ordem": 1,
@@ -596,6 +596,17 @@
       "status": "versionada",
       "observacoes": "Migration aditiva v1.53; migrations 0001 a 0053 permanecem congeladas.",
       "checksum_sha256": "f5c63d63dcb0ee9034cda949ea34b4b58e4bdb75aebce53999e1c4996525eb3f"
+    },
+    {
+      "ordem": 55,
+      "arquivo": "0055_v155_jornada_comercial_operacional.sql",
+      "versao": "0055_v155_jornada_comercial_operacional",
+      "descricao": "Jornada comercial e operacional: contrato canônico de processos e prazos",
+      "modulo": "Flow",
+      "presente_no_script_completop": true,
+      "status": "versionada",
+      "observacoes": "Migration aditiva v1.55; migrations 0001 a 0054 permanecem congeladas.",
+      "checksum_sha256": "d216f64e449b2a2bd533745effd5850231508524dc59b8c537002553685a5321"
     }
   ],
   "postgresql": "16",
