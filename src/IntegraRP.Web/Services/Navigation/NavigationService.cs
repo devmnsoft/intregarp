@@ -16,6 +16,17 @@ public sealed class NavigationService : INavigationService
             new("Plataforma", new[] { Item("Integra Studio", "categories", "Studio"), Item("Integra AI", "help", "Ai"), Item("Connect", "notifications", "Connect") }),
             new("Administração", new[] { Item("Usuários", "users", "Users"), Item("Setores", "sectors", "Departments"), Item("Perfis e Permissões", "roles", "Roles"), Item("Auditoria", "audit", "Audit"), Item("Configurações", "settings", "Settings") })
         };
+        if (user.IsInRole("SuperAdmin"))
+        {
+            groups.Insert(1, new("Super Administração", new[]
+            {
+                Item("Visão global", "dashboard", "SuperAdmin"),
+                Item("Tenants", "tenants", "SuperAdmin"),
+                Item("Usuários globais", "users", "SuperAdmin"),
+                Item("Saúde do sistema", "health", "SuperAdmin"),
+                Item("Auditoria global", "audit", "SuperAdmin")
+            }));
+        }
         if (canSeeTechnical) groups.Add(new("Técnico", new[] { Item("Homologação", "success", "Homologation"), Item("Diagnóstico", "warning", "Demo") }));
         return groups;
     }

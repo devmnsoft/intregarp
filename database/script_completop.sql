@@ -1,12 +1,12 @@
 -- Produto: IntegraRP
--- Versão: v1.57
+-- Versão: v1.58
 -- PostgreSQL: 16
 -- Schema: integrarp
 -- Arquivo principal: database/scriptcompleto.sql
--- Quantidade de migrations: 57
+-- Quantidade de migrations: 58
 -- Data UTC determinística: 2026-08-03T00:00:00Z
--- Checksum SHA-256: cae8e63a53aa0eb0099d6c511a2fcbd957ca49959653628b32d22ad99030205f
--- Contrato: Banco Canônico Integrarp v1.57
+-- Checksum SHA-256: 72b9c0544d036d676583684c11687df28b9e17c4e60ab762351351f04ff5a468
+-- Contrato: Banco Canônico Integrarp v1.58
 -- Execução:
 -- psql -X "$POSTGRES_URI" --set ON_ERROR_STOP=1 --file database/scriptcompleto.sql
 -- Gerado automaticamente; não editar os arquivos de saída.
@@ -1872,7 +1872,7 @@ CREATE TABLE IF NOT EXISTS integrarp.outbox_evento (outbox_evento_id uuid PRIMAR
 -- view de tarefa adiada para 0051
 -- view de processos adiada para a definição canônica
 -- view de processos adiada para a definição canônica
-CREATE OR REPLACE VIEW integrarp.vw_flow_dashboard_resumo AS SELECT d.tenant_id, count(DISTINCT d.processo_definicao_id) FILTER (WHERE d.status = 'publicado') AS processos_publicados, count(DISTINCT i.processo_instancia_id) FILTER (WHERE i.status IN ('em_andamento','aguardando_tarefa')) AS processos_em_andamento, count(DISTINCT t.id) FILTER (WHERE t.status IN ('aberta','atribuida','em_andamento')) AS tarefas_abertas, count(DISTINCT t.id) FILTER (WHERE t.status <> 'concluida' AND t.prazo_em < now()) AS tarefas_atrasadas, count(DISTINCT i.processo_instancia_id) FILTER (WHERE i.status = 'concluido') AS processos_concluidos FROM integrarp.processo_definicao d LEFT JOIN integrarp.processo_instancia i ON i.tenant_id = d.tenant_id AND i.processo_definicao_id = d.processo_definicao_id AND i.excluido_em IS NULL LEFT JOIN integrarp.tarefa t ON t.tenant_id = d.tenant_id AND t.excluido_em IS NULL WHERE d.excluido_em IS NULL GROUP BY d.tenant_id;
+-- dashboard Flow adiado para a definição canônica v1.58
 
 DROP TRIGGER IF EXISTS trg_tarefa_atualizado_em ON integrarp.tarefa;
 CREATE TRIGGER trg_tarefa_atualizado_em BEFORE UPDATE ON integrarp.tarefa FOR EACH ROW EXECUTE FUNCTION integrarp.set_atualizado_em();
@@ -9179,29 +9179,7 @@ WHERE excluido_em IS NULL
   AND status IN ('pendente', 'atribuida', 'em_execucao', 'pausada')
   AND vencimento_em < now();
 
-CREATE OR REPLACE VIEW integrarp.vw_flow_dashboard_resumo AS
-SELECT
-  d.tenant_id,
-  count(DISTINCT d.processo_definicao_id) FILTER (WHERE d.status = 'publicado') AS processos_publicados,
-  count(DISTINCT i.processo_instancia_id) FILTER (
-    WHERE i.status IN ('em_andamento', 'aguardando_tarefa')) AS processos_em_andamento,
-  count(DISTINCT t.id) FILTER (
-    WHERE t.status IN ('pendente', 'atribuida', 'em_execucao', 'pausada')) AS tarefas_abertas,
-  count(DISTINCT t.id) FILTER (
-    WHERE t.status IN ('pendente', 'atribuida', 'em_execucao', 'pausada')
-      AND t.vencimento_em < now()) AS tarefas_atrasadas,
-  count(DISTINCT i.processo_instancia_id) FILTER (WHERE i.status = 'concluido') AS processos_concluidos
-FROM integrarp.processo_definicao AS d
-LEFT JOIN integrarp.processo_instancia AS i
-  ON i.tenant_id = d.tenant_id
- AND i.processo_definicao_id = d.processo_definicao_id
- AND i.excluido_em IS NULL
-LEFT JOIN integrarp.tarefa AS t
-  ON t.tenant_id = d.tenant_id
- AND t.processo_instancia_id = i.processo_instancia_id
- AND t.excluido_em IS NULL
-WHERE d.excluido_em IS NULL
-GROUP BY d.tenant_id;
+-- dashboard Flow adiado para a definição canônica v1.58
 
 COMMENT ON TABLE integrarp.tarefa IS
   'Fila canônica e única gravável de tarefas da operação IntegraRP v1.56.';
@@ -9252,17 +9230,7 @@ CREATE INDEX IF NOT EXISTS ix_tarefa_pedido_etapa_ativa_v157
   ON integrarp.tarefa(tenant_id,pedido_id,etapa_codigo)
   WHERE pedido_id IS NOT NULL AND status NOT IN ('concluida','cancelada') AND excluido_em IS NULL;
 
-CREATE OR REPLACE VIEW integrarp.vw_flow_dashboard_resumo AS
-SELECT d.tenant_id,
- count(DISTINCT d.processo_definicao_id) FILTER (WHERE d.status='publicado') AS processos_publicados,
- count(DISTINCT i.processo_instancia_id) FILTER (WHERE i.status IN ('em_andamento','aguardando_tarefa')) AS processos_em_andamento,
- count(DISTINCT t.id) FILTER (WHERE t.status IN ('pendente','atribuida','em_execucao','pausada')) AS tarefas_abertas,
- count(DISTINCT t.id) FILTER (WHERE t.status IN ('pendente','atribuida','em_execucao','pausada') AND t.vencimento_em<now()) AS tarefas_atrasadas,
- count(DISTINCT i.processo_instancia_id) FILTER (WHERE i.status='concluido') AS processos_concluidos
-FROM integrarp.processo_definicao d
-LEFT JOIN integrarp.processo_instancia i ON i.tenant_id=d.tenant_id AND i.processo_definicao_id=d.processo_definicao_id AND i.excluido_em IS NULL
-LEFT JOIN integrarp.tarefa t ON t.tenant_id=d.tenant_id AND t.processo_instancia_id=i.processo_instancia_id AND t.excluido_em IS NULL
-WHERE d.excluido_em IS NULL GROUP BY d.tenant_id;
+-- dashboard Flow adiado para a definição canônica v1.58
 
 COMMENT ON TABLE integrarp.tarefa IS 'Fila canônica gravável de tarefas operacionais do IntegraRP v1.57.';
 COMMENT ON TABLE integrarp.tarefa_operacional IS 'Compatibilidade histórica somente leitura; nenhum writer produtivo pode utilizá-la.';
@@ -9273,10 +9241,64 @@ ON CONFLICT(contract_name) DO UPDATE SET product_version=EXCLUDED.product_versio
 
 -- <<< 0057_v157_runtime_canonico_operacao.sql
 
+-- >>> 0058_v158_premium_experience_superadmin.sql
+-- IntegraRP v1.58 — experiência premium, preferências e suporte global auditável.
+
+CREATE TABLE IF NOT EXISTS integrarp.superadmin_contexto_suporte (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  superadmin_usuario_id uuid NOT NULL,
+  tenant_id uuid NOT NULL REFERENCES integrarp.tenant(id),
+  motivo text NOT NULL CHECK (length(btrim(motivo)) >= 10),
+  iniciado_em timestamptz NOT NULL DEFAULT now(),
+  expira_em timestamptz NOT NULL,
+  encerrado_em timestamptz NULL,
+  correlation_id text NOT NULL,
+  CHECK (expira_em > iniciado_em),
+  CHECK (expira_em <= iniciado_em + interval '2 hours')
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS ux_superadmin_contexto_ativo
+  ON integrarp.superadmin_contexto_suporte(superadmin_usuario_id)
+  WHERE encerrado_em IS NULL;
+
+CREATE TABLE IF NOT EXISTS integrarp.usuario_preferencia_ui (
+  tenant_id uuid NOT NULL REFERENCES integrarp.tenant(id),
+  usuario_id uuid NOT NULL,
+  tema text NOT NULL DEFAULT 'system' CHECK (tema IN ('light','dark','system')),
+  densidade text NOT NULL DEFAULT 'comfortable' CHECK (densidade IN ('comfortable','compact')),
+  pagina_inicial text NOT NULL DEFAULT '/dashboard',
+  filtros_json jsonb NOT NULL DEFAULT '{}'::jsonb,
+  colunas_json jsonb NOT NULL DEFAULT '{}'::jsonb,
+  favoritos_json jsonb NOT NULL DEFAULT '[]'::jsonb,
+  recentes_json jsonb NOT NULL DEFAULT '[]'::jsonb,
+  atualizado_em timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (tenant_id, usuario_id),
+  FOREIGN KEY (tenant_id, usuario_id) REFERENCES integrarp.usuario(tenant_id, id)
+);
+
+CREATE OR REPLACE VIEW integrarp.vw_flow_dashboard_resumo AS
+SELECT d.tenant_id,
+ count(DISTINCT d.processo_definicao_id) FILTER (WHERE d.status='publicado') AS processos_publicados,
+ count(DISTINCT i.processo_instancia_id) FILTER (WHERE i.status IN ('em_andamento','aguardando_tarefa')) AS processos_em_andamento,
+ count(DISTINCT t.id) FILTER (WHERE t.status IN ('pendente','atribuida','em_execucao','pausada')) AS tarefas_abertas,
+ count(DISTINCT t.id) FILTER (WHERE t.status IN ('pendente','atribuida','em_execucao','pausada') AND t.vencimento_em < now()) AS tarefas_atrasadas,
+ count(DISTINCT i.processo_instancia_id) FILTER (WHERE i.status='concluido') AS processos_concluidos
+FROM integrarp.processo_definicao d
+LEFT JOIN integrarp.processo_instancia i ON i.tenant_id=d.tenant_id AND i.processo_definicao_id=d.processo_definicao_id AND i.excluido_em IS NULL
+LEFT JOIN integrarp.tarefa t ON t.tenant_id=d.tenant_id AND t.processo_instancia_id=i.processo_instancia_id AND t.excluido_em IS NULL
+WHERE d.excluido_em IS NULL
+GROUP BY d.tenant_id;
+
+INSERT INTO integrarp.schema_contract(contract_name,product_version,postgresql_major,schema_name,migration_count,manifest_generated_at_utc,installed_at,updated_at)
+VALUES('Banco Canônico Integrarp v1.58','v1.58',16,'integrarp',58,'2026-08-03T00:00:00Z'::timestamptz,now(),now())
+ON CONFLICT(contract_name) DO UPDATE SET product_version=EXCLUDED.product_version,migration_count=58,updated_at=now();
+
+-- <<< 0058_v158_premium_experience_superadmin.sql
+
 DO $final_validation$
 BEGIN
   IF to_regnamespace('integrarp') IS NULL THEN RAISE EXCEPTION 'Schema integrarp ausente'; END IF;
-  IF NOT EXISTS (SELECT 1 FROM integrarp.schema_contract WHERE contract_name = 'Banco Canônico Integrarp v1.57' AND migration_count = 57) THEN RAISE EXCEPTION 'Contrato v1.57 ausente ou divergente'; END IF;
+  IF NOT EXISTS (SELECT 1 FROM integrarp.schema_contract WHERE contract_name = 'Banco Canônico Integrarp v1.58' AND migration_count = 58) THEN RAISE EXCEPTION 'Contrato v1.58 ausente ou divergente'; END IF;
   IF EXISTS (SELECT 1 FROM pg_catalog.pg_constraint c JOIN pg_catalog.pg_class r ON r.oid=c.conrelid JOIN pg_catalog.pg_namespace n ON n.oid=r.relnamespace WHERE n.nspname='integrarp' AND NOT c.convalidated) THEN
     RAISE EXCEPTION 'Existem constraints não validadas no schema integrarp';
   END IF;

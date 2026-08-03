@@ -629,6 +629,17 @@
       "status": "versionada",
       "observacoes": "Migration aditiva v1.57; migrations 0001 a 0056 permanecem congeladas.",
       "checksum_sha256": "2d11e784a1d5e4018f27ace63fc0369801942017b541000950dfb7126b5834a2"
+    },
+    {
+      "ordem": 58,
+      "arquivo": "0058_v158_premium_experience_superadmin.sql",
+      "versao": "0058_v158_premium_experience_superadmin",
+      "descricao": "Experiência premium, preferências persistidas e contexto de suporte Super Administrador",
+      "modulo": "Platform",
+      "presente_no_script_completop": true,
+      "status": "versionada",
+      "observacoes": "Migration aditiva v1.58; migrations 0001 a 0057 permanecem congeladas.",
+      "checksum_sha256": "ca3bcc7438781e95e12ff61699c51b57aa3b6211e47dc6dbf9f276b8d9aab232"
     }
   ],
   "postgresql": "16",
