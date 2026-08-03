@@ -1,3 +1,4 @@
+using System.Data;
 using IntegraRP.Application.Auth;
 using IntegraRP.Contracts.Auth;
 using IntegraRP.Infrastructure.Repositories.Postgres;
@@ -25,6 +26,46 @@ public sealed class PostgresAuthenticationRepository(PostgresConnectionFactory c
     public async Task<PasswordResetIssueResult?> CreatePasswordResetAsync(string slug,string email,string hash,DateTimeOffset exp,CancellationToken ct){ var user=await FindUserAsync(slug,email,ct); if(user is null||user.UserStatus!="ativo"||user.TenantStatus!="ativo") return null; await using var c=(NpgsqlConnection)await connectionFactory.OpenAsync(ct); await Exec(c,null,"UPDATE integrarp.auth_password_reset SET consumed_at=COALESCE(consumed_at,now()) WHERE tenant_id=@tenant AND usuario_id=@user AND consumed_at IS NULL; INSERT INTO integrarp.auth_password_reset (tenant_id,usuario_id,token_hash,expires_at,criado_em) VALUES (@tenant,@user,@hash,@exp,now())",ct,P("tenant",user.TenantId),P("user",user.UserId),P("hash",hash),P("exp",exp)); return new(user.TenantId,user.UserId,user.Email,hash); }
     public async Task<bool> ConsumePasswordResetAsync(string slug,string email,string hash,string newHash,CancellationToken ct){ await using var c=(NpgsqlConnection)await connectionFactory.OpenAsync(ct); await using var tx=await c.BeginTransactionAsync(ct); var r=await First(c,"SELECT pr.id,pr.tenant_id,pr.usuario_id FROM integrarp.auth_password_reset pr JOIN integrarp.usuario u ON u.id=pr.usuario_id AND u.tenant_id=pr.tenant_id JOIN integrarp.tenant t ON t.id=pr.tenant_id WHERE lower(t.slug)=@slug AND lower(u.email)=@email AND pr.token_hash=@hash AND pr.consumed_at IS NULL AND pr.expires_at>now() FOR UPDATE",ct,P("slug",slug),P("email",email),P("hash",hash)); if(r is null){await tx.RollbackAsync(ct);return false;} await Exec(c,tx,"UPDATE integrarp.usuario_credencial SET password_hash=@new,security_stamp=gen_random_uuid()::text,atualizado_em=now() WHERE tenant_id=@tenant AND usuario_id=@user; UPDATE integrarp.auth_password_reset SET consumed_at=now() WHERE id=@id; UPDATE integrarp.auth_sessao SET revoked_at=COALESCE(revoked_at,now()),revocation_reason='password_reset' WHERE tenant_id=@tenant AND usuario_id=@user",ct,P("new",newHash),P("tenant",(Guid)r["tenant_id"]!),P("user",(Guid)r["usuario_id"]!),P("id",(Guid)r["id"]!)); await tx.CommitAsync(ct); return true; }
     public async Task<IReadOnlyList<AuthSessionDto>> ListSessionsAsync(Guid t,Guid u,CancellationToken ct){ await using var c=(NpgsqlConnection)await connectionFactory.OpenAsync(ct); var rows=await Rows(c,"SELECT id,device_id,device_name,criado_em,expires_at,revoked_at FROM integrarp.auth_sessao WHERE tenant_id=@tenant AND usuario_id=@user ORDER BY criado_em DESC LIMIT 50",ct,P("tenant",t),P("user",u)); return rows.Select(r=>new AuthSessionDto((Guid)r["id"]!,r["device_id"] as string,r["device_name"] as string,(DateTimeOffset)r["criado_em"]!,(DateTimeOffset)r["expires_at"]!,r["revoked_at"] as DateTimeOffset?)).ToArray(); }
-    static AuthUserRecord? MapUser(Dictionary<string,object?>? r) => r is null?null:new((Guid)r["id"]!,(Guid)r["tenant_id"]!,(string)r["email"]!,(string)r["nome"]!,(string)r["slug"]!,(string)r["tenant_nome"]!,r["password_hash"] as string,(string)r["user_status"]!,(string)r["tenant_status"]!,r["bloqueado_ate"] as DateTimeOffset?);
-    static NpgsqlParameter P(string n,object? v)=>new(n,v??DBNull.Value); static async Task Exec(NpgsqlConnection c,NpgsqlTransaction? tx,string sql,CancellationToken ct,params NpgsqlParameter[] p){await using var cmd=c.CreateCommand();cmd.Transaction=tx;cmd.CommandText=sql;foreach(var x in p)cmd.Parameters.Add(x);await cmd.ExecuteNonQueryAsync(ct);} static async Task<Dictionary<string,object?>?> First(NpgsqlConnection c,string sql,CancellationToken ct,params NpgsqlParameter[] p)=>(await Rows(c,sql,ct,p)).FirstOrDefault(); static async Task<List<string>> Scalars(NpgsqlConnection c,string sql,CancellationToken ct,params NpgsqlParameter[] p){var rows=await Rows(c,sql,ct,p);return rows.Select(r=>(string)r.Values.First()!).ToList();} static async Task<List<Dictionary<string,object?>>> Rows(NpgsqlConnection c,string sql,CancellationToken ct,params NpgsqlParameter[] p){await using var cmd=c.CreateCommand();cmd.CommandText=sql;foreach(var x in p)cmd.Parameters.Add(x);var list=new List<Dictionary<string,object?>>();await using var r=await cmd.ExecuteReaderAsync(ct);while(await r.ReadAsync(ct)){var d=new Dictionary<string,object?>(StringComparer.OrdinalIgnoreCase);for(var i=0;i<r.FieldCount;i++)d[r.GetName(i)]=await r.IsDBNullAsync(i,ct)?null:r.GetValue(i);list.Add(d);}return list;}
+    static AuthUserRecord? MapUser(Dictionary<string, object?>? row)
+    {
+        if (row is null)
+        {
+            return null;
+        }
+
+        return new AuthUserRecord(
+            Required<Guid>(row, "id"),
+            Required<Guid>(row, "tenant_id"),
+            Required<string>(row, "email"),
+            Required<string>(row, "nome"),
+            Required<string>(row, "slug"),
+            Required<string>(row, "tenant_nome"),
+            OptionalString(row, "password_hash"),
+            Required<string>(row, "user_status"),
+            Required<string>(row, "tenant_status"),
+            Optional<DateTimeOffset>(row, "bloqueado_ate"));
+    }
+
+    static T Required<T>(IReadOnlyDictionary<string, object?> row, string field)
+    {
+        if (!row.TryGetValue(field, out var value) || value is null)
+        {
+            throw new DataException($"O campo obrigatório '{field}' não foi retornado pelo banco de dados.");
+        }
+
+        if (value is T typedValue)
+        {
+            return typedValue;
+        }
+
+        throw new DataException($"O campo obrigatório '{field}' possui um tipo inesperado.");
+    }
+
+    static T? Optional<T>(IReadOnlyDictionary<string, object?> row, string field) where T : struct
+        => row.TryGetValue(field, out var value) && value is T typedValue ? typedValue : null;
+
+    static string? OptionalString(IReadOnlyDictionary<string, object?> row, string field)
+        => row.TryGetValue(field, out var value) ? value as string : null;
+
+    static NpgsqlParameter P(string n,object? v)=>new(n,v??DBNull.Value); static async Task Exec(NpgsqlConnection c,NpgsqlTransaction? tx,string sql,CancellationToken ct,params NpgsqlParameter[] p){await using var cmd=c.CreateCommand();cmd.Transaction=tx;cmd.CommandText=sql;foreach(var x in p)cmd.Parameters.Add(x);await cmd.ExecuteNonQueryAsync(ct);} static async Task<Dictionary<string,object?>?> First(NpgsqlConnection c,string sql,CancellationToken ct,params NpgsqlParameter[] p)=>(await Rows(c,sql,ct,p)).FirstOrDefault(); static async Task<List<string>> Scalars(NpgsqlConnection c,string sql,CancellationToken ct,params NpgsqlParameter[] p){var rows=await Rows(c,sql,ct,p);return rows.Select(r=>Required<string>(r, r.Keys.First())).ToList();} static async Task<List<Dictionary<string,object?>>> Rows(NpgsqlConnection c,string sql,CancellationToken ct,params NpgsqlParameter[] p){await using var cmd=c.CreateCommand();cmd.CommandText=sql;foreach(var x in p)cmd.Parameters.Add(x);var list=new List<Dictionary<string,object?>>();await using var r=await cmd.ExecuteReaderAsync(ct);while(await r.ReadAsync(ct)){var d=new Dictionary<string,object?>(StringComparer.OrdinalIgnoreCase);for(var i=0;i<r.FieldCount;i++)d[r.GetName(i)]=await r.IsDBNullAsync(i,ct)?null:r.GetValue(i);list.Add(d);}return list;}
 }
