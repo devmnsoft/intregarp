@@ -607,6 +607,17 @@
       "status": "versionada",
       "observacoes": "Migration aditiva v1.55; migrations 0001 a 0054 permanecem congeladas.",
       "checksum_sha256": "d216f64e449b2a2bd533745effd5850231508524dc59b8c537002553685a5321"
+    },
+    {
+      "ordem": 56,
+      "arquivo": "0056_v156_operacao_canonica_premium.sql",
+      "versao": "0056_v156_operacao_canonica_premium",
+      "descricao": "Operação canônica, unificação de tarefas e faturamento pendente",
+      "modulo": "Operations",
+      "presente_no_script_completop": true,
+      "status": "versionada",
+      "observacoes": "Migration aditiva v1.56; migrations 0001 a 0055 permanecem congeladas.",
+      "checksum_sha256": "c708397fda4dd98d11d9147cd6f8a66c098a46254b2017571683f5f0f989bcad"
     }
   ],
   "postgresql": "16",
