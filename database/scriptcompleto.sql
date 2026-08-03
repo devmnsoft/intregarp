@@ -8893,8 +8893,12 @@ COMMENT ON VIEW integrarp.vw_flow_processos_em_andamento IS
 
 -- >>> 0053_v151_product_experience_operacao.sql
 -- IntegraRP v1.51 — contrato canônico de prazo dos processos ativos.
--- processo_instancia não possui prazo próprio: o prazo operacional é o menor
--- vencimento ainda aberto entre as tarefas pertencentes à instância.
+-- Reconcilia o contrato antes da view para instalações originadas no esquema
+-- histórico. A ordem do prazo é: instância, tarefa aberta e política de SLA.
+ALTER TABLE integrarp.processo_sla_politica
+  ADD COLUMN IF NOT EXISTS processo_elemento_id uuid NULL,
+  ADD COLUMN IF NOT EXISTS sla_minutos integer NULL;
+
 CREATE OR REPLACE VIEW integrarp.vw_flow_processos_em_andamento AS
 SELECT
     i.tenant_id,
@@ -8902,25 +8906,36 @@ SELECT
     i.codigo,
     d.nome AS titulo,
     i.status,
-    deadlines.prazo_em
+    COALESCE(
+        i.prazo_em,
+        deadlines.prazo_em,
+        i.iniciado_em + make_interval(mins => sla.sla_minutos)
+    ) AS prazo_em
 FROM integrarp.processo_instancia AS i
 JOIN integrarp.processo_definicao AS d
   ON d.tenant_id = i.tenant_id
  AND d.processo_definicao_id = i.processo_definicao_id
  AND d.excluido_em IS NULL
 LEFT JOIN LATERAL (
-    SELECT min(t.vencimento_em) AS prazo_em
+    SELECT min(COALESCE(t.prazo_em, t.vencimento_em)) AS prazo_em
     FROM integrarp.tarefa AS t
     WHERE t.tenant_id = i.tenant_id
       AND t.processo_instancia_id = i.processo_instancia_id
       AND t.excluido_em IS NULL
       AND t.status IN ('pendente', 'atribuida', 'em_execucao', 'pausada')
 ) AS deadlines ON true
+LEFT JOIN LATERAL (
+    SELECT min(p.sla_minutos) AS sla_minutos
+    FROM integrarp.processo_sla_politica AS p
+    WHERE p.tenant_id = i.tenant_id
+      AND p.excluido_em IS NULL
+      AND p.sla_minutos > 0
+) AS sla ON true
 WHERE i.excluido_em IS NULL
   AND i.status IN ('em_andamento', 'aguardando_tarefa');
 
 COMMENT ON VIEW integrarp.vw_flow_processos_em_andamento IS
-  'Processos ativos; prazo derivado do menor vencimento das tarefas operacionais abertas.';
+  'Processos ativos; título canônico da definição e prazo da instância, tarefa aberta ou SLA.';
 
 -- <<< 0053_v151_product_experience_operacao.sql
 

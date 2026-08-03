@@ -2,7 +2,11 @@ using IntegraRP.Contracts.Commercial;
 
 namespace IntegraRP.Application.Commercial;
 
-public interface ICommercialOperationsRepository
+/// <summary>
+/// Compatibility contract for the commercial endpoints introduced before the
+/// specialized repositories. New commercial workflows must not depend on it.
+/// </summary>
+public interface ILegacyCommercialOperationsRepository
 {
     Task<IReadOnlyList<CustomerContactDto>> ListContactsAsync(Guid tenantId, Guid customerId, CancellationToken ct);
     Task<CustomerContactDto> AddContactAsync(Guid tenantId, Guid userId, Guid customerId, SaveCustomerContactRequest request, CancellationToken ct);
@@ -24,7 +28,7 @@ public interface ICommercialOperationsRepository
     Task<QuoteDto> DecideQuoteAsync(Guid tenantId, Guid userId, Guid id, bool approve, QuoteDecisionRequest request, string correlationId, CancellationToken ct);
 }
 
-public sealed class CommercialOperationsUseCases(ICommercialOperationsRepository repository)
+public sealed class CommercialOperationsUseCases(ILegacyCommercialOperationsRepository repository)
 {
     private static void Context(Guid tenantId, Guid userId) { if (tenantId == Guid.Empty || userId == Guid.Empty) throw new UnauthorizedAccessException("Tenant e usuário autenticados são obrigatórios."); }
     public Task<IReadOnlyList<CustomerContactDto>> ListContactsAsync(Guid tenantId, Guid customerId, CancellationToken ct) => repository.ListContactsAsync(tenantId, customerId, ct);

@@ -7,7 +7,7 @@ using IntegraRP.Infrastructure.Data;
 namespace IntegraRP.Infrastructure.Repositories.Postgres.Commercial;
 
 [Obsolete("Adapter legado; novos fluxos devem usar repositories comerciais especializados.")]
-public sealed class PostgresCommercialOperationsRepository(IDbConnectionFactory connections, NumeracaoComercialService numbering) : ICommercialOperationsRepository
+public sealed class PostgresCommercialOperationsRepository(IDbConnectionFactory connections, NumeracaoComercialService numbering) : ILegacyCommercialOperationsRepository
 {
     public async Task<IReadOnlyList<CustomerContactDto>> ListContactsAsync(Guid tenantId, Guid customerId, CancellationToken ct)
     { using var db=await connections.OpenConnectionAsync(ct); return (await db.QueryAsync<CustomerContactDto>(new CommandDefinition(ContactSelect+" WHERE tenant_id=@tenantId AND cliente_id=@customerId AND excluido_em IS NULL ORDER BY principal DESC,nome",new{tenantId,customerId},cancellationToken:ct))).AsList(); }

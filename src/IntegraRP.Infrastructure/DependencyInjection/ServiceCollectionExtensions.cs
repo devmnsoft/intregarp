@@ -55,7 +55,17 @@ public static class ServiceCollectionExtensions
         services.AddScoped<INotificationRepository, PostgresNotificationRepository>();
         services.AddScoped<ICommercialNumberRepository, PostgresCommercialNumberRepository>();
         services.AddScoped<NumeracaoComercialService>();
-        services.AddScoped<ICommercialOperationsRepository, PostgresCommercialOperationsRepository>();
+        // The obsolete adapter is resolved by name only for compatibility endpoints. Keeping
+        // the concrete type out of the primary dependency graph prevents new workflows from
+        // accidentally depending on the monolithic repository.
+        services.AddScoped<ILegacyCommercialOperationsRepository>(provider =>
+        {
+            const string legacyTypeName =
+                "IntegraRP.Infrastructure.Repositories.Postgres.Commercial.PostgresCommercialOperationsRepository, IntegraRP.Infrastructure";
+            var legacyType = Type.GetType(legacyTypeName, throwOnError: true)
+                ?? throw new InvalidOperationException("O adaptador comercial legado não pôde ser carregado.");
+            return (ILegacyCommercialOperationsRepository)ActivatorUtilities.CreateInstance(provider, legacyType);
+        });
         services.AddSingleton<IDataMaskingService, DataMaskingService>();
         services.AddSingleton<ILgpdAuditService, InMemoryLgpdAuditService>();
         services.AddSingleton<ISprint7BiProjectService, InMemoryBiProjectService>();
