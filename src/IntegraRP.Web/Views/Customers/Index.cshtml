@@ -1,17 +1,12 @@
-@{ ViewData["Title"] = "Clientes"; ViewData["Description"] = "Cadastre clientes e mantenha seus dados comerciais."; }
-<section class="integrarp-page" data-page-title="Clientes">
+@{ ViewData["Title"] = "Clientes"; ViewData["Description"] = "Relacionamentos, responsáveis e próximas ações em uma visão operacional."; }
+<section class="integrarp-page customers-workspace" data-page-title="Clientes">
   <partial name="_PageHeader" />
-  <div id="customers-status" class="alert alert-info" role="status">Carregando clientes...</div>
-  <form id="customer-form" class="card p-3 mb-3" aria-busy="false">
-    <input type="hidden" name="id" />
-    <div class="row g-3">
-      <div class="col-md-4"><label class="form-label" for="customer-name">Nome ou razão social</label><input id="customer-name" class="form-control" name="name" required /></div>
-      <div class="col-md-3"><label class="form-label" for="customer-document">CPF/CNPJ</label><input id="customer-document" class="form-control" name="document" inputmode="numeric" /></div>
-      <div class="col-md-3"><label class="form-label" for="customer-email">E-mail</label><input id="customer-email" class="form-control" name="email" type="email" /></div>
-      <div class="col-md-2 d-flex align-items-end"><button class="btn btn-primary w-100" type="submit"><app-icon name="success" /> Salvar</button></div>
-    </div>
-  </form>
-  <div class="table-responsive card"><table class="table table-hover mb-0"><thead><tr><th>Nome</th><th>Documento</th><th>E-mail</th><th>Status</th></tr></thead><tbody id="customers-list"></tbody></table></div>
-  <div id="customers-empty" class="p-4 text-center d-none">Nenhum cliente encontrado. Use o formulário acima para começar.</div>
+  <div class="app-action-bar"><div><strong>Carteira de clientes</strong><p>Acompanhe a última interação e mantenha os dados comerciais atualizados.</p></div><div class="app-action-bar__actions"><button class="app-button app-button--primary" type="button" data-customer-create><app-icon name="create" size="16" /> Novo cliente</button></div></div>
+  <div class="app-filter-bar" role="search"><label class="app-search-box" for="customers-search"><app-icon name="search" size="16" /><input id="customers-search" class="form-control" type="search" placeholder="Nome, documento ou e-mail" /></label><label for="customers-status-filter">Status <select id="customers-status-filter" class="form-select"><option value="">Todos</option><option value="ativo">Ativos</option><option value="inativo">Inativos</option></select></label></div>
+  <div id="customers-status" class="app-banner app-banner--info" role="status">Carregando clientes...</div>
+  <div class="table-responsive app-surface"><table class="app-data-table"><thead><tr><th>Cliente</th><th>Documento</th><th>Contato</th><th>Status</th><th>Próxima ação</th><th><span class="visually-hidden">Ações</span></th></tr></thead><tbody id="customers-list"></tbody></table></div>
+  <div id="customers-empty" class="app-empty-state" hidden><app-icon name="customers" size="32" /><h2>Nenhum cliente encontrado</h2><p>Ajuste os filtros ou cadastre o primeiro relacionamento da carteira.</p><button class="app-button app-button--primary" type="button" data-customer-create>Cadastrar cliente</button></div>
+  <nav class="app-pagination" aria-label="Paginação de clientes"><button type="button" class="app-button app-button--secondary" data-page-previous disabled>Anterior</button><span data-page-label>Página 1</span><button type="button" class="app-button app-button--secondary" data-page-next>Próxima</button></nav>
 </section>
+<aside class="app-drawer" id="customer-drawer" aria-hidden="true" aria-labelledby="customer-drawer-title" tabindex="-1"><header class="app-drawer__header"><div><small>Cliente 360</small><h2 id="customer-drawer-title">Novo cliente</h2></div><button class="app-icon-button" type="button" data-customer-close aria-label="Fechar"><app-icon name="close" /></button></header><form id="customer-form" class="app-drawer__body app-form" novalidate><input type="hidden" name="id" /><div class="app-validation-summary" data-customer-errors role="alert" tabindex="-1" hidden></div><label class="app-form-field" for="customer-name"><span>Nome ou razão social</span><input id="customer-name" class="form-control" name="name" required maxlength="160" /></label><label class="app-form-field" for="customer-document"><span>CPF/CNPJ</span><input id="customer-document" class="form-control" name="document" inputmode="numeric" maxlength="18" /></label><label class="app-form-field" for="customer-email"><span>E-mail</span><input id="customer-email" class="form-control" name="email" type="email" maxlength="160" /></label><div class="app-drawer__actions"><button class="app-button app-button--secondary" type="button" data-customer-close>Cancelar</button><button class="app-button app-button--primary" type="submit">Salvar cliente</button></div></form></aside><div class="app-drawer-backdrop" data-customer-backdrop hidden></div>
 @section Scripts { <script type="module" src="~/js/pages/customers.js" asp-append-version="true"></script> }

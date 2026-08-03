@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="~/css/app-shell.css" asp-append-version="true" />
   <link rel="stylesheet" href="~/css/components.css" asp-append-version="true" />
   <link rel="stylesheet" href="~/css/components/icons.css" asp-append-version="true" />
+  <link rel="stylesheet" href="~/css/premium-experience.css" asp-append-version="true" />
   <link rel="stylesheet" href="~/css/utilities.css" asp-append-version="true" />
   <link rel="stylesheet" href="~/css/accessibility.css" asp-append-version="true" />
   @await RenderSectionAsync("Styles", false)
@@ -33,6 +34,7 @@
   @await Html.PartialAsync("_NotificationPanel")
   @await Html.PartialAsync("_FeedbackHost")
   @await Html.PartialAsync("_CommandPalette")
+  @await Html.PartialAsync("_QuickCreate")
   @await Html.PartialAsync("_Scripts")
   @await RenderSectionAsync("Scripts", false)
 </body>
