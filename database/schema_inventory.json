@@ -1,18 +1,18 @@
 {
-  "contract": "Banco Canônico Integrarp v1.55",
+  "contract": "Banco Canônico Integrarp v1.56",
   "generatedAtUtc": "2026-08-03T00:00:00Z",
   "sourceManifest": "database/migration_manifest.json",
   "schema": "integrarp",
   "extensions": [
     "pgcrypto"
   ],
-  "migrations": 55,
+  "migrations": 56,
   "counts": {
-    "constraint": 215,
+    "constraint": 217,
     "function": 7,
     "index": 640,
     "table": 315,
-    "trigger": 138,
+    "trigger": 139,
     "view": 90
   },
   "objects": [
@@ -222,6 +222,22 @@
       "active": true,
       "canonicalDefinition": ", CONSTRAINT ck_estoque_saldo_quantidades CHECK (saldo_fisico >= 0 AND saldo_reservado >= 0 AND saldo_fisico >= saldo_reservado) )",
       "definitionChecksumSha256": "b0006deadab8d10610f67fee44b6f6be8aa35f75c1edb0052cf9b618daa6446a",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_faturamento_pendente_status_v156",
+      "type": "constraint",
+      "module": "Operations",
+      "originMigration": "0056_v156_operacao_canonica_premium.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.faturamento_pendente ADD CONSTRAINT ck_faturamento_pendente_status_v156 CHECK (status IN ('pendente',",
+      "definitionChecksumSha256": "f970469b9a31cea46c4a4bf03b5fb0574ee1b518c0c2b3467c50d530edce9ed4",
       "dependencies": []
     },
     {
@@ -1470,6 +1486,22 @@
       "active": true,
       "canonicalDefinition": "ALTER TABLE integrarp.tarefa_operacional ADD CONSTRAINT ck_tarefa_operacional_prioridade_v131 CHECK (prioridade IN ('baixa',",
       "definitionChecksumSha256": "cf8b5a7b9d914a056bfcd366818ad11954af323442968e0902b98092b7130930",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
+      "name": "ck_tarefa_status_v156",
+      "type": "constraint",
+      "module": "Operations",
+      "originMigration": "0056_v156_operacao_canonica_premium.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "ALTER TABLE integrarp.tarefa ADD CONSTRAINT ck_tarefa_status_v156 CHECK (status IN ('pendente',",
+      "definitionChecksumSha256": "d7cbb621604814f9393963e4637b7592aa50156da8b40ddb73837fb2f5a89cc3",
       "dependencies": []
     },
     {
@@ -22050,6 +22082,22 @@
     },
     {
       "schema": "integrarp",
+      "name": "trg_tarefa_operacional_somente_leitura",
+      "type": "trigger",
+      "module": "Operations",
+      "originMigration": "0056_v156_operacao_canonica_premium.sql",
+      "usedBy": [
+        "database/scriptcompleto.sql"
+      ],
+      "required": true,
+      "legacy": false,
+      "active": true,
+      "canonicalDefinition": "CREATE TRIGGER trg_tarefa_operacional_somente_leitura BEFORE INSERT OR UPDATE OR DELETE ON integrarp.tarefa_operacional FOR EACH STATEMENT EXECUTE FUNCTION integrarp.fn_tarefa_operacional_somente_leitura();",
+      "definitionChecksumSha256": "002bf5037bf98369d960c8d71b748a24568ffd64b035083422262f5ea1c239bf",
+      "dependencies": []
+    },
+    {
+      "schema": "integrarp",
       "name": "trg_tenant_atualizado_em",
       "type": "trigger",
       "module": "Database",
@@ -22916,16 +22964,16 @@
       "schema": "integrarp",
       "name": "vw_flow_dashboard_resumo",
       "type": "view",
-      "module": "Flow",
-      "originMigration": "0003_flow_bpmn_core.sql",
+      "module": "Operations",
+      "originMigration": "0056_v156_operacao_canonica_premium.sql",
       "usedBy": [
         "database/scriptcompleto.sql"
       ],
       "required": true,
       "legacy": false,
       "active": true,
-      "canonicalDefinition": "CREATE OR REPLACE VIEW integrarp.vw_flow_dashboard_resumo AS SELECT d.tenant_id, count(DISTINCT d.processo_definicao_id) FILTER (WHERE d.status = 'publicado') AS processos_publicados, count(DISTINCT i.processo_instancia_id) FILTER (WHERE i.status IN ('em_andamento','aguardando_tarefa')) AS processos_em_andamento, count(DISTINCT t.tarefa_id) FILTER (WHERE t.status IN ('aberta','atribuida','em_andamento')) AS tarefas_abertas, count(DISTINCT t.tarefa_id) FILTER (WHERE t.status <> 'concluida' AND t.prazo_em < now()) AS tarefas_atrasadas, count(DISTINCT i.processo_instancia_id) FILTER (WHERE i.status = 'concluido') AS processos_concluidos FROM integrarp.processo_definicao d LEFT JOIN integrarp.processo_instancia i ON i.tenant_id = d.tenant_id AND i.processo_definicao_id = d.processo_definicao_id AND i.excluido_em IS NULL LEFT JOIN integrarp.tarefa t ON t.tenant_id = d.tenant_id AND t.excluido_em IS NULL WHERE d.excluido_em IS NULL GROUP BY d.tenant_id;",
-      "definitionChecksumSha256": "f65cbad827ba109531684317ef88488600cce0c863c7ed41c631f5644d21d7f5",
+      "canonicalDefinition": "CREATE OR REPLACE VIEW integrarp.vw_flow_dashboard_resumo AS SELECT d.tenant_id, count(DISTINCT d.processo_definicao_id) FILTER (WHERE d.status = 'publicado') AS processos_publicados, count(DISTINCT i.processo_instancia_id) FILTER ( WHERE i.status IN ('em_andamento', 'aguardando_tarefa')) AS processos_em_andamento, count(DISTINCT t.id) FILTER ( WHERE t.status IN ('pendente', 'atribuida', 'em_execucao', 'pausada')) AS tarefas_abertas, count(DISTINCT t.id) FILTER ( WHERE t.status IN ('pendente', 'atribuida', 'em_execucao', 'pausada') AND t.vencimento_em < now()) AS tarefas_atrasadas, count(DISTINCT i.processo_instancia_id) FILTER (WHERE i.status = 'concluido') AS processos_concluidos FROM integrarp.processo_definicao AS d LEFT JOIN integrarp.processo_instancia AS i ON i.tenant_id = d.tenant_id AND i.processo_definicao_id = d.processo_definicao_id AND i.excluido_em IS NULL LEFT JOIN integrarp.tarefa AS t ON t.tenant_id = d.tenant_id AND t.processo_instancia_id = i.processo_instancia_id AND t.excluido_em IS NULL WHERE d.excluido_em IS NULL GROUP BY d.tenant_id;",
+      "definitionChecksumSha256": "539bfddd1e8a0de3972e4e0f65a61ad12fa47c8cac3149a275956cea052b3e69",
       "dependencies": []
     },
     {
@@ -22964,8 +23012,8 @@
       "schema": "integrarp",
       "name": "vw_flow_tarefas_abertas",
       "type": "view",
-      "module": "Commercial",
-      "originMigration": "0051_v149_orcamento_pedido_operacao.sql",
+      "module": "Operations",
+      "originMigration": "0056_v156_operacao_canonica_premium.sql",
       "usedBy": [
         "database/scriptcompleto.sql"
       ],
@@ -22980,8 +23028,8 @@
       "schema": "integrarp",
       "name": "vw_flow_tarefas_atrasadas",
       "type": "view",
-      "module": "Commercial",
-      "originMigration": "0051_v149_orcamento_pedido_operacao.sql",
+      "module": "Operations",
+      "originMigration": "0056_v156_operacao_canonica_premium.sql",
       "usedBy": [
         "database/scriptcompleto.sql"
       ],
