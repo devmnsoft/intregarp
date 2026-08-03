@@ -1,12 +1,12 @@
 -- Produto: IntegraRP
--- Versão: v1.56
+-- Versão: v1.57
 -- PostgreSQL: 16
 -- Schema: integrarp
 -- Arquivo principal: database/scriptcompleto.sql
--- Quantidade de migrations: 56
+-- Quantidade de migrations: 57
 -- Data UTC determinística: 2026-08-03T00:00:00Z
--- Checksum SHA-256: eea150b4141b9e71b363da0996973bf0a7159eb1b9d60b1020ce2d472a01187c
--- Contrato: Banco Canônico Integrarp v1.56
+-- Checksum SHA-256: cae8e63a53aa0eb0099d6c511a2fcbd957ca49959653628b32d22ad99030205f
+-- Contrato: Banco Canônico Integrarp v1.57
 -- Execução:
 -- psql -X "$POSTGRES_URI" --set ON_ERROR_STOP=1 --file database/scriptcompleto.sql
 -- Gerado automaticamente; não editar os arquivos de saída.
@@ -16,7 +16,7 @@ DO $version_check$
 BEGIN
   IF current_setting('server_version_num')::integer < 160000
      OR current_setting('server_version_num')::integer >= 170000 THEN
-    RAISE EXCEPTION 'IntegraRP v1.56 requer PostgreSQL 16; encontrado %', current_setting('server_version');
+    RAISE EXCEPTION 'IntegraRP v1.57 requer PostgreSQL 16; encontrado %', current_setting('server_version');
   END IF;
 END
 $version_check$;
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS integrarp.schema_contract (
     CONSTRAINT ck_schema_contract_postgresql CHECK (postgresql_major = 16),
     CONSTRAINT ck_schema_contract_schema CHECK (schema_name = 'integrarp')
 );
-SELECT pg_advisory_lock(15620260803);
+SELECT pg_advisory_lock(15320260803);
 BEGIN;
 
 -- >>> 0001_initial_integrarp.sql
@@ -9223,14 +9223,64 @@ ON CONFLICT (contract_name) DO UPDATE SET
 
 -- <<< 0056_v156_operacao_canonica_premium.sql
 
+-- >>> 0057_v157_runtime_canonico_operacao.sql
+-- IntegraRP v1.57 — runtime canônico da operação.
+-- A migration é aditiva e idempotente; tarefa_operacional permanece somente leitura.
+
+ALTER TABLE integrarp.tarefa
+  ADD COLUMN IF NOT EXISTS responsavel_email text NULL,
+  ADD COLUMN IF NOT EXISTS formulario_resposta_json jsonb NOT NULL DEFAULT '{}'::jsonb,
+  ADD COLUMN IF NOT EXISTS checklist_resposta_json jsonb NOT NULL DEFAULT '[]'::jsonb,
+  ADD COLUMN IF NOT EXISTS correlation_id text NULL,
+  ADD COLUMN IF NOT EXISTS sla_minutos integer NULL;
+
+UPDATE integrarp.tarefa
+SET status = CASE lower(btrim(status))
+  WHEN 'aberta' THEN 'pendente'
+  WHEN 'assumida' THEN 'atribuida'
+  WHEN 'em_andamento' THEN 'em_execucao'
+  ELSE lower(btrim(status))
+END;
+
+ALTER TABLE integrarp.tarefa DROP CONSTRAINT IF EXISTS ck_tarefa_status_v156;
+ALTER TABLE integrarp.tarefa DROP CONSTRAINT IF EXISTS ck_tarefa_status_v157;
+ALTER TABLE integrarp.tarefa ADD CONSTRAINT ck_tarefa_status_v157
+  CHECK (status IN ('pendente','atribuida','em_execucao','pausada','concluida','cancelada')) NOT VALID;
+ALTER TABLE integrarp.tarefa VALIDATE CONSTRAINT ck_tarefa_status_v157;
+
+CREATE INDEX IF NOT EXISTS ix_tarefa_pedido_etapa_ativa_v157
+  ON integrarp.tarefa(tenant_id,pedido_id,etapa_codigo)
+  WHERE pedido_id IS NOT NULL AND status NOT IN ('concluida','cancelada') AND excluido_em IS NULL;
+
+CREATE OR REPLACE VIEW integrarp.vw_flow_dashboard_resumo AS
+SELECT d.tenant_id,
+ count(DISTINCT d.processo_definicao_id) FILTER (WHERE d.status='publicado') AS processos_publicados,
+ count(DISTINCT i.processo_instancia_id) FILTER (WHERE i.status IN ('em_andamento','aguardando_tarefa')) AS processos_em_andamento,
+ count(DISTINCT t.id) FILTER (WHERE t.status IN ('pendente','atribuida','em_execucao','pausada')) AS tarefas_abertas,
+ count(DISTINCT t.id) FILTER (WHERE t.status IN ('pendente','atribuida','em_execucao','pausada') AND t.vencimento_em<now()) AS tarefas_atrasadas,
+ count(DISTINCT i.processo_instancia_id) FILTER (WHERE i.status='concluido') AS processos_concluidos
+FROM integrarp.processo_definicao d
+LEFT JOIN integrarp.processo_instancia i ON i.tenant_id=d.tenant_id AND i.processo_definicao_id=d.processo_definicao_id AND i.excluido_em IS NULL
+LEFT JOIN integrarp.tarefa t ON t.tenant_id=d.tenant_id AND t.processo_instancia_id=i.processo_instancia_id AND t.excluido_em IS NULL
+WHERE d.excluido_em IS NULL GROUP BY d.tenant_id;
+
+COMMENT ON TABLE integrarp.tarefa IS 'Fila canônica gravável de tarefas operacionais do IntegraRP v1.57.';
+COMMENT ON TABLE integrarp.tarefa_operacional IS 'Compatibilidade histórica somente leitura; nenhum writer produtivo pode utilizá-la.';
+
+INSERT INTO integrarp.schema_contract(contract_name,product_version,postgresql_major,schema_name,migration_count,manifest_generated_at_utc,installed_at,updated_at)
+VALUES('Banco Canônico Integrarp v1.57','v1.57',16,'integrarp',57,'2026-08-03T00:00:00Z'::timestamptz,now(),now())
+ON CONFLICT(contract_name) DO UPDATE SET product_version=EXCLUDED.product_version,migration_count=57,updated_at=now();
+
+-- <<< 0057_v157_runtime_canonico_operacao.sql
+
 DO $final_validation$
 BEGIN
   IF to_regnamespace('integrarp') IS NULL THEN RAISE EXCEPTION 'Schema integrarp ausente'; END IF;
-  IF NOT EXISTS (SELECT 1 FROM integrarp.schema_contract WHERE contract_name = 'Banco Canônico Integrarp v1.56' AND migration_count = 56) THEN RAISE EXCEPTION 'Contrato v1.56 ausente ou divergente'; END IF;
+  IF NOT EXISTS (SELECT 1 FROM integrarp.schema_contract WHERE contract_name = 'Banco Canônico Integrarp v1.57' AND migration_count = 57) THEN RAISE EXCEPTION 'Contrato v1.57 ausente ou divergente'; END IF;
   IF EXISTS (SELECT 1 FROM pg_catalog.pg_constraint c JOIN pg_catalog.pg_class r ON r.oid=c.conrelid JOIN pg_catalog.pg_namespace n ON n.oid=r.relnamespace WHERE n.nspname='integrarp' AND NOT c.convalidated) THEN
     RAISE EXCEPTION 'Existem constraints não validadas no schema integrarp';
   END IF;
 END
 $final_validation$;
 COMMIT;
-SELECT pg_advisory_unlock(15620260803);
+SELECT pg_advisory_unlock(15320260803);

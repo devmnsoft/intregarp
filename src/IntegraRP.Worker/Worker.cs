@@ -22,7 +22,7 @@ public sealed class Worker(
                 using var transaction = connection.BeginTransaction();
                 var expired = await connection.ExecuteAsync(new CommandDefinition("""
                     with changed as (
-                      update integrarp.tarefa_operacional
+                      update integrarp.tarefa
                          set prioridade='urgente', atualizado_em=now(), row_version=row_version+1
                        where vencimento_em < now() and status not in ('concluida','cancelada') and prioridade <> 'urgente'
                        returning tenant_id, responsavel_usuario_id usuario_id, id
