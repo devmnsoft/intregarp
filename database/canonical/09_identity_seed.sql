@@ -35,10 +35,10 @@ SELECT u.tenant_id,u.id,p.id FROM integrarp.usuario u JOIN integrarp.perfil p ON
 WHERE u.email LIKE '%@integrarp.local' AND NOT EXISTS (SELECT 1 FROM integrarp.usuario_perfil up WHERE up.tenant_id=u.tenant_id AND up.usuario_id=u.id AND up.perfil_id=p.id AND up.excluido_em IS NULL);
 
 INSERT INTO integrarp.usuario_credencial(tenant_id,usuario_id,password_hash,force_change)
-SELECT u.tenant_id,u.id,'AQAAAAIAAYagAAAAEBYBYBYBYBYBYBYBYBYBYBbcIOkFAFB33XCvH7YRbEaAya/c/8AaxRM/DTL6v1QSJg==',true
+SELECT u.tenant_id,u.id,'AQAAAAIAAYagAAAAEKTyhaipE06Oh65/I++1vhrDZc/PCCtMl8mC9wZ01Aa/eZjZgU58pF7xt20e1JdZug==',true
 FROM integrarp.usuario u WHERE u.email LIKE '%@integrarp.local' AND NOT EXISTS
  (SELECT 1 FROM integrarp.usuario_credencial c WHERE c.tenant_id=u.tenant_id AND c.usuario_id=u.id AND c.excluido_em IS NULL);
 
 INSERT INTO integrarp.auditoria_evento(tenant_id,usuario_id,entidade,entidade_id,acao,metadata_json)
-SELECT u.tenant_id,u.id,'usuario',u.id,'bootstrap.superadmin','{"force_change":true,"installer":"canonical-v1.60"}'::jsonb
+SELECT u.tenant_id,u.id,'usuario',u.id,'bootstrap.superadmin','{"force_change":true,"installer":"canonical-v1.60.2"}'::jsonb
 FROM integrarp.usuario u WHERE u.is_global AND NOT EXISTS (SELECT 1 FROM integrarp.auditoria_evento a WHERE a.entidade_id=u.id AND a.acao='bootstrap.superadmin');

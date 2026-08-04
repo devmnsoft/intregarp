@@ -289,21 +289,27 @@ EXECUTE FUNCTION integrarp.fn_set_atualizado_em();
 
 CREATE TABLE IF NOT EXISTS integrarp.processo_definicao (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  tenant_id uuid NULL,
-  nome text NULL,
-  codigo text NULL,
-  status text NOT NULL DEFAULT 'ativo',
-  prioridade text NULL,
-  responsavel_usuario_id uuid NULL,
-  setor_id uuid NULL,
-  sprint_id uuid NULL,
-  dados jsonb NOT NULL DEFAULT '{}'::jsonb,
-  metadados jsonb NOT NULL DEFAULT '{}'::jsonb,
+  processo_definicao_id uuid GENERATED ALWAYS AS (id) STORED UNIQUE,
+  tenant_id uuid NOT NULL,
+  codigo varchar(120) NOT NULL,
+  nome varchar(180) NOT NULL,
+  descricao text NULL,
+  modulo_origem varchar(80) NULL,
+  setor_dono_id uuid NULL,
+  status varchar(30) NOT NULL DEFAULT 'rascunho',
+  versao_publicada_id uuid NULL,
+  metadata_json jsonb NOT NULL DEFAULT '{}'::jsonb,
   criado_em timestamptz NOT NULL DEFAULT now(),
   criado_por_usuario_id uuid NULL,
   atualizado_em timestamptz NULL,
   atualizado_por_usuario_id uuid NULL,
-  excluido_em timestamptz NULL
+  excluido_em timestamptz NULL,
+  busca_textual tsvector,
+  prioridade text NULL,
+  responsavel_usuario_id uuid NULL,
+  setor_id uuid NULL,
+  sprint_id uuid NULL,
+  UNIQUE (tenant_id, codigo)
 );
 
 ALTER TABLE integrarp.processo_definicao ADD COLUMN IF NOT EXISTS busca_textual tsvector;
@@ -1658,19 +1664,6 @@ INSERT INTO integrarp.setor (nome, codigo) SELECT 'Logística', lower(regexp_rep
 INSERT INTO integrarp.setor (nome, codigo) SELECT 'Entregas e Transporte', lower(regexp_replace('Entregas e Transporte', '[^a-zA-Z0-9]+', '-', 'g')) WHERE NOT EXISTS (SELECT 1 FROM integrarp.setor WHERE nome = 'Entregas e Transporte');
 INSERT INTO integrarp.setor (nome, codigo) SELECT 'Serviços Gerais', lower(regexp_replace('Serviços Gerais', '[^a-zA-Z0-9]+', '-', 'g')) WHERE NOT EXISTS (SELECT 1 FROM integrarp.setor WHERE nome = 'Serviços Gerais');
 INSERT INTO integrarp.setor (nome, codigo) SELECT 'Motorista', lower(regexp_replace('Motorista', '[^a-zA-Z0-9]+', '-', 'g')) WHERE NOT EXISTS (SELECT 1 FROM integrarp.setor WHERE nome = 'Motorista');
-INSERT INTO integrarp.processo_definicao (nome, codigo, status) SELECT 'Pedido ao Pós-venda', lower(regexp_replace('Pedido ao Pós-venda', '[^a-zA-Z0-9]+', '-', 'g')), 'template' WHERE NOT EXISTS (SELECT 1 FROM integrarp.processo_definicao WHERE nome = 'Pedido ao Pós-venda');
-INSERT INTO integrarp.processo_definicao (nome, codigo, status) SELECT 'Emissão de Boletos', lower(regexp_replace('Emissão de Boletos', '[^a-zA-Z0-9]+', '-', 'g')), 'template' WHERE NOT EXISTS (SELECT 1 FROM integrarp.processo_definicao WHERE nome = 'Emissão de Boletos');
-INSERT INTO integrarp.processo_definicao (nome, codigo, status) SELECT 'Lançamento de Pedido', lower(regexp_replace('Lançamento de Pedido', '[^a-zA-Z0-9]+', '-', 'g')), 'template' WHERE NOT EXISTS (SELECT 1 FROM integrarp.processo_definicao WHERE nome = 'Lançamento de Pedido');
-INSERT INTO integrarp.processo_definicao (nome, codigo, status) SELECT 'Separação de Pedido', lower(regexp_replace('Separação de Pedido', '[^a-zA-Z0-9]+', '-', 'g')), 'template' WHERE NOT EXISTS (SELECT 1 FROM integrarp.processo_definicao WHERE nome = 'Separação de Pedido');
-INSERT INTO integrarp.processo_definicao (nome, codigo, status) SELECT 'Saída de Nota Fiscal / Expedição', lower(regexp_replace('Saída de Nota Fiscal / Expedição', '[^a-zA-Z0-9]+', '-', 'g')), 'template' WHERE NOT EXISTS (SELECT 1 FROM integrarp.processo_definicao WHERE nome = 'Saída de Nota Fiscal / Expedição');
-INSERT INTO integrarp.processo_definicao (nome, codigo, status) SELECT 'Romaneio e Entrega', lower(regexp_replace('Romaneio e Entrega', '[^a-zA-Z0-9]+', '-', 'g')), 'template' WHERE NOT EXISTS (SELECT 1 FROM integrarp.processo_definicao WHERE nome = 'Romaneio e Entrega');
-INSERT INTO integrarp.processo_definicao (nome, codigo, status) SELECT 'Prova de Entrega', lower(regexp_replace('Prova de Entrega', '[^a-zA-Z0-9]+', '-', 'g')), 'template' WHERE NOT EXISTS (SELECT 1 FROM integrarp.processo_definicao WHERE nome = 'Prova de Entrega');
-INSERT INTO integrarp.processo_definicao (nome, codigo, status) SELECT 'Pós-vendas', lower(regexp_replace('Pós-vendas', '[^a-zA-Z0-9]+', '-', 'g')), 'template' WHERE NOT EXISTS (SELECT 1 FROM integrarp.processo_definicao WHERE nome = 'Pós-vendas');
-INSERT INTO integrarp.processo_definicao (nome, codigo, status) SELECT 'Controle de Avaria e Devolução', lower(regexp_replace('Controle de Avaria e Devolução', '[^a-zA-Z0-9]+', '-', 'g')), 'template' WHERE NOT EXISTS (SELECT 1 FROM integrarp.processo_definicao WHERE nome = 'Controle de Avaria e Devolução');
-INSERT INTO integrarp.processo_definicao (nome, codigo, status) SELECT 'Atualização de Produto no Catálogo', lower(regexp_replace('Atualização de Produto no Catálogo', '[^a-zA-Z0-9]+', '-', 'g')), 'template' WHERE NOT EXISTS (SELECT 1 FROM integrarp.processo_definicao WHERE nome = 'Atualização de Produto no Catálogo');
-INSERT INTO integrarp.processo_definicao (nome, codigo, status) SELECT 'Ação de Vendas', lower(regexp_replace('Ação de Vendas', '[^a-zA-Z0-9]+', '-', 'g')), 'template' WHERE NOT EXISTS (SELECT 1 FROM integrarp.processo_definicao WHERE nome = 'Ação de Vendas');
-INSERT INTO integrarp.processo_definicao (nome, codigo, status) SELECT 'Checagem de Estoque', lower(regexp_replace('Checagem de Estoque', '[^a-zA-Z0-9]+', '-', 'g')), 'template' WHERE NOT EXISTS (SELECT 1 FROM integrarp.processo_definicao WHERE nome = 'Checagem de Estoque');
-INSERT INTO integrarp.processo_definicao (nome, codigo, status) SELECT 'Precificação no Ponto de Venda', lower(regexp_replace('Precificação no Ponto de Venda', '[^a-zA-Z0-9]+', '-', 'g')), 'template' WHERE NOT EXISTS (SELECT 1 FROM integrarp.processo_definicao WHERE nome = 'Precificação no Ponto de Venda');
 
 
 ALTER TABLE IF EXISTS integrarp.processo_definicao ADD COLUMN IF NOT EXISTS processo_definicao_id uuid;
@@ -8913,6 +8906,7 @@ COMMENT ON VIEW integrarp.vw_flow_processos_atrasados IS
 
 ALTER TABLE integrarp.tarefa
   ADD COLUMN IF NOT EXISTS pedido_id uuid NULL,
+  ADD COLUMN IF NOT EXISTS row_version bigint NOT NULL DEFAULT 1,
   ADD COLUMN IF NOT EXISTS metadata_json jsonb NOT NULL DEFAULT '{}'::jsonb;
 
 UPDATE integrarp.tarefa

@@ -23,11 +23,25 @@ jobs:
       - name: Reject forbidden schemas in database scripts
         run: |
           if rg -n '(^|[^a-zA-Z0-9_])(public|integra)\.' database; then exit 1; fi
-      - name: Apply scriptcompleto twice
-        env: { PGPASSWORD: integrarp_ci_password }
+      - name: Generate canonical one-shot and compare aliases
         run: |
-          psql -h localhost -U integrarp -d integrarp -v ON_ERROR_STOP=1 -f database/scriptcompleto.sql
-          psql -h localhost -U integrarp -d integrarp -v ON_ERROR_STOP=1 -f database/scriptcompleto.sql
+          python3 scripts/generate-scriptcompleto.py
+          cmp database/scriptcompleto.sql database/script_completop.sql
+          cmp database/validate_scriptcompleto.sql database/validate_script_completop.sql
+          ! rg --fixed-strings -- '-- >>> 000' database/scriptcompleto.sql
+          ! rg --fixed-strings 'database/migrations/' database/scriptcompleto.sql
+      - name: Apply canonical script three times and validate
+        env:
+          POSTGRES_URI: postgresql://integrarp:integrarp_ci_password@localhost:5432/integrarp
+        run: |
+          psql -X "$POSTGRES_URI" --set ON_ERROR_STOP=1 --file database/scriptcompleto.sql
+          psql -X "$POSTGRES_URI" --set ON_ERROR_STOP=1 --file database/validate_scriptcompleto.sql
+          psql -X "$POSTGRES_URI" --set ON_ERROR_STOP=1 --file database/scriptcompleto.sql
+          pg_dump --schema-only --no-owner --no-privileges "$POSTGRES_URI" > /tmp/schema-second.sql
+          psql -X "$POSTGRES_URI" --set ON_ERROR_STOP=1 --file database/scriptcompleto.sql
+          pg_dump --schema-only --no-owner --no-privileges "$POSTGRES_URI" > /tmp/schema-third.sql
+          cmp /tmp/schema-second.sql /tmp/schema-third.sql
+          psql -X "$POSTGRES_URI" --set ON_ERROR_STOP=1 --file database/validate_scriptcompleto.sql
       - name: Validate critical objects
         env: { PGPASSWORD: integrarp_ci_password }
         run: |
