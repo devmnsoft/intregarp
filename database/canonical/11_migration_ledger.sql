@@ -61,7 +61,7 @@ VALUES
 ('0058_v158_premium_experience_superadmin.sql','ca3bcc7438781e95e12ff61699c51b57aa3b6211e47dc6dbf9f276b8d9aab232'),
 ('0059_v159_canonical_compatibility_checkpoint.sql','canonical-checkpoint-v159'),
 ('0060_v160_instalador_canonico_one_shot.sql','a50a4e4ea8605e3f586991aada0cf06cab438d27d8e8b8c4fd5f16e2ab2536cb')
-ON CONFLICT (script_name) DO UPDATE SET checksum_sha256=EXCLUDED.checksum_sha256,success=true,error_message=NULL,executed_by='canonical-installer-v1.60';
+ON CONFLICT (script_name) DO UPDATE SET checksum_sha256=EXCLUDED.checksum_sha256,success=true,error_message=NULL,executed_by='canonical-installer-v1.60.2';
 INSERT INTO integrarp.schema_contract(contract_name,product_version,postgresql_major,schema_name,migration_count,manifest_generated_at_utc,installer_checksum,install_mode)
-VALUES('Banco Canônico Integrarp v1.60','v1.60',16,'integrarp',60,'2026-08-03T00:00:00Z','__INSTALLER_SHA256__','Development')
-ON CONFLICT(contract_name) DO UPDATE SET product_version='v1.60',migration_count=60,updated_at=now(),installer_checksum=EXCLUDED.installer_checksum;
+VALUES('Banco Canônico Integrarp v1.60.2','v1.60.2',16,'integrarp',60,'2026-08-03T00:00:00Z','__INSTALLER_SHA256__','Development')
+ON CONFLICT(contract_name) DO UPDATE SET product_version='v1.60.2',migration_count=60,updated_at=now(),installer_checksum=EXCLUDED.installer_checksum;

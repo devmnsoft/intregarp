@@ -20,5 +20,5 @@ if($exists -ne '1'){ & psql @common -d $AdminDatabase -c "CREATE DATABASE `"$Dat
 $root=Resolve-Path (Join-Path $PSScriptRoot '..')
 & psql @common -d $Database --file (Join-Path $root 'database/scriptcompleto.sql'); if($LASTEXITCODE){ throw 'Falha no instalador canônico.' }
 & psql @common -d $Database --file (Join-Path $root 'database/validate_scriptcompleto.sql'); if($LASTEXITCODE){ throw 'Falha na validação final.' }
-Write-Host "IntegraRP v1.60 instalado em ${DatabaseHost}:$Port/$Database (modo $InstallMode)."
+Write-Host "IntegraRP v1.60.2 instalado em ${DatabaseHost}:$Port/$Database (modo $InstallMode)."
 if($InstallMode -ne 'Production'){ Write-Host 'URL: http://localhost:5000 | usuário: admin@integrarp.local | troca de senha obrigatória' }

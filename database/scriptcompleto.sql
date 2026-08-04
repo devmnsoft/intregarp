@@ -1,9 +1,9 @@
 -- Produto: IntegraRP
--- Versão: v1.60
+-- Versão: v1.60.2
 -- PostgreSQL: 16
--- Contrato: Banco Canônico Integrarp v1.60
+-- Contrato: Banco Canônico Integrarp v1.60.2
 -- SQL PostgreSQL puro; execute externamente com ON_ERROR_STOP=1.
--- Gerado de database/canonical; não editar este artefato.
+-- Gerado exclusivamente de database/canonical; não editar este artefato.
 
 -- >>> canonical/01_preflight.sql
 -- Fase 01: preflight atômico. Execute com psql --set ON_ERROR_STOP=1.
@@ -323,21 +323,27 @@ EXECUTE FUNCTION integrarp.fn_set_atualizado_em();
 
 CREATE TABLE IF NOT EXISTS integrarp.processo_definicao (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  tenant_id uuid NULL,
-  nome text NULL,
-  codigo text NULL,
-  status text NOT NULL DEFAULT 'ativo',
-  prioridade text NULL,
-  responsavel_usuario_id uuid NULL,
-  setor_id uuid NULL,
-  sprint_id uuid NULL,
-  dados jsonb NOT NULL DEFAULT '{}'::jsonb,
-  metadados jsonb NOT NULL DEFAULT '{}'::jsonb,
+  processo_definicao_id uuid GENERATED ALWAYS AS (id) STORED UNIQUE,
+  tenant_id uuid NOT NULL,
+  codigo varchar(120) NOT NULL,
+  nome varchar(180) NOT NULL,
+  descricao text NULL,
+  modulo_origem varchar(80) NULL,
+  setor_dono_id uuid NULL,
+  status varchar(30) NOT NULL DEFAULT 'rascunho',
+  versao_publicada_id uuid NULL,
+  metadata_json jsonb NOT NULL DEFAULT '{}'::jsonb,
   criado_em timestamptz NOT NULL DEFAULT now(),
   criado_por_usuario_id uuid NULL,
   atualizado_em timestamptz NULL,
   atualizado_por_usuario_id uuid NULL,
-  excluido_em timestamptz NULL
+  excluido_em timestamptz NULL,
+  busca_textual tsvector,
+  prioridade text NULL,
+  responsavel_usuario_id uuid NULL,
+  setor_id uuid NULL,
+  sprint_id uuid NULL,
+  UNIQUE (tenant_id, codigo)
 );
 
 ALTER TABLE integrarp.processo_definicao ADD COLUMN IF NOT EXISTS busca_textual tsvector;
@@ -1692,19 +1698,6 @@ INSERT INTO integrarp.setor (nome, codigo) SELECT 'Logística', lower(regexp_rep
 INSERT INTO integrarp.setor (nome, codigo) SELECT 'Entregas e Transporte', lower(regexp_replace('Entregas e Transporte', '[^a-zA-Z0-9]+', '-', 'g')) WHERE NOT EXISTS (SELECT 1 FROM integrarp.setor WHERE nome = 'Entregas e Transporte');
 INSERT INTO integrarp.setor (nome, codigo) SELECT 'Serviços Gerais', lower(regexp_replace('Serviços Gerais', '[^a-zA-Z0-9]+', '-', 'g')) WHERE NOT EXISTS (SELECT 1 FROM integrarp.setor WHERE nome = 'Serviços Gerais');
 INSERT INTO integrarp.setor (nome, codigo) SELECT 'Motorista', lower(regexp_replace('Motorista', '[^a-zA-Z0-9]+', '-', 'g')) WHERE NOT EXISTS (SELECT 1 FROM integrarp.setor WHERE nome = 'Motorista');
-INSERT INTO integrarp.processo_definicao (nome, codigo, status) SELECT 'Pedido ao Pós-venda', lower(regexp_replace('Pedido ao Pós-venda', '[^a-zA-Z0-9]+', '-', 'g')), 'template' WHERE NOT EXISTS (SELECT 1 FROM integrarp.processo_definicao WHERE nome = 'Pedido ao Pós-venda');
-INSERT INTO integrarp.processo_definicao (nome, codigo, status) SELECT 'Emissão de Boletos', lower(regexp_replace('Emissão de Boletos', '[^a-zA-Z0-9]+', '-', 'g')), 'template' WHERE NOT EXISTS (SELECT 1 FROM integrarp.processo_definicao WHERE nome = 'Emissão de Boletos');
-INSERT INTO integrarp.processo_definicao (nome, codigo, status) SELECT 'Lançamento de Pedido', lower(regexp_replace('Lançamento de Pedido', '[^a-zA-Z0-9]+', '-', 'g')), 'template' WHERE NOT EXISTS (SELECT 1 FROM integrarp.processo_definicao WHERE nome = 'Lançamento de Pedido');
-INSERT INTO integrarp.processo_definicao (nome, codigo, status) SELECT 'Separação de Pedido', lower(regexp_replace('Separação de Pedido', '[^a-zA-Z0-9]+', '-', 'g')), 'template' WHERE NOT EXISTS (SELECT 1 FROM integrarp.processo_definicao WHERE nome = 'Separação de Pedido');
-INSERT INTO integrarp.processo_definicao (nome, codigo, status) SELECT 'Saída de Nota Fiscal / Expedição', lower(regexp_replace('Saída de Nota Fiscal / Expedição', '[^a-zA-Z0-9]+', '-', 'g')), 'template' WHERE NOT EXISTS (SELECT 1 FROM integrarp.processo_definicao WHERE nome = 'Saída de Nota Fiscal / Expedição');
-INSERT INTO integrarp.processo_definicao (nome, codigo, status) SELECT 'Romaneio e Entrega', lower(regexp_replace('Romaneio e Entrega', '[^a-zA-Z0-9]+', '-', 'g')), 'template' WHERE NOT EXISTS (SELECT 1 FROM integrarp.processo_definicao WHERE nome = 'Romaneio e Entrega');
-INSERT INTO integrarp.processo_definicao (nome, codigo, status) SELECT 'Prova de Entrega', lower(regexp_replace('Prova de Entrega', '[^a-zA-Z0-9]+', '-', 'g')), 'template' WHERE NOT EXISTS (SELECT 1 FROM integrarp.processo_definicao WHERE nome = 'Prova de Entrega');
-INSERT INTO integrarp.processo_definicao (nome, codigo, status) SELECT 'Pós-vendas', lower(regexp_replace('Pós-vendas', '[^a-zA-Z0-9]+', '-', 'g')), 'template' WHERE NOT EXISTS (SELECT 1 FROM integrarp.processo_definicao WHERE nome = 'Pós-vendas');
-INSERT INTO integrarp.processo_definicao (nome, codigo, status) SELECT 'Controle de Avaria e Devolução', lower(regexp_replace('Controle de Avaria e Devolução', '[^a-zA-Z0-9]+', '-', 'g')), 'template' WHERE NOT EXISTS (SELECT 1 FROM integrarp.processo_definicao WHERE nome = 'Controle de Avaria e Devolução');
-INSERT INTO integrarp.processo_definicao (nome, codigo, status) SELECT 'Atualização de Produto no Catálogo', lower(regexp_replace('Atualização de Produto no Catálogo', '[^a-zA-Z0-9]+', '-', 'g')), 'template' WHERE NOT EXISTS (SELECT 1 FROM integrarp.processo_definicao WHERE nome = 'Atualização de Produto no Catálogo');
-INSERT INTO integrarp.processo_definicao (nome, codigo, status) SELECT 'Ação de Vendas', lower(regexp_replace('Ação de Vendas', '[^a-zA-Z0-9]+', '-', 'g')), 'template' WHERE NOT EXISTS (SELECT 1 FROM integrarp.processo_definicao WHERE nome = 'Ação de Vendas');
-INSERT INTO integrarp.processo_definicao (nome, codigo, status) SELECT 'Checagem de Estoque', lower(regexp_replace('Checagem de Estoque', '[^a-zA-Z0-9]+', '-', 'g')), 'template' WHERE NOT EXISTS (SELECT 1 FROM integrarp.processo_definicao WHERE nome = 'Checagem de Estoque');
-INSERT INTO integrarp.processo_definicao (nome, codigo, status) SELECT 'Precificação no Ponto de Venda', lower(regexp_replace('Precificação no Ponto de Venda', '[^a-zA-Z0-9]+', '-', 'g')), 'template' WHERE NOT EXISTS (SELECT 1 FROM integrarp.processo_definicao WHERE nome = 'Precificação no Ponto de Venda');
 
 
 ALTER TABLE IF EXISTS integrarp.processo_definicao ADD COLUMN IF NOT EXISTS processo_definicao_id uuid;
@@ -8947,6 +8940,7 @@ COMMENT ON VIEW integrarp.vw_flow_processos_atrasados IS
 
 ALTER TABLE integrarp.tarefa
   ADD COLUMN IF NOT EXISTS pedido_id uuid NULL,
+  ADD COLUMN IF NOT EXISTS row_version bigint NOT NULL DEFAULT 1,
   ADD COLUMN IF NOT EXISTS metadata_json jsonb NOT NULL DEFAULT '{}'::jsonb;
 
 UPDATE integrarp.tarefa
@@ -9243,12 +9237,12 @@ SELECT u.tenant_id,u.id,p.id FROM integrarp.usuario u JOIN integrarp.perfil p ON
 WHERE u.email LIKE '%@integrarp.local' AND NOT EXISTS (SELECT 1 FROM integrarp.usuario_perfil up WHERE up.tenant_id=u.tenant_id AND up.usuario_id=u.id AND up.perfil_id=p.id AND up.excluido_em IS NULL);
 
 INSERT INTO integrarp.usuario_credencial(tenant_id,usuario_id,password_hash,force_change)
-SELECT u.tenant_id,u.id,'AQAAAAIAAYagAAAAEBYBYBYBYBYBYBYBYBYBYBbcIOkFAFB33XCvH7YRbEaAya/c/8AaxRM/DTL6v1QSJg==',true
+SELECT u.tenant_id,u.id,'AQAAAAIAAYagAAAAEKTyhaipE06Oh65/I++1vhrDZc/PCCtMl8mC9wZ01Aa/eZjZgU58pF7xt20e1JdZug==',true
 FROM integrarp.usuario u WHERE u.email LIKE '%@integrarp.local' AND NOT EXISTS
  (SELECT 1 FROM integrarp.usuario_credencial c WHERE c.tenant_id=u.tenant_id AND c.usuario_id=u.id AND c.excluido_em IS NULL);
 
 INSERT INTO integrarp.auditoria_evento(tenant_id,usuario_id,entidade,entidade_id,acao,metadata_json)
-SELECT u.tenant_id,u.id,'usuario',u.id,'bootstrap.superadmin','{"force_change":true,"installer":"canonical-v1.60"}'::jsonb
+SELECT u.tenant_id,u.id,'usuario',u.id,'bootstrap.superadmin','{"force_change":true,"installer":"canonical-v1.60.2"}'::jsonb
 FROM integrarp.usuario u WHERE u.is_global AND NOT EXISTS (SELECT 1 FROM integrarp.auditoria_evento a WHERE a.entidade_id=u.id AND a.acao='bootstrap.superadmin');
 -- <<< canonical/09_identity_seed.sql
 
@@ -9261,8 +9255,8 @@ INSERT INTO integrarp.estoque_local(id,tenant_id,codigo,nome,status)
 SELECT gen_random_uuid(),t.id,'principal','Estoque Principal','ativo' FROM integrarp.tenant t WHERE t.slug='valora-mnsoft-demo'
 AND NOT EXISTS (SELECT 1 FROM integrarp.estoque_local l WHERE l.tenant_id=t.id AND l.codigo='principal' AND l.excluido_em IS NULL);
 WITH t AS (SELECT id FROM integrarp.tenant WHERE slug='valora-mnsoft-demo')
-INSERT INTO integrarp.processo_definicao(id,processo_definicao_id,tenant_id,codigo,nome,descricao,status)
-SELECT '16000000-0000-0000-0000-000000000100','16000000-0000-0000-0000-000000000100',id,'pedido-ao-faturamento','Pedido ao Faturamento','Fluxo operacional canônico','publicado' FROM t
+INSERT INTO integrarp.processo_definicao(id,tenant_id,codigo,nome,descricao,status)
+SELECT '16000000-0000-0000-0000-000000000100',id,'pedido-ao-faturamento','Pedido ao Faturamento','Fluxo operacional canônico','publicado' FROM t
 ON CONFLICT(id) DO UPDATE SET descricao=EXCLUDED.descricao,status='publicado';
 WITH t AS (SELECT id FROM integrarp.tenant WHERE slug='valora-mnsoft-demo')
 INSERT INTO integrarp.processo_versao(id,processo_versao_id,tenant_id,processo_definicao_id,nome,codigo,status,numero_versao,publicado_em,bpmn_json)
@@ -9334,10 +9328,10 @@ VALUES
 ('0058_v158_premium_experience_superadmin.sql','ca3bcc7438781e95e12ff61699c51b57aa3b6211e47dc6dbf9f276b8d9aab232'),
 ('0059_v159_canonical_compatibility_checkpoint.sql','canonical-checkpoint-v159'),
 ('0060_v160_instalador_canonico_one_shot.sql','a50a4e4ea8605e3f586991aada0cf06cab438d27d8e8b8c4fd5f16e2ab2536cb')
-ON CONFLICT (script_name) DO UPDATE SET checksum_sha256=EXCLUDED.checksum_sha256,success=true,error_message=NULL,executed_by='canonical-installer-v1.60';
+ON CONFLICT (script_name) DO UPDATE SET checksum_sha256=EXCLUDED.checksum_sha256,success=true,error_message=NULL,executed_by='canonical-installer-v1.60.2';
 INSERT INTO integrarp.schema_contract(contract_name,product_version,postgresql_major,schema_name,migration_count,manifest_generated_at_utc,installer_checksum,install_mode)
-VALUES('Banco Canônico Integrarp v1.60','v1.60',16,'integrarp',60,'2026-08-03T00:00:00Z','780e22f40a8b18271d9570da929d86abdf2b707adec3e9c5d3cd498279ea08d4','Development')
-ON CONFLICT(contract_name) DO UPDATE SET product_version='v1.60',migration_count=60,updated_at=now(),installer_checksum=EXCLUDED.installer_checksum;
+VALUES('Banco Canônico Integrarp v1.60.2','v1.60.2',16,'integrarp',60,'2026-08-03T00:00:00Z','ad1818ffc8588221ac26881d07d708eaa28b9150e43abee5b19c58a284eb412c','Development')
+ON CONFLICT(contract_name) DO UPDATE SET product_version='v1.60.2',migration_count=60,updated_at=now(),installer_checksum=EXCLUDED.installer_checksum;
 -- <<< canonical/11_migration_ledger.sql
 
 -- >>> canonical/12_final_validation.sql
