@@ -1,7 +1,7 @@
 -- Produto: IntegraRP
--- Versão: v1.60.2
+-- Versão: v1.61
 -- PostgreSQL: 16
--- Contrato: Banco Canônico Integrarp v1.60.2
+-- Contrato: Banco Canônico Integrarp v1.61
 -- SQL PostgreSQL puro; execute externamente com ON_ERROR_STOP=1.
 -- Gerado exclusivamente de database/canonical; não editar este artefato.
 
@@ -9242,7 +9242,7 @@ FROM integrarp.usuario u WHERE u.email LIKE '%@integrarp.local' AND NOT EXISTS
  (SELECT 1 FROM integrarp.usuario_credencial c WHERE c.tenant_id=u.tenant_id AND c.usuario_id=u.id AND c.excluido_em IS NULL);
 
 INSERT INTO integrarp.auditoria_evento(tenant_id,usuario_id,entidade,entidade_id,acao,metadata_json)
-SELECT u.tenant_id,u.id,'usuario',u.id,'bootstrap.superadmin','{"force_change":true,"installer":"canonical-v1.60.2"}'::jsonb
+SELECT u.tenant_id,u.id,'usuario',u.id,'bootstrap.superadmin','{"force_change":true,"installer":"canonical-v1.61"}'::jsonb
 FROM integrarp.usuario u WHERE u.is_global AND NOT EXISTS (SELECT 1 FROM integrarp.auditoria_evento a WHERE a.entidade_id=u.id AND a.acao='bootstrap.superadmin');
 -- <<< canonical/09_identity_seed.sql
 
@@ -9328,10 +9328,10 @@ VALUES
 ('0058_v158_premium_experience_superadmin.sql','ca3bcc7438781e95e12ff61699c51b57aa3b6211e47dc6dbf9f276b8d9aab232'),
 ('0059_v159_canonical_compatibility_checkpoint.sql','canonical-checkpoint-v159'),
 ('0060_v160_instalador_canonico_one_shot.sql','a50a4e4ea8605e3f586991aada0cf06cab438d27d8e8b8c4fd5f16e2ab2536cb')
-ON CONFLICT (script_name) DO UPDATE SET checksum_sha256=EXCLUDED.checksum_sha256,success=true,error_message=NULL,executed_by='canonical-installer-v1.60.2';
+ON CONFLICT (script_name) DO UPDATE SET checksum_sha256=EXCLUDED.checksum_sha256,success=true,error_message=NULL,executed_by='canonical-installer-v1.61';
 INSERT INTO integrarp.schema_contract(contract_name,product_version,postgresql_major,schema_name,migration_count,manifest_generated_at_utc,installer_checksum,install_mode)
-VALUES('Banco Canônico Integrarp v1.60.2','v1.60.2',16,'integrarp',60,'2026-08-03T00:00:00Z','ad1818ffc8588221ac26881d07d708eaa28b9150e43abee5b19c58a284eb412c','Development')
-ON CONFLICT(contract_name) DO UPDATE SET product_version='v1.60.2',migration_count=60,updated_at=now(),installer_checksum=EXCLUDED.installer_checksum;
+VALUES('Banco Canônico Integrarp v1.61','v1.61',16,'integrarp',60,'2026-08-03T00:00:00Z','3f996a4f622ab38a7868f8e60603d40faf01cf0fbdac6a12529ed1f820058f8c','Development')
+ON CONFLICT(contract_name) DO UPDATE SET product_version='v1.61',migration_count=60,updated_at=now(),installer_checksum=EXCLUDED.installer_checksum;
 -- <<< canonical/11_migration_ledger.sql
 
 -- >>> canonical/12_final_validation.sql

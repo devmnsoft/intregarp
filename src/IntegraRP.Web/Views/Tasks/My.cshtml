@@ -1,3 +1,4 @@
-@{ ViewData["Title"] = "Minhas tarefas"; }
+@{ ViewData["Title"] = "Minhas tarefas";  ViewData["ModuleGuideKey"] = "Tarefas"; ViewData["ModuleGuideTitle"] = "Organize a fila operacional por prioridade e SLA"; ViewData["ModuleGuideText"] = "Use Tarefas para assumir, iniciar, pausar, concluir e registrar divergências de processos como separação e conferência."; ViewData["ModuleGuideActions"] = "Assumir tarefa; Iniciar execução; Atualizar checklist; Registrar divergência; Concluir com evidência"; ViewData["ModuleGuideOutcome"] = "Resultado esperado: fila limpa, responsabilidades explícitas e histórico auditável.";}
+<partial name="_AppModuleGuide" />
 <section class="integrarp-page"><h1>Minhas tarefas</h1><div id="tasks-status" class="alert alert-info">Carregando tarefas reais...</div><div id="tasks-list" class="row g-3"></div></section>
 @section Scripts { <script type="module" src="~/js/pages/tasks.js"></script> }

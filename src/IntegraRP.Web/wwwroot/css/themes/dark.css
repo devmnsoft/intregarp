@@ -1,0 +1,5 @@
+html[data-theme="dark"] { color-scheme: dark; }
+html[data-theme="dark"] body, html[data-theme="dark"] .app-content { background: #020617; color: #E5E7EB; }
+html[data-theme="dark"] .panel, html[data-theme="dark"] .app-surface, html[data-theme="dark"] .integrarp-card { background: #0F172A; border-color: #334155; color: #F8FAFC; }
+html[data-theme="dark"] .app-module-guide { background: linear-gradient(135deg,#0F172A,#102A56); border-color: #1D4ED8; }
+html[data-theme="dark"] .app-module-guide h2, html[data-theme="dark"] .app-module-guide p, html[data-theme="dark"] .app-module-guide ul { color: #F8FAFC; }

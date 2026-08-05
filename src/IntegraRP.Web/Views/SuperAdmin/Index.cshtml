@@ -1,5 +1,6 @@
-@{ ViewData["Title"] = "Super Administração"; ViewData["Description"] = "Governança global de tenants, identidades e saúde da plataforma."; }
+@{ ViewData["Title"] = "Super Administração"; ViewData["Description"] = "Governança global de tenants, identidades e saúde da plataforma.";  ViewData["ModuleGuideKey"] = "SuperAdmin"; ViewData["ModuleGuideTitle"] = "Administre tenants, usuários e saúde da plataforma"; ViewData["ModuleGuideText"] = "Use SuperAdmin para governança auditada, suporte controlado e ações críticas com impacto explícito por tenant."; ViewData["ModuleGuideActions"] = "Criar tenant; Ativar ou suspender tenant; Bloquear usuário; Revogar sessões; Reprocessar dead-letter autorizado"; ViewData["ModuleGuideOutcome"] = "Resultado esperado: plataforma governada com trilha de auditoria e riscos operacionais visíveis.";}
 
+<partial name="_AppModuleGuide" />
 <section class="app-action-bar" aria-label="Ações da Super Administração">
   <div><span class="app-status-badge app-status-badge--secure"><app-icon name="audit" size="16" /> Contexto global auditado</span></div>
   <div class="app-action-bar__actions">

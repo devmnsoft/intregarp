@@ -1,3 +1,4 @@
-@{ ViewData["Title"] = "Pedidos"; }
+@{ ViewData["Title"] = "Pedidos";  ViewData["ModuleGuideKey"] = "Pedidos"; ViewData["ModuleGuideTitle"] = "Gerencie pedidos da criação até o faturamento"; ViewData["ModuleGuideText"] = "Acompanhe cliente, itens, reservas, separação, conferência e pendências antes do faturamento."; ViewData["ModuleGuideActions"] = "Confirmar pedido; Acompanhar separação; Resolver bloqueios; Enviar para faturamento"; ViewData["ModuleGuideOutcome"] = "Resultado esperado: pedidos com etapa clara, SLA visível e próxima ação definida.";}
+<partial name="_AppModuleGuide" />
 <section class="integrarp-page"><h1>Pedidos</h1><div id="orders-status" class="alert alert-info">Carregando pedidos reais...</div><div class="table-responsive"><table class="table table-striped"><thead><tr><th>Número</th><th>Cliente</th><th>Status</th><th>Valor</th><th>Ações</th></tr></thead><tbody id="orders-list"></tbody></table></div></section>
 @section Scripts { <script type="module" src="~/js/pages/orders.js"></script> }

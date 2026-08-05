@@ -4,6 +4,10 @@
 @import url("./tokens/spacing.css");
 @import url("./tokens/elevation.css");
 @import url("./tokens/motion.css");
+@import url("./foundations/accessibility.css");
+@import url("./layout/premium-shell.css");
+@import url("./components/module-guide.css");
+@import url("./themes/dark.css");
 
 :root {
   --integrarp-blue: #071F3A;

@@ -1,0 +1,27 @@
+@{
+    var title = ViewData["ModuleGuideTitle"] as string ?? "Entenda esta área";
+    var text = ViewData["ModuleGuideText"] as string ?? "Use este espaço para acompanhar a operação, priorizar pendências e executar ações com segurança.";
+    var actions = (ViewData["ModuleGuideActions"] as string ?? "Revisar indicadores; Filtrar dados; Executar ações prioritárias").Split(';', System.StringSplitOptions.RemoveEmptyEntries | System.StringSplitOptions.TrimEntries);
+    var outcome = ViewData["ModuleGuideOutcome"] as string ?? "Resultado esperado: operação atualizada, riscos visíveis e próximos passos claros.";
+    var key = (ViewData["ModuleGuideKey"] as string ?? (ViewData["Title"]?.ToString() ?? "geral")).ToLowerInvariant().Replace(" ", "-");
+}
+<section class="app-module-guide" data-module-guide="@key" aria-labelledby="module-guide-@key-title">
+  <button class="app-module-guide__toggle" type="button" data-module-guide-toggle aria-expanded="true" aria-controls="module-guide-@key-body">
+    <span><app-icon name="help" size="18" /> Guia operacional</span>
+    <span class="app-module-guide__state">Recolher</span>
+  </button>
+  <div class="app-module-guide__body" id="module-guide-@key-body">
+    <div>
+      <p class="eyebrow">Quando usar</p>
+      <h2 id="module-guide-@key-title">@title</h2>
+      <p>@text</p>
+      <p class="app-module-guide__outcome">@outcome</p>
+    </div>
+    <div>
+      <p class="eyebrow">Ações principais</p>
+      <ul>
+        @foreach (var action in actions) { <li>@action</li> }
+      </ul>
+    </div>
+  </div>
+</section>
