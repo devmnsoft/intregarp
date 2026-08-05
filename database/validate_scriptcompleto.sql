@@ -1,4 +1,4 @@
--- Validação externa do contrato canônico IntegraRP v1.60.2 (SQL PostgreSQL puro).
+-- Validação externa do contrato canônico IntegraRP v1.61 (SQL PostgreSQL puro).
 DO $validation$
 DECLARE missing text;
 BEGIN
@@ -22,7 +22,7 @@ BEGIN
  IF NOT EXISTS(SELECT FROM integrarp.perfil_permissao pp JOIN integrarp.permissao p ON p.id=pp.permissao_id WHERE p.codigo='dashboard.view') THEN RAISE EXCEPTION '[validation:role-permission] permissão ausente'; END IF;
  IF NOT EXISTS(SELECT FROM integrarp.processo_definicao WHERE codigo='pedido-ao-faturamento') THEN RAISE EXCEPTION '[validation:process] processo padrão ausente'; END IF;
  IF (SELECT count(*) FROM integrarp.schema_migrations WHERE success)<60 THEN RAISE EXCEPTION '[validation:ledger] incompleto'; END IF;
- IF NOT EXISTS(SELECT FROM integrarp.schema_contract WHERE product_version='v1.60.2' AND postgresql_major=16) THEN RAISE EXCEPTION '[validation:contract] v1.60.2 ausente'; END IF;
+ IF NOT EXISTS(SELECT FROM integrarp.schema_contract WHERE product_version='v1.61' AND postgresql_major=16) THEN RAISE EXCEPTION '[validation:contract] v1.61 ausente'; END IF;
  IF EXISTS(SELECT FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind IN('r','p') AND c.relname NOT LIKE 'pg_%') THEN RAISE EXCEPTION '[validation:qualification] tabela de aplicação fora de integrarp'; END IF;
 END $validation$;
 SELECT sc.product_version AS versao,
@@ -32,4 +32,4 @@ SELECT sc.product_version AS versao,
  (SELECT count(*) FROM integrarp.permissao WHERE excluido_em IS NULL) AS permissoes,
  (SELECT count(*) FROM integrarp.processo_definicao WHERE excluido_em IS NULL) AS processos,
  true AS instalacao_valida
-FROM integrarp.schema_contract sc WHERE sc.product_version='v1.60.2';
+FROM integrarp.schema_contract sc WHERE sc.product_version='v1.61';

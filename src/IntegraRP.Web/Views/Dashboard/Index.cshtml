@@ -1,6 +1,7 @@
 @model IntegraRP.Web.ViewModels.Dashboard.DashboardViewModel
-@{ ViewData["Title"] = "Dashboard executivo"; ViewData["Description"] = "Priorize riscos, gargalos e próximas ações com dados operacionais reais."; }
+@{ ViewData["Title"] = "Dashboard executivo"; ViewData["Description"] = "Priorize riscos, gargalos e próximas ações com dados operacionais reais.";  ViewData["ModuleGuideKey"] = "Dashboard"; ViewData["ModuleGuideTitle"] = "Acompanhe KPIs, riscos e próximos passos da operação"; ViewData["ModuleGuideText"] = "Use o dashboard no início do turno e em reuniões rápidas para identificar gargalos, falhas parciais de consulta e decisões que exigem ação."; ViewData["ModuleGuideActions"] = "Atualizar indicadores; Abrir Central de Ações; Investigar KPIs com alerta; Priorizar tarefas vencidas"; ViewData["ModuleGuideOutcome"] = "Resultado esperado: operação priorizada sem perder dados carregados quando algum serviço falhar.";}
 @section Styles { <link rel="stylesheet" href="~/css/pages/dashboard.css" asp-append-version="true" /> }
+<partial name="_AppModuleGuide" />
 <section class="dashboard-hero panel" aria-labelledby="dashboard-heading">
   <div><p class="eyebrow">Bom trabalho</p><h2 id="dashboard-heading">Visão executiva da operação — @Model.TenantName</h2><p>Período atual · última atualização @Model.LastUpdatedAt.ToLocalTime().ToString("g")</p></div>
   <div class="d-flex gap-2"><button class="btn btn-primary" type="button" data-refresh-dashboard>Atualizar</button><a class="btn btn-outline-primary" href="/tasks/my">Ver tarefas</a></div>

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Gera e verifica deterministicamente o instalador canônico IntegraRP v1.60.2."""
+"""Gera e verifica deterministicamente o instalador canônico IntegraRP v1.61."""
 from pathlib import Path
 import hashlib, re
 ROOT = Path(__file__).resolve().parent.parent
@@ -49,7 +49,7 @@ for table, cols in re.findall(r"INSERT\s+INTO\s+integrarp\.([a-z0-9_]+)\s*\(([^)
  if absent: raise SystemExit(f"Seed integrarp.{table} usa colunas ausentes: {sorted(absent)}")
 template_hash=hashlib.sha256(body.encode()).hexdigest()
 body=body.replace("__INSTALLER_SHA256__",template_hash)
-header="""-- Produto: IntegraRP\n-- Versão: v1.60.2\n-- PostgreSQL: 16\n-- Contrato: Banco Canônico Integrarp v1.60.2\n-- SQL PostgreSQL puro; execute externamente com ON_ERROR_STOP=1.\n-- Gerado exclusivamente de database/canonical; não editar este artefato.\n\n"""
+header="""-- Produto: IntegraRP\n-- Versão: v1.61\n-- PostgreSQL: 16\n-- Contrato: Banco Canônico Integrarp v1.61\n-- SQL PostgreSQL puro; execute externamente com ON_ERROR_STOP=1.\n-- Gerado exclusivamente de database/canonical; não editar este artefato.\n\n"""
 content=(header+body).encode("utf-8")
 for name in ("scriptcompleto.sql","script_completop.sql"): (DB/name).write_bytes(content)
 if (DB/"scriptcompleto.sql").read_bytes() != (DB/"script_completop.sql").read_bytes(): raise SystemExit("Aliases gerados divergem")

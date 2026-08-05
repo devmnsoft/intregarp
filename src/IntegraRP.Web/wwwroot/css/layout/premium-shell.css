@@ -1,0 +1,6 @@
+.app-content { background: #F8FAFC; }
+.app-sidebar, .integrarp-sidebar { background: #071F3A; color: #fff; }
+.app-sidebar a, .integrarp-sidebar a { color: #DBEAFE; }
+.app-sidebar [aria-current="page"], .app-sidebar .active { background: rgb(37 99 235 / 22%); color: #fff; box-shadow: inset 4px 0 0 #F59E0B; }
+.app-topbar { border-bottom: 1px solid #E5E7EB; background: rgba(255,255,255,.94); backdrop-filter: blur(18px); }
+@media (max-width: 768px) { .app-content { padding-inline: 1rem; } .app-drawer { width: min(100vw, 34rem); } }

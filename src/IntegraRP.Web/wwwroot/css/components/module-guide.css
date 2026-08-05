@@ -1,0 +1,11 @@
+.app-module-guide { margin: 0 0 1.25rem; border: 1px solid #BFDBFE; border-radius: 1.25rem; background: linear-gradient(135deg,#fff,#EFF6FF); box-shadow: 0 18px 45px rgb(15 23 42 / 8%); overflow: hidden; }
+.app-module-guide__toggle { width: 100%; border: 0; background: #071F3A; color: #fff; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .85rem 1rem; font-weight: 700; }
+.app-module-guide__toggle span:first-child { display: inline-flex; align-items: center; gap: .55rem; }
+.app-module-guide__body { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(15rem, .8fr); gap: 1rem; padding: 1.15rem; color: #111827; }
+.app-module-guide h2 { font-size: clamp(1.15rem, 2vw, 1.55rem); margin: .2rem 0 .5rem; color: #071F3A; }
+.app-module-guide p { margin-bottom: .55rem; color: #1F2937; }
+.app-module-guide ul { margin: 0; padding-left: 1.15rem; color: #111827; }
+.app-module-guide li + li { margin-top: .35rem; }
+.app-module-guide__outcome { font-weight: 700; }
+.app-module-guide.is-collapsed .app-module-guide__body { display: none; }
+@media (max-width: 720px) { .app-module-guide__body { grid-template-columns: 1fr; } }

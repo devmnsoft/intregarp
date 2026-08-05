@@ -18,5 +18,5 @@ if [[ "$exists" != 1 ]]; then "${admin[@]}" -c "CREATE DATABASE \"$DATABASE\""; 
 target=(psql -X -h "$HOST" -p "$PORT" -U "$USERNAME" -d "$DATABASE" --set ON_ERROR_STOP=1)
 "${target[@]}" --file "$ROOT/database/scriptcompleto.sql"
 "${target[@]}" --file "$ROOT/database/validate_scriptcompleto.sql"
-echo "IntegraRP v1.60.2 instalado em $HOST:$PORT/$DATABASE (modo $INSTALL_MODE)."
+echo "IntegraRP v1.61 instalado em $HOST:$PORT/$DATABASE (modo $INSTALL_MODE)."
 if [[ "$INSTALL_MODE" != Production ]]; then echo 'URL: http://localhost:5000 | usuário: admin@integrarp.local | troca de senha obrigatória'; fi
