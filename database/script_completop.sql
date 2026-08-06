@@ -9161,6 +9161,19 @@ GROUP BY d.tenant_id;
 INSERT INTO integrarp.schema_contract(contract_name,product_version,postgresql_major,schema_name,migration_count,manifest_generated_at_utc,installed_at,updated_at)
 VALUES('Banco Canônico Integrarp v1.58','v1.58',16,'integrarp',58,'2026-08-03T00:00:00Z'::timestamptz,now(),now())
 ON CONFLICT(contract_name) DO UPDATE SET product_version=EXCLUDED.product_version,migration_count=58,updated_at=now();
+
+-- v1.61: reconcilia explicitamente o contrato que antes aparecia somente em
+-- CREATE TABLE IF NOT EXISTS históricos. Esses CREATEs não acrescentam colunas
+-- quando a tabela já nasceu em uma fase anterior do instalador one-shot.
+ALTER TABLE integrarp.produto
+  ADD COLUMN IF NOT EXISTS preco numeric(18,2) NOT NULL DEFAULT 0;
+ALTER TABLE integrarp.pedido
+  ADD COLUMN IF NOT EXISTS cliente_id uuid NULL,
+  ADD COLUMN IF NOT EXISTS valor_total numeric(18,2) NOT NULL DEFAULT 0;
+ALTER TABLE integrarp.tarefa
+  ADD COLUMN IF NOT EXISTS titulo text NULL;
+ALTER TABLE integrarp.outbox_evento
+  ADD COLUMN IF NOT EXISTS payload_json jsonb NOT NULL DEFAULT '{}'::jsonb;
 -- <<< canonical/03_tables.sql
 
 -- >>> canonical/04_constraints.sql
@@ -9247,7 +9260,8 @@ FROM integrarp.usuario u WHERE u.is_global AND NOT EXISTS (SELECT 1 FROM integra
 -- <<< canonical/09_identity_seed.sql
 
 -- >>> canonical/10_business_seed.sql
--- Fase 10: seed operacional mínimo, sem clientes, pedidos ou faturas demonstrativos.
+-- Fase 10: seed operacional mínimo e determinístico para a jornada de
+-- homologação. UUIDs estáveis e ON CONFLICT tornam a instalação repetível.
 INSERT INTO integrarp.setor(id,tenant_id,nome,status)
 SELECT gen_random_uuid(),t.id,n,'ativo' FROM integrarp.tenant t CROSS JOIN unnest(ARRAY['Administração','Diretoria','Financeiro','Vendas','Logística','Operações','Auditoria / LGPD']) n
 WHERE t.slug='valora-mnsoft-demo' AND NOT EXISTS (SELECT 1 FROM integrarp.setor s WHERE s.tenant_id=t.id AND s.nome=n AND s.excluido_em IS NULL);
@@ -9262,6 +9276,55 @@ WITH t AS (SELECT id FROM integrarp.tenant WHERE slug='valora-mnsoft-demo')
 INSERT INTO integrarp.processo_versao(id,processo_versao_id,tenant_id,processo_definicao_id,nome,codigo,status,numero_versao,publicado_em,bpmn_json)
 SELECT '16000000-0000-0000-0000-000000000101','16000000-0000-0000-0000-000000000101',id,'16000000-0000-0000-0000-000000000100','Pedido ao Faturamento v1','pedido-ao-faturamento-v1','publicado',1,now(),'{}'::jsonb FROM t
 ON CONFLICT(id) DO UPDATE SET status='publicado',numero_versao=1;
+
+WITH t AS (SELECT id FROM integrarp.tenant WHERE slug='valora-mnsoft-demo')
+INSERT INTO integrarp.cliente(id,tenant_id,nome,codigo,status,dados)
+SELECT '16000000-0000-0000-0000-000000000200',id,'Cliente Piloto Valora','CLI-PILOTO','ativo','{"documento":"12.345.678/0001-90","email":"contato@valora.local"}'::jsonb FROM t
+ON CONFLICT(id) DO UPDATE SET nome=EXCLUDED.nome,status='ativo';
+
+WITH t AS (SELECT id FROM integrarp.tenant WHERE slug='valora-mnsoft-demo')
+INSERT INTO integrarp.produto(id,tenant_id,nome,codigo,status,preco,dados)
+SELECT '16000000-0000-0000-0000-000000000201',id,'Produto Operacional Piloto','SKU-PILOTO','ativo',249.90,'{"estoque_minimo":5}'::jsonb FROM t
+ON CONFLICT(id) DO UPDATE SET nome=EXCLUDED.nome,preco=EXCLUDED.preco,status='ativo';
+
+WITH contexto AS (
+ SELECT t.id AS tenant_id,l.id AS local_id FROM integrarp.tenant t
+ JOIN integrarp.estoque_local l ON l.tenant_id=t.id AND l.codigo='principal'
+ WHERE t.slug='valora-mnsoft-demo'
+)
+INSERT INTO integrarp.estoque_saldo(id,tenant_id,produto_id,estoque_local_id,quantidade,reservado,status)
+SELECT '16000000-0000-0000-0000-000000000208',tenant_id,'16000000-0000-0000-0000-000000000201',local_id,12,1,'ativo' FROM contexto
+ON CONFLICT(tenant_id,produto_id,estoque_local_id) DO UPDATE SET quantidade=12,reservado=1,status='ativo';
+
+WITH t AS (SELECT id FROM integrarp.tenant WHERE slug='valora-mnsoft-demo')
+INSERT INTO integrarp.pedido(id,tenant_id,nome,codigo,numero,cliente_id,status,valor_total,dados)
+SELECT '16000000-0000-0000-0000-000000000202',id,'Pedido piloto','PED-PILOTO','PED-0001','16000000-0000-0000-0000-000000000200','confirmado',249.90,'{"origem":"instalador-v1.61"}'::jsonb FROM t
+ON CONFLICT(id) DO UPDATE SET cliente_id=EXCLUDED.cliente_id,valor_total=EXCLUDED.valor_total,status='confirmado';
+
+WITH t AS (SELECT id FROM integrarp.tenant WHERE slug='valora-mnsoft-demo')
+INSERT INTO integrarp.processo_instancia(id,processo_instancia_id,tenant_id,processo_definicao_id,nome,codigo,status,dados)
+SELECT '16000000-0000-0000-0000-000000000203','16000000-0000-0000-0000-000000000203',id,'16000000-0000-0000-0000-000000000100','Execução do pedido piloto','PROC-PILOTO','em_andamento','{"pedido_id":"16000000-0000-0000-0000-000000000202"}'::jsonb FROM t
+ON CONFLICT(id) DO UPDATE SET processo_instancia_id=EXCLUDED.processo_instancia_id,processo_definicao_id=EXCLUDED.processo_definicao_id,status='em_andamento';
+
+WITH t AS (SELECT id FROM integrarp.tenant WHERE slug='valora-mnsoft-demo')
+INSERT INTO integrarp.tarefa(id,tenant_id,nome,titulo,codigo,status,prioridade,dados)
+SELECT '16000000-0000-0000-0000-000000000204',id,'Conferir pedido piloto','Conferir pedido piloto','TAR-PILOTO','pendente','alta','{"pedido_id":"16000000-0000-0000-0000-000000000202"}'::jsonb FROM t
+ON CONFLICT(id) DO UPDATE SET titulo=EXCLUDED.titulo,status='pendente',prioridade='alta';
+
+WITH t AS (SELECT id FROM integrarp.tenant WHERE slug='valora-mnsoft-demo')
+INSERT INTO integrarp.faturamento_pendente(id,tenant_id,pedido_id,processo_instancia_id,tarefa_id,status)
+SELECT '16000000-0000-0000-0000-000000000205',id,'16000000-0000-0000-0000-000000000202','16000000-0000-0000-0000-000000000203','16000000-0000-0000-0000-000000000204','pendente' FROM t
+ON CONFLICT(tenant_id,pedido_id) DO UPDATE SET status='pendente',processo_instancia_id=EXCLUDED.processo_instancia_id,tarefa_id=EXCLUDED.tarefa_id;
+
+WITH t AS (SELECT id FROM integrarp.tenant WHERE slug='valora-mnsoft-demo')
+INSERT INTO integrarp.notificacao(id,tenant_id,evento,titulo,corpo,canal,status,metadata_json)
+SELECT '16000000-0000-0000-0000-000000000206',id,'pedido.pendente_faturamento','Pedido pronto para análise','Revise as pendências antes de preparar o faturamento.','sistema','pendente','{}'::jsonb FROM t
+ON CONFLICT(id) DO UPDATE SET titulo=EXCLUDED.titulo,corpo=EXCLUDED.corpo,status='pendente';
+
+WITH t AS (SELECT id FROM integrarp.tenant WHERE slug='valora-mnsoft-demo')
+INSERT INTO integrarp.central_acao(id,tenant_id,tipo,entidade_tipo,entidade_id,titulo,impacto,prazo_em,acao_recomendada,deep_link,prioridade,status)
+SELECT '16000000-0000-0000-0000-000000000207',id,'faturamento_pendente','pedido','16000000-0000-0000-0000-000000000202','Preparar faturamento do pedido PED-0001','O pedido permanece aguardando faturamento.',now()+interval '1 day','Revisar documentos e concluir a preparação.','/Orders/Billing',1,'aberta' FROM t
+ON CONFLICT(tenant_id,tipo,entidade_tipo,entidade_id) DO UPDATE SET titulo=EXCLUDED.titulo,impacto=EXCLUDED.impacto,status='aberta';
 -- <<< canonical/10_business_seed.sql
 
 -- >>> canonical/11_migration_ledger.sql
@@ -9330,7 +9393,7 @@ VALUES
 ('0060_v160_instalador_canonico_one_shot.sql','a50a4e4ea8605e3f586991aada0cf06cab438d27d8e8b8c4fd5f16e2ab2536cb')
 ON CONFLICT (script_name) DO UPDATE SET checksum_sha256=EXCLUDED.checksum_sha256,success=true,error_message=NULL,executed_by='canonical-installer-v1.61';
 INSERT INTO integrarp.schema_contract(contract_name,product_version,postgresql_major,schema_name,migration_count,manifest_generated_at_utc,installer_checksum,install_mode)
-VALUES('Banco Canônico Integrarp v1.61','v1.61',16,'integrarp',60,'2026-08-03T00:00:00Z','3f996a4f622ab38a7868f8e60603d40faf01cf0fbdac6a12529ed1f820058f8c','Development')
+VALUES('Banco Canônico Integrarp v1.61','v1.61',16,'integrarp',60,'2026-08-03T00:00:00Z','a1ce2bf7a8e7f21553236303526f2cb8dd741ecb03cf780ef8a15a5313b65b15','Development')
 ON CONFLICT(contract_name) DO UPDATE SET product_version='v1.61',migration_count=60,updated_at=now(),installer_checksum=EXCLUDED.installer_checksum;
 -- <<< canonical/11_migration_ledger.sql
 
@@ -9342,6 +9405,14 @@ BEGIN
  SELECT string_agg(x,', ') INTO missing FROM unnest(ARRAY['tenant','usuario','usuario_credencial','usuario_perfil','perfil','permissao','perfil_permissao','setor','estoque_local','processo_definicao','processo_versao','schema_migrations','schema_contract']) x WHERE to_regclass('integrarp.'||x) IS NULL;
  IF missing IS NOT NULL THEN RAISE EXCEPTION '[final-validation:tables] ausentes: %',missing; END IF;
  IF NOT EXISTS(SELECT 1 FROM integrarp.tenant WHERE slug='valora-mnsoft-demo' AND status='ativo' AND excluido_em IS NULL) THEN RAISE EXCEPTION '[final-validation:tenant] tenant piloto ausente'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM integrarp.cliente WHERE id='16000000-0000-0000-0000-000000000200') THEN RAISE EXCEPTION '[final-validation:seed] cliente piloto ausente'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM integrarp.produto WHERE id='16000000-0000-0000-0000-000000000201' AND preco > 0) THEN RAISE EXCEPTION '[final-validation:seed] produto piloto ausente'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM integrarp.estoque_saldo WHERE produto_id='16000000-0000-0000-0000-000000000201' AND quantidade-reservado > 0) THEN RAISE EXCEPTION '[final-validation:seed] saldo de estoque piloto ausente'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM integrarp.pedido WHERE id='16000000-0000-0000-0000-000000000202' AND cliente_id IS NOT NULL AND valor_total > 0) THEN RAISE EXCEPTION '[final-validation:seed] pedido piloto ausente'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM integrarp.tarefa WHERE id='16000000-0000-0000-0000-000000000204' AND titulo IS NOT NULL) THEN RAISE EXCEPTION '[final-validation:seed] tarefa piloto ausente'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM integrarp.faturamento_pendente WHERE pedido_id='16000000-0000-0000-0000-000000000202' AND status='pendente') THEN RAISE EXCEPTION '[final-validation:seed] faturamento pendente ausente'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM integrarp.notificacao WHERE id='16000000-0000-0000-0000-000000000206') THEN RAISE EXCEPTION '[final-validation:seed] notificação ausente'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM integrarp.central_acao WHERE id='16000000-0000-0000-0000-000000000207' AND status='aberta') THEN RAISE EXCEPTION '[final-validation:seed] central de ações ausente'; END IF;
  IF (SELECT count(*) FROM integrarp.schema_migrations WHERE success)=60 THEN NULL; ELSE RAISE EXCEPTION '[final-validation:ledger] esperado 60 registros'; END IF;
  IF EXISTS(SELECT 1 FROM pg_constraint c JOIN pg_class r ON r.oid=c.conrelid JOIN pg_namespace n ON n.oid=r.relnamespace WHERE n.nspname='integrarp' AND NOT c.convalidated) THEN RAISE EXCEPTION '[final-validation:constraints] constraint não validada'; END IF;
 END $final_validation$;
