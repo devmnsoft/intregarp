@@ -21,6 +21,14 @@ BEGIN
  IF NOT EXISTS(SELECT FROM integrarp.usuario_perfil up JOIN integrarp.perfil p ON p.id=up.perfil_id WHERE p.nome IN ('SuperAdmin','Administrador Geral')) THEN RAISE EXCEPTION '[validation:user-role] administrador sem perfil'; END IF;
  IF NOT EXISTS(SELECT FROM integrarp.perfil_permissao pp JOIN integrarp.permissao p ON p.id=pp.permissao_id WHERE p.codigo='dashboard.view') THEN RAISE EXCEPTION '[validation:role-permission] permissão ausente'; END IF;
  IF NOT EXISTS(SELECT FROM integrarp.processo_definicao WHERE codigo='pedido-ao-faturamento') THEN RAISE EXCEPTION '[validation:process] processo padrão ausente'; END IF;
+ IF NOT EXISTS(SELECT FROM integrarp.cliente WHERE id='16000000-0000-0000-0000-000000000200') THEN RAISE EXCEPTION '[validation:seed] cliente piloto ausente'; END IF;
+ IF NOT EXISTS(SELECT FROM integrarp.produto WHERE id='16000000-0000-0000-0000-000000000201' AND preco > 0) THEN RAISE EXCEPTION '[validation:seed] produto piloto ausente'; END IF;
+ IF NOT EXISTS(SELECT FROM integrarp.estoque_saldo WHERE produto_id='16000000-0000-0000-0000-000000000201' AND quantidade-reservado > 0) THEN RAISE EXCEPTION '[validation:seed] saldo de estoque piloto ausente'; END IF;
+ IF NOT EXISTS(SELECT FROM integrarp.pedido WHERE id='16000000-0000-0000-0000-000000000202' AND valor_total > 0) THEN RAISE EXCEPTION '[validation:seed] pedido piloto ausente'; END IF;
+ IF NOT EXISTS(SELECT FROM integrarp.tarefa WHERE id='16000000-0000-0000-0000-000000000204' AND titulo IS NOT NULL) THEN RAISE EXCEPTION '[validation:seed] tarefa piloto ausente'; END IF;
+ IF NOT EXISTS(SELECT FROM integrarp.faturamento_pendente WHERE pedido_id='16000000-0000-0000-0000-000000000202') THEN RAISE EXCEPTION '[validation:seed] faturamento pendente ausente'; END IF;
+ IF NOT EXISTS(SELECT FROM integrarp.notificacao WHERE id='16000000-0000-0000-0000-000000000206') THEN RAISE EXCEPTION '[validation:seed] notificação ausente'; END IF;
+ IF NOT EXISTS(SELECT FROM integrarp.central_acao WHERE id='16000000-0000-0000-0000-000000000207') THEN RAISE EXCEPTION '[validation:seed] central de ações ausente'; END IF;
  IF (SELECT count(*) FROM integrarp.schema_migrations WHERE success)<60 THEN RAISE EXCEPTION '[validation:ledger] incompleto'; END IF;
  IF NOT EXISTS(SELECT FROM integrarp.schema_contract WHERE product_version='v1.61' AND postgresql_major=16) THEN RAISE EXCEPTION '[validation:contract] v1.61 ausente'; END IF;
  IF EXISTS(SELECT FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind IN('r','p') AND c.relname NOT LIKE 'pg_%') THEN RAISE EXCEPTION '[validation:qualification] tabela de aplicação fora de integrarp'; END IF;

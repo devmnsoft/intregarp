@@ -9128,3 +9128,15 @@ INSERT INTO integrarp.schema_contract(contract_name,product_version,postgresql_m
 VALUES('Banco Canônico Integrarp v1.58','v1.58',16,'integrarp',58,'2026-08-03T00:00:00Z'::timestamptz,now(),now())
 ON CONFLICT(contract_name) DO UPDATE SET product_version=EXCLUDED.product_version,migration_count=58,updated_at=now();
 
+-- v1.61: reconcilia explicitamente o contrato que antes aparecia somente em
+-- CREATE TABLE IF NOT EXISTS históricos. Esses CREATEs não acrescentam colunas
+-- quando a tabela já nasceu em uma fase anterior do instalador one-shot.
+ALTER TABLE integrarp.produto
+  ADD COLUMN IF NOT EXISTS preco numeric(18,2) NOT NULL DEFAULT 0;
+ALTER TABLE integrarp.pedido
+  ADD COLUMN IF NOT EXISTS cliente_id uuid NULL,
+  ADD COLUMN IF NOT EXISTS valor_total numeric(18,2) NOT NULL DEFAULT 0;
+ALTER TABLE integrarp.tarefa
+  ADD COLUMN IF NOT EXISTS titulo text NULL;
+ALTER TABLE integrarp.outbox_evento
+  ADD COLUMN IF NOT EXISTS payload_json jsonb NOT NULL DEFAULT '{}'::jsonb;
